@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { onDestroy } from 'svelte';
 	import { resetPassword } from '$lib/auth';
-	import { isAuthenticated, mustChangePassword } from '$lib/stores/auth';
+	import { auth } from '$lib/stores/auth';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -10,10 +10,10 @@
 	import { Field, FieldLabel, FieldDescription, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
 
-	let oldPassword = '';
+	let currentPassword = '';
 	let newPassword = '';
 	let confirmNewPassword = '';
-	let showOldPassword = false;
+	let showCurrentPassword = false;
 	let showNewPassword = false;
 	let showConfirmPassword = false;
 
@@ -21,34 +21,34 @@
 	let errorMessage: string | null = null;
 	let newPasswordError: string | null = null;
 
-	let isAuthenticatedValue = false;
-	let mustChangePasswordValue = false;
+	// Track if we've seen initialization happen (to avoid acting on initial store state)
+	let hasSeenInitializing = false;
+	let authInitialized = false;
 
-	const unsubAuth = isAuthenticated.subscribe((value) => {
-		isAuthenticatedValue = value;
-		runGuard();
-	});
-
-	const unsubMustChange = mustChangePassword.subscribe((value) => {
-		mustChangePasswordValue = value;
-		runGuard();
-	});
-
-	function runGuard() {
-		if (typeof window === 'undefined') return;
-		if (isSubmitting) return;
-
-		// If not authenticated, go back to login; if authenticated but no need to change password, go home.
-		if (!isAuthenticatedValue) {
-			goto('/login');
-		} else if (!mustChangePasswordValue) {
-			goto('/');
+	const unsubAuth = auth.subscribe((authState) => {
+		// Track when we see isInitializing: true (refresh in progress)
+		if (authState.isInitializing) {
+			hasSeenInitializing = true;
+			return;
 		}
-	}
+		
+		// Only consider auth initialized after we've seen isInitializing cycle
+		// or if there's already a user (meaning auth was restored from a previous session)
+		if (hasSeenInitializing || authState.user) {
+			authInitialized = true;
+		}
+		
+		// Skip guard during submission or if auth hasn't properly initialized yet
+		if (isSubmitting || !authInitialized) return;
+		
+		// Redirect to login if not authenticated (user must be logged in to change password)
+		if (!authState.user) {
+			goto('/login');
+		}
+	});
 
 	onDestroy(() => {
 		unsubAuth();
-		unsubMustChange();
 	});
 
 	const handleSubmit = async () => {
@@ -57,7 +57,7 @@
 		errorMessage = null;
 		newPasswordError = null;
 
-		if (!oldPassword || !newPassword) {
+		if (!currentPassword || !newPassword) {
 			errorMessage = 'Por favor, rellena todos los campos.';
 			return;
 		}
@@ -75,7 +75,7 @@
 		isSubmitting = true;
 
 		try {
-			await resetPassword(oldPassword, newPassword);
+			await resetPassword(currentPassword, newPassword);
 			await goto('/');
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'No se ha podido restablecer la contraseña';
@@ -88,32 +88,35 @@
 <div class="min-h-screen flex items-center justify-center bg-background px-4">
 	<Card class="w-full max-w-md">
 		<CardHeader class="space-y-1">
-			<CardTitle class="text-2xl font-semibold tracking-tight">Restablecer contraseña</CardTitle>
+			<CardTitle class="text-2xl font-semibold tracking-tight">Cambiar contraseña</CardTitle>
 			<CardDescription>
-				Para continuar, debes establecer una nueva contraseña para tu cuenta.
+				Introduce tu contraseña actual y elige una nueva contraseña para tu cuenta.
 			</CardDescription>
+			<p class="text-sm text-muted-foreground pt-2">
+				Si has olvidado tu contraseña, contacta con soporte en <a href="mailto:support@eufia.eu" class="text-primary underline underline-offset-4 hover:text-primary/80">support@eufia.eu</a>
+			</p>
 		</CardHeader>
 		<CardContent>
 			<form class="space-y-6" on:submit|preventDefault={handleSubmit}>
 				<Field>
 					<FieldLabel>
-						<Label for="oldPassword">Contraseña actual</Label>
+						<Label for="currentPassword">Contraseña actual</Label>
 					</FieldLabel>
 					<InputGroup>
 						<InputGroupInput
-							id="oldPassword"
-							type={showOldPassword ? 'text' : 'password'}
-							bind:value={oldPassword}
+							id="currentPassword"
+							type={showCurrentPassword ? 'text' : 'password'}
+							bind:value={currentPassword}
 							required
 							autocomplete="current-password"
 						/>
 						<InputGroupButton
 							type="button"
-							onclick={() => (showOldPassword = !showOldPassword)}
-							aria-label={showOldPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+							onclick={() => (showCurrentPassword = !showCurrentPassword)}
+							aria-label={showCurrentPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
 						>
 							<span class="material-symbols-rounded">
-								{showOldPassword ? 'visibility_off' : 'visibility'}
+								{showCurrentPassword ? 'visibility_off' : 'visibility'}
 							</span>
 						</InputGroupButton>
 					</InputGroup>
@@ -145,7 +148,6 @@
 							</span>
 						</InputGroupButton>
 					</InputGroup>
-					<FieldDescription>Elige una contraseña segura que no uses en otros sitios.</FieldDescription>
 					{#if newPasswordError}
 						<FieldError class="text-sm text-destructive">{newPasswordError}</FieldError>
 					{/if}

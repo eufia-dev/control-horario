@@ -44,7 +44,11 @@
 		try {
 			const user = await login(email, password);
 
+			console.log(user);
+			console.log(currentMustChangePassword);
+
 			if (user.mustChangePassword || currentMustChangePassword) {
+				console.log('redirecting to reset password');
 				await goto('/reset-password');
 			} else {
 				await goto('/');
@@ -77,7 +81,6 @@
 						required
 						autocomplete="email"
 					/>
-					<FieldDescription>Usa tu correo electrónico para iniciar sesión.</FieldDescription>
 				</Field>
 
 				<Field>
@@ -116,7 +119,7 @@
 					<FieldError class="text-sm text-destructive">{errorMessage}</FieldError>
 				{/if}
 
-				<CardFooter class="flex flex-col gap-2 px-0">
+				<CardFooter class="flex flex-col gap-4 px-0">
 					<Button type="submit" class="w-full" disabled={isSubmitting}>
 						{#if isSubmitting}
 							Iniciando sesión...
@@ -124,6 +127,9 @@
 							Iniciar sesión
 						{/if}
 					</Button>
+					<p class="text-sm text-muted-foreground text-center">
+						<a href="/reset-password" class="text-primary underline underline-offset-4 hover:text-primary/80">Cambiar contraseña</a>
+					</p>
 				</CardFooter>
 			</form>
 		</CardContent>

@@ -2,29 +2,28 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { auth, isAuthenticated, mustChangePassword } from '$lib/stores/auth';
+	import { auth, isAuthenticated } from '$lib/stores/auth';
 	import { initAuthFromRefresh, logout } from '$lib/auth';
 
 	let { children } = $props();
 
 	let isInitializing = $state(true);
 	let isAuthed = $state(false);
-	let mustChange = $state(false);
 
 	let unsubAuth: (() => void) | undefined;
 	let unsubIsAuthed: (() => void) | undefined;
-	let unsubMustChange: (() => void) | undefined;
 
 	function runGuards(pathname: string) {
 		if (typeof window === 'undefined') return;
+		if (isInitializing) return;
 
 		const isLoginRoute = pathname === '/login';
 		const isResetRoute = pathname === '/reset-password';
 
-		// Solo protegemos rutas privadas; la lógica de cambio de contraseña
-		// se maneja en las propias páginas.
 		if (!isAuthed && !isLoginRoute && !isResetRoute) {
 			goto('/login');
+		} else if (isAuthed && isLoginRoute) {
+			goto('/');
 		}
 	}
 
@@ -38,13 +37,6 @@
 
 		unsubIsAuthed = isAuthenticated.subscribe((value) => {
 			isAuthed = value;
-			if (typeof window !== 'undefined') {
-				runGuards(window.location.pathname);
-			}
-		});
-
-		unsubMustChange = mustChangePassword.subscribe((value) => {
-			mustChange = value;
 			if (typeof window !== 'undefined') {
 				runGuards(window.location.pathname);
 			}
@@ -67,7 +59,6 @@
 		return () => {
 			unsubAuth?.();
 			unsubIsAuthed?.();
-			unsubMustChange?.();
 		};
 	});
 

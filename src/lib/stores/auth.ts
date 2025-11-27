@@ -1,13 +1,12 @@
 import { writable, derived } from 'svelte/store';
 
 export type AuthUser = {
-	// Adjust this shape to match your backend user object as needed
-	id?: string | number;
-	email?: string;
-	name?: string;
+	id?: string;
+	name: string;
+	email: string;
 	mustChangePassword: boolean;
-	// You can add any other fields returned by your API
-	// [key: string]: unknown;
+	isAdmin: boolean;
+	createdAt: string;
 };
 
 export type AuthState = {
@@ -19,7 +18,7 @@ export type AuthState = {
 const createAuthStore = () => {
 	const initialState: AuthState = {
 		user: null,
-		isInitializing: false,
+		isInitializing: true,
 		error: null
 	};
 
@@ -29,7 +28,7 @@ const createAuthStore = () => {
 		subscribe,
 		set,
 		update,
-		reset: () => set(initialState),
+		reset: () => set({ ...initialState, isInitializing: false }),
 		setUser: (user: AuthUser) =>
 			update((state) => ({
 				...state,

@@ -83,7 +83,7 @@ export async function refresh(): Promise<void> {
 	}
 }
 
-export async function resetPassword(oldPassword: string, newPassword: string): Promise<void> {
+export async function resetPassword(currentPassword: string, newPassword: string): Promise<void> {
 	const { user } = get(auth);
 
 	if (!user) {
@@ -96,7 +96,7 @@ export async function resetPassword(oldPassword: string, newPassword: string): P
 			'Content-Type': 'application/json'
 		},
 		credentials: 'include',
-		body: JSON.stringify({ oldPassword, newPassword })
+		body: JSON.stringify({ currentPassword, newPassword })
 	});
 
 	await handleJsonResponse<unknown>(res);
