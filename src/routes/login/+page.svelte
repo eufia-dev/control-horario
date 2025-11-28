@@ -6,19 +6,19 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Field, FieldLabel, FieldDescription, FieldError } from '$lib/components/ui/field';
+	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
 	import { onDestroy } from 'svelte';
 
-	let email = '';
-	let password = '';
-	let showPassword = false;
-	let isSubmitting = false;
-	let errorMessage: string | null = null;
-	let passwordError: string | null = null;
+	let email = $state('');
+	let password = $state('');
+	let showPassword = $state(false);
+	let isSubmitting = $state(false);
+	let errorMessage = $state<string | null>(null);
+	let passwordError = $state<string | null>(null);
 
 	let mustChangePasswordUnsubscribe: () => void;
-	let currentMustChangePassword = false;
+	let currentMustChangePassword = $state(false);
 
 	mustChangePasswordUnsubscribe = mustChangePassword.subscribe((value) => {
 		currentMustChangePassword = value;
@@ -44,11 +44,7 @@
 		try {
 			const user = await login(email, password);
 
-			console.log(user);
-			console.log(currentMustChangePassword);
-
 			if (user.mustChangePassword || currentMustChangePassword) {
-				console.log('redirecting to reset password');
 				await goto('/reset-password');
 			} else {
 				await goto('/');
@@ -61,14 +57,14 @@
 	};
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-background px-4">
-	<Card class="w-full max-w-md">
+<div class="grow flex items-center justify-center bg-background px-4">
+	<Card class="w-full max-w-md -mt-10">
 		<CardHeader class="space-y-1">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Iniciar sesión</CardTitle>
 			<CardDescription>Introduce tus credenciales para acceder a tu cuenta.</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<form class="space-y-6" on:submit|preventDefault={handleSubmit}>
+			<form class="space-y-6" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
 				<Field>
 					<FieldLabel>
 						<Label for="email">Correo electrónico</Label>
@@ -127,13 +123,11 @@
 							Iniciar sesión
 						{/if}
 					</Button>
-					<p class="text-sm text-muted-foreground text-center">
-						<a href="/reset-password" class="text-primary underline underline-offset-4 hover:text-primary/80">Cambiar contraseña</a>
+					<p class="text-sm text-muted-foreground">
+						¿Has olvidado tu contraseña? Contacta con soporte en <a href="mailto:support@eufia.eu" class="text-primary underline underline-offset-4 hover:text-primary/80">support@eufia.eu</a>
 					</p>
 				</CardFooter>
 			</form>
 		</CardContent>
 	</Card>
 </div>
-
-
