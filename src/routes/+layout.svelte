@@ -77,7 +77,15 @@
 
 <div class="min-h-screen flex flex-col">
 	<header class="flex items-center justify-between px-4 py-3 border-b border-border">
-		<a href="/" class="font-semibold tracking-tight">Control horario</a>
+		<a
+			href="/"
+			class="flex items-center gap-2">
+			<span>Control horario</span>
+			{#if isAuthed && user?.organizationName}
+				<span>-</span>
+				<span class="font-semibold tracking-tight">{user.organizationName}</span>
+			{/if}
+		</a>
 		{#if isAuthed && user}
 			<div class="flex items-center gap-3">
 				<a

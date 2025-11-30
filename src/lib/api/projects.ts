@@ -9,7 +9,7 @@ export type Project = {
 	code: string;
 	isActive: boolean;
 	createdAt: string;
-	company: string;
+	companyName: string;
 };
 
 export type Company = {

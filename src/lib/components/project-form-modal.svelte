@@ -56,6 +56,7 @@
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear proyecto');
 
 	const selectedCompany = $derived(companies.find((c) => c.id === companyId));
+	const hasSingleCompany = $derived(companies.length === 1);
 
 	async function loadCompanies() {
 		loadingCompanies = true;
@@ -81,10 +82,14 @@
 			name = project.name;
 			code = project.code;
 			isActive = project.isActive;
-			const company = companies.find((c) => c.name === project.company);
+			const company = companies.find((c) => c.name === project.companyName);
 			companyId = company?.id;
 		} else {
 			resetForm();
+			// Auto-select first company when creating new project
+			if (companies.length > 0) {
+				companyId = companies[0].id;
+			}
 		}
 	}
 
@@ -177,29 +182,31 @@
 				<Input id="name" bind:value={name} placeholder="Nombre del proyecto" disabled={submitting} />
 			</div>
 
-			<div class="grid gap-2">
-				<Label>Empresa</Label>
-				<Select
-					type="single"
-					bind:value={companyId}
-					disabled={submitting || loadingCompanies}
-				>
-					<SelectTrigger class="w-full">
-						{#if loadingCompanies}
-							<span class="text-muted-foreground">Cargando empresas...</span>
-						{:else if selectedCompany}
-							{selectedCompany.name}
-						{:else}
-							<span class="text-muted-foreground">Seleccionar empresa</span>
-						{/if}
-					</SelectTrigger>
-					<SelectContent>
-						{#each companies as company (company.id)}
-							<SelectItem value={company.id} label={company.name} />
-						{/each}
-					</SelectContent>
-				</Select>
-			</div>
+			{#if !hasSingleCompany}
+				<div class="grid gap-2">
+					<Label>Empresa</Label>
+					<Select
+						type="single"
+						bind:value={companyId}
+						disabled={submitting || loadingCompanies}
+					>
+						<SelectTrigger class="w-full">
+							{#if loadingCompanies}
+								<span class="text-muted-foreground">Cargando empresas...</span>
+							{:else if selectedCompany}
+								{selectedCompany.name}
+							{:else}
+								<span class="text-muted-foreground">Seleccionar empresa</span>
+							{/if}
+						</SelectTrigger>
+						<SelectContent>
+							{#each companies as company (company.id)}
+								<SelectItem value={company.id} label={company.name} />
+							{/each}
+						</SelectContent>
+					</Select>
+				</div>
+			{/if}
 
 			{#if isEditMode}
 				<div class="flex items-center gap-3">

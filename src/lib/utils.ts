@@ -32,11 +32,11 @@ export function stringToColor(str: string): string {
 
 /**
  * Extracts initials from a name
- * Returns 1-2 uppercase letters
+ * Returns the first two uppercase letters of the first two words
  */
 export function getInitials(name: string): string {
 	const parts = name.trim().split(/\s+/);
 	if (parts.length === 0) return '';
 	if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
-	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+	return (parts[0][0] + parts[1][0]).toUpperCase();
 }

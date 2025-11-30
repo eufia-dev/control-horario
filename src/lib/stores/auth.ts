@@ -1,9 +1,10 @@
 import { writable, derived } from 'svelte/store';
 
 export type AuthUser = {
-	id?: string;
+	id: string;
 	name: string;
 	email: string;
+	organizationName: string;
 	mustChangePassword: boolean;
 	isAdmin: boolean;
 	createdAt: string;

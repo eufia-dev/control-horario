@@ -1,5 +1,6 @@
 import { get } from 'svelte/store';
 import { auth, type AuthUser } from '$lib/stores/auth';
+import { fetchUsers, type User } from '$lib/api/users';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -103,6 +104,53 @@ export async function resetPassword(currentPassword: string, newPassword: string
 
 	// On success, mark that the user no longer needs to change password
 	auth.setMustChangePassword(false);
+}
+
+export async function updateProfile(name: string, email: string): Promise<AuthUser> {
+	const { user } = get(auth);
+
+	if (!user) {
+		throw new Error('No estás autenticado');
+	}
+
+	// Fetch current user data to get all required fields
+	const users = await fetchUsers();
+	const currentUser = users.find((u) => u.id === user.id);
+
+	if (!currentUser) {
+		throw new Error('Usuario no encontrado');
+	}
+
+	// Update user with new name and email, keeping other fields
+	const response = await fetchWithAuth(`${API_BASE}/users/${user.id}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			name,
+			email,
+			hourlyCost: currentUser.hourlyCost,
+			isActive: currentUser.isActive,
+			isAdmin: currentUser.isAdmin
+		})
+	});
+
+	const updatedUser = await handleJsonResponse<User>(response);
+
+	// Update auth store with the new user data
+	const updatedAuthUser: AuthUser = {
+		id: updatedUser.id,
+		name: updatedUser.name,
+		email: updatedUser.email,
+		organizationName: user.organizationName,
+		mustChangePassword: user.mustChangePassword,
+		isAdmin: updatedUser.isAdmin,
+		createdAt: updatedUser.createdAt
+	};
+
+	auth.setUser(updatedAuthUser);
+	return updatedAuthUser;
 }
 
 export async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
