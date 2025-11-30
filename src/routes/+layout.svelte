@@ -77,17 +77,52 @@
 
 <div class="min-h-screen flex flex-col">
 	<header class="flex items-center justify-between px-4 py-3 border-b border-border">
-		<a
-			href="/"
-			class="flex items-center gap-2">
-			<span>Control horario</span>
-			{#if isAuthed && user?.organizationName}
-				<span>-</span>
-				<span class="font-semibold tracking-tight">{user.organizationName}</span>
+		<div class="flex items-center gap-6">
+			<a
+				href="/"
+				class="flex items-center gap-2">
+				<span>Control horario</span>
+				{#if isAuthed && user?.organizationName}
+					<span>-</span>
+					<span class="font-semibold tracking-tight">{user.organizationName}</span>
+				{/if}
+			</a>
+			
+			{#if isAuthed && user?.isAdmin}
+				<nav class="flex items-center gap-1 ml-4 border-l border-border pl-6">
+					<Button
+						href="/"
+						variant="ghost"
+						size="sm"
+						class="gap-1.5"
+					>
+						<span class="material-symbols-rounded text-lg!">schedule</span>
+						<span>Fichajes</span>
+					</Button>
+					<Button
+						href="/analytics"
+						variant="ghost"
+						size="sm"
+						class="gap-1.5"
+					>
+						<span class="material-symbols-rounded text-lg!">analytics</span>
+						<span>Analytics</span>
+					</Button>
+					<Button
+						href="/admin"
+						variant="ghost"
+						size="sm"
+						class="gap-1.5"
+					>
+						<span class="material-symbols-rounded text-lg!">settings</span>
+						<span>Ajustes</span>
+					</Button>
+				</nav>
 			{/if}
-		</a>
+		</div>
+		
 		{#if isAuthed && user}
-			<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2">
 				<a
 					href="/profile"
 					class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
@@ -100,10 +135,10 @@
 				<Button
 					type="button"
 					onclick={handleLogout}
-					variant="outline"
+					variant="ghost"
 					size="sm"
 				>
-					Log out
+					<span class="material-symbols-rounded text-lg!">logout</span>
 				</Button>
 			</div>
 		{/if}

@@ -1,9 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth';
-	import { fetchProjects, fetchCompanies, type Project, type Company } from '$lib/api/projects';
-	import { fetchUsers, type User } from '$lib/api/users';
-	import { fetchExternals, type External } from '$lib/api/externals';
+	import { onMount, onDestroy } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -16,92 +12,184 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Switch } from '$lib/components/ui/switch';
+	import { Label } from '$lib/components/ui/label';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '$lib/components/ui/select';
 	import {
 		Tooltip,
 		TooltipContent,
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import ProjectFormModal from '$lib/components/project-form-modal.svelte';
-	import ProjectDeleteDialog from '$lib/components/project-delete-dialog.svelte';
-	import UserFormModal from '$lib/components/user-form-modal.svelte';
-	import ExternalFormModal from '$lib/components/external-form-modal.svelte';
-	import ExternalDeleteDialog from '$lib/components/external-delete-dialog.svelte';
+	import TimeEntryFormModal from '$lib/components/time-entry-form-modal.svelte';
+	import TimeEntryDeleteDialog from '$lib/components/time-entry-delete-dialog.svelte';
+	import { fetchProjects, type Project } from '$lib/api/projects';
+	import {
+		fetchMyTimeEntries,
+		fetchTimeEntryTypes,
+		getActiveTimer,
+		startTimer,
+		stopTimer,
+		switchTimer,
+		type TimeEntry,
+		type ActiveTimer,
+		type TimeEntryType
+	} from '$lib/api/time-entries';
 
-	// Projects state
+	// Data state
 	let projects = $state<Project[]>([]);
-	let companies = $state<Company[]>([]);
+	let timeEntryTypes = $state<TimeEntryType[]>([]);
+	let timeEntries = $state<TimeEntry[]>([]);
+	let activeTimer = $state<ActiveTimer | null>(null);
+
+	// Loading states
 	let loadingProjects = $state(true);
-	let projectsError = $state<string | null>(null);
+	let loadingTypes = $state(true);
+	let loadingEntries = $state(true);
+	let loadingTimer = $state(true);
 
-	// Users state
-	let users = $state<User[]>([]);
-	let loadingUsers = $state(true);
-	let usersError = $state<string | null>(null);
+	// Error states
+	let entriesError = $state<string | null>(null);
 
-	// Externals state
-	let externals = $state<External[]>([]);
-	let loadingExternals = $state(true);
-	let externalsError = $state<string | null>(null);
+	// Timer form state (for starting new timer)
+	let selectedProjectId = $state<string | undefined>(undefined);
+	let selectedTypeId = $state<string | undefined>(undefined);
+	let isOffice = $state(true);
+	let startingTimer = $state(false);
+	let stoppingTimer = $state(false);
 
-	// Project modal state
-	let projectFormModalOpen = $state(false);
+	// Switch task state
+	let showSwitchForm = $state(false);
+	let switchProjectId = $state<string | undefined>(undefined);
+	let switchTypeId = $state<string | undefined>(undefined);
+	let switchIsOffice = $state(true);
+	let switchingTimer = $state(false);
+
+	// Modal state
+	let formModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
-	let selectedProject = $state<Project | null>(null);
+	let selectedEntry = $state<TimeEntry | null>(null);
 
-	// User modal state
-	let userFormModalOpen = $state(false);
-	let selectedUser = $state<User | null>(null);
+	// Elapsed time state
+	let elapsedSeconds = $state(0);
+	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-	// External modal state
-	let externalFormModalOpen = $state(false);
-	let externalDeleteDialogOpen = $state(false);
-	let selectedExternal = $state<External | null>(null);
+	// Derived values
+	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
+	const selectedType = $derived(timeEntryTypes.find((t) => t.id === selectedTypeId));
+	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
+	const switchType = $derived(timeEntryTypes.find((t) => t.id === switchTypeId));
+	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
-	const isAdmin = $derived($auth.user?.isAdmin ?? false);
-	const hasSingleCompany = $derived(companies.length === 1);
+	const canStartTimer = $derived(
+		selectedProjectId && selectedTypeId && !startingTimer && !activeTimer
+	);
 
 	async function loadProjects() {
 		loadingProjects = true;
-		projectsError = null;
 		try {
-			[projects, companies] = await Promise.all([fetchProjects(), fetchCompanies()]);
+			projects = await fetchProjects();
+			// Auto-select first active project if none selected
+			if (!selectedProjectId && activeProjects.length > 0) {
+				selectedProjectId = activeProjects[0].id;
+			}
 		} catch (e) {
-			projectsError = e instanceof Error ? e.message : 'Error desconocido';
+			console.error('Error loading projects:', e);
 		} finally {
 			loadingProjects = false;
 		}
 	}
 
-	async function loadUsers() {
-		loadingUsers = true;
-		usersError = null;
+	async function loadTypes() {
+		loadingTypes = true;
 		try {
-			users = await fetchUsers();
+			timeEntryTypes = await fetchTimeEntryTypes();
+			
+			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
+			if (!selectedTypeId) {
+				if (trabajoType) {
+					selectedTypeId = trabajoType.id;
+				} else if (timeEntryTypes.length > 0) {
+					selectedTypeId = timeEntryTypes[0].id;
+				}
+			}
 		} catch (e) {
-			usersError = e instanceof Error ? e.message : 'Error desconocido';
+			console.error('Error loading time entry types:', e);
 		} finally {
-			loadingUsers = false;
+			loadingTypes = false;
 		}
 	}
 
-	async function loadExternals() {
-		loadingExternals = true;
-		externalsError = null;
+	async function loadEntries() {
+		loadingEntries = true;
+		entriesError = null;
 		try {
-			externals = await fetchExternals();
+			timeEntries = await fetchMyTimeEntries();
 		} catch (e) {
-			externalsError = e instanceof Error ? e.message : 'Error desconocido';
+			entriesError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
-			loadingExternals = false;
+			loadingEntries = false;
 		}
 	}
 
-	onMount(() => {
-		loadProjects();
-		loadUsers();
-		loadExternals();
-	});
+	async function loadActiveTimer() {
+		loadingTimer = true;
+		try {
+			activeTimer = await getActiveTimer();
+			if (activeTimer) {
+				startElapsedTimer();
+			}
+		} catch (e) {
+			console.error('Error loading active timer:', e);
+		} finally {
+			loadingTimer = false;
+		}
+	}
+
+	function startElapsedTimer() {
+		if (timerInterval) {
+			clearInterval(timerInterval);
+		}
+		if (activeTimer) {
+			const startTime = new Date(activeTimer.startedAt).getTime();
+			elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+			timerInterval = setInterval(() => {
+				if (activeTimer) {
+					const startTime = new Date(activeTimer.startedAt).getTime();
+					elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+				}
+			}, 1000);
+		}
+	}
+
+	function stopElapsedTimer() {
+		if (timerInterval) {
+			clearInterval(timerInterval);
+			timerInterval = null;
+		}
+		elapsedSeconds = 0;
+	}
+
+	function formatElapsedTime(seconds: number): string {
+		const hours = Math.floor(seconds / 3600);
+		const minutes = Math.floor((seconds % 3600) / 60);
+		const secs = seconds % 60;
+		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+	}
+
+	function formatDuration(minutes: number): string {
+		const hours = Math.floor(minutes / 60);
+		const mins = minutes % 60;
+		if (hours > 0) {
+			return `${hours}h ${mins}m`;
+		}
+		return `${mins}m`;
+	}
 
 	function formatDate(dateString: string): string {
 		return new Date(dateString).toLocaleDateString('es-ES', {
@@ -111,213 +199,425 @@
 		});
 	}
 
-	function formatCurrency(value: number): string {
-		return new Intl.NumberFormat('es-ES', {
-			style: 'currency',
-			currency: 'EUR'
-		}).format(value);
+	function formatTime(dateString: string): string {
+		return new Date(dateString).toLocaleTimeString('es-ES', {
+			hour: '2-digit',
+			minute: '2-digit'
+		});
 	}
 
-	// Project handlers
-	function handleCreateProject() {
-		selectedProject = null;
-		projectFormModalOpen = true;
+	async function handleStartTimer() {
+		if (!selectedProjectId || !selectedTypeId) return;
+
+		startingTimer = true;
+		try {
+			activeTimer = await startTimer({
+				projectId: selectedProjectId,
+				typeId: selectedTypeId,
+				isOffice
+			});
+			startElapsedTimer();
+		} catch (e) {
+			console.error('Error starting timer:', e);
+		} finally {
+			startingTimer = false;
+		}
 	}
 
-	function handleEditProject(project: Project) {
-		selectedProject = project;
-		projectFormModalOpen = true;
+	async function handleStopTimer() {
+		stoppingTimer = true;
+		try {
+			await stopTimer();
+			activeTimer = null;
+			stopElapsedTimer();
+			await loadEntries();
+		} catch (e) {
+			console.error('Error stopping timer:', e);
+		} finally {
+			stoppingTimer = false;
+		}
 	}
 
-	function handleDeleteProject(project: Project) {
-		selectedProject = project;
+	function handleShowSwitchForm() {
+		// Pre-populate with current timer's type and office setting
+		if (activeTimer) {
+			switchTypeId = activeTimer.typeId;
+			switchIsOffice = activeTimer.isOffice;
+		}
+		switchProjectId = undefined;
+		showSwitchForm = true;
+	}
+
+	function handleCancelSwitch() {
+		showSwitchForm = false;
+		switchProjectId = undefined;
+		switchTypeId = undefined;
+	}
+
+	async function handleSwitchTimer() {
+		if (!switchProjectId || !switchTypeId) return;
+
+		switchingTimer = true;
+		try {
+			const result = await switchTimer({
+				projectId: switchProjectId,
+				typeId: switchTypeId,
+				isOffice: switchIsOffice
+			});
+			activeTimer = result.activeTimer;
+			startElapsedTimer();
+			showSwitchForm = false;
+			await loadEntries();
+		} catch (e) {
+			console.error('Error switching timer:', e);
+		} finally {
+			switchingTimer = false;
+		}
+	}
+
+	// Entry handlers
+	function handleCreateEntry() {
+		selectedEntry = null;
+		formModalOpen = true;
+	}
+
+	function handleEditEntry(entry: TimeEntry) {
+		selectedEntry = entry;
+		formModalOpen = true;
+	}
+
+	function handleDeleteEntry(entry: TimeEntry) {
+		selectedEntry = entry;
 		deleteDialogOpen = true;
 	}
 
-	function handleProjectModalClose() {
-		selectedProject = null;
+	function handleModalClose() {
+		selectedEntry = null;
 	}
 
-	function handleProjectSuccess() {
+	function handleEntrySuccess() {
+		loadEntries();
+	}
+
+	onMount(() => {
 		loadProjects();
-	}
+		loadTypes();
+		loadEntries();
+		loadActiveTimer();
+	});
 
-	// User handlers
-	function handleEditUser(user: User) {
-		selectedUser = user;
-		userFormModalOpen = true;
-	}
-
-	function handleUserModalClose() {
-		selectedUser = null;
-	}
-
-	function handleUserSuccess() {
-		loadUsers();
-	}
-
-	// External handlers
-	function handleCreateExternal() {
-		selectedExternal = null;
-		externalFormModalOpen = true;
-	}
-
-	function handleEditExternal(external: External) {
-		selectedExternal = external;
-		externalFormModalOpen = true;
-	}
-
-	function handleDeleteExternal(external: External) {
-		selectedExternal = external;
-		externalDeleteDialogOpen = true;
-	}
-
-	function handleExternalModalClose() {
-		selectedExternal = null;
-	}
-
-	function handleExternalSuccess() {
-		loadExternals();
-	}
+	onDestroy(() => {
+		stopElapsedTimer();
+	});
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
-	<!-- Projects Card -->
+	<!-- Active Timer Card -->
 	<Card class="w-full max-w-5xl mx-auto">
-		<CardHeader class="flex flex-row items-center justify-between space-y-0">
-			<CardTitle class="text-2xl font-semibold tracking-tight">Proyectos</CardTitle>
-			{#if isAdmin}
-				<Button onclick={handleCreateProject}>
-					<span class="material-symbols-rounded mr-2 text-lg">add</span>
-					Nuevo proyecto
-				</Button>
-			{/if}
+		<CardHeader>
+			<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+				<span class="material-symbols-rounded text-3xl!">timer</span>
+				Temporizador
+			</CardTitle>
 		</CardHeader>
 		<CardContent>
-			{#if loadingProjects}
+			{#if loadingTimer || loadingProjects || loadingTypes}
+				<div class="flex flex-col gap-4">
+					<Skeleton class="h-10 w-full" />
+					<div class="flex gap-4">
+						<Skeleton class="h-10 w-48" />
+						<Skeleton class="h-10 w-32" />
+					</div>
+				</div>
+			{:else if activeTimer}
+				<!-- Timer Running State -->
+				<div class="flex flex-col gap-6">
+					<div class="flex items-center justify-between flex-wrap gap-4">
+						<div class="flex flex-col gap-1">
+							<div class="flex items-center gap-2">
+								<span class="relative flex h-3 w-3">
+									<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"></span>
+									<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+								</span>
+								<span class="text-sm font-medium text-success">En curso</span>
+							</div>
+							<div class="text-4xl font-mono font-bold tracking-tight">
+								{formatElapsedTime(elapsedSeconds)}
+							</div>
+						</div>
+						<div class="flex flex-col gap-1 text-right">
+							<div class="text-lg font-semibold">{activeTimer.project?.name ?? 'Proyecto'}</div>
+							<div class="flex items-center gap-2 justify-end">
+								<Badge variant="secondary">{activeTimer.timeEntryType?.name ?? 'Tipo'}</Badge>
+								<Badge variant={activeTimer.isOffice ? 'default' : 'outline'}>
+									{activeTimer.isOffice ? 'Oficina' : 'Remoto'}
+								</Badge>
+							</div>
+						</div>
+					</div>
+
+					{#if showSwitchForm}
+						<!-- Switch Task Form -->
+						<div class="border rounded-lg p-4 bg-muted/30 space-y-4">
+							<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+								<span class="material-symbols-rounded text-lg!">swap_horiz</span>
+								Cambiar a otra tarea
+							</div>
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div class="grid gap-2">
+									<Label>Proyecto</Label>
+									<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
+										<SelectTrigger class="w-full">
+											{#if switchProject}
+												{switchProject.name}
+											{:else}
+												<span class="text-muted-foreground">Seleccionar proyecto</span>
+											{/if}
+										</SelectTrigger>
+										<SelectContent>
+											{#each activeProjects as project (project.id)}
+												<SelectItem value={project.id} label={project.name} />
+											{/each}
+										</SelectContent>
+									</Select>
+								</div>
+								<div class="grid gap-2">
+									<Label>Tipo</Label>
+									<Select type="single" bind:value={switchTypeId} disabled={switchingTimer}>
+										<SelectTrigger class="w-full">
+											{#if switchType}
+												{switchType.name}
+											{:else}
+												<span class="text-muted-foreground">Seleccionar tipo</span>
+											{/if}
+										</SelectTrigger>
+										<SelectContent>
+											{#each timeEntryTypes as type (type.id)}
+												<SelectItem value={type.id} label={type.name} />
+											{/each}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+							<div class="flex items-center gap-3">
+								<Switch id="switchIsOffice" bind:checked={switchIsOffice} disabled={switchingTimer} />
+								<Label for="switchIsOffice" class="cursor-pointer">
+									{switchIsOffice ? 'Oficina' : 'Remoto'}
+								</Label>
+							</div>
+							<div class="flex gap-2 justify-end">
+								<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
+									Cancelar
+								</Button>
+								<Button onclick={handleSwitchTimer} disabled={!switchProjectId || !switchTypeId || switchingTimer}>
+									{#if switchingTimer}
+										<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+									{/if}
+									Cambiar tarea
+								</Button>
+							</div>
+						</div>
+					{:else}
+						<!-- Timer Actions -->
+						<div class="flex gap-3 flex-wrap">
+							<Button variant="destructive" onclick={handleStopTimer} disabled={stoppingTimer} class="flex-1 sm:flex-none">
+								{#if stoppingTimer}
+									<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+								{:else}
+									<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
+								{/if}
+								Detener
+							</Button>
+							<Button variant="outline" onclick={handleShowSwitchForm} disabled={stoppingTimer} class="flex-1 sm:flex-none">
+								<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
+								Cambiar tarea
+							</Button>
+						</div>
+					{/if}
+				</div>
+			{:else}
+				<!-- Start Timer Form -->
+				<div class="flex flex-col gap-4">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div class="grid gap-2">
+							<Label>Proyecto</Label>
+							<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
+								<SelectTrigger class="w-full">
+									{#if selectedProject}
+										{selectedProject.name}
+									{:else}
+										<span class="text-muted-foreground">Seleccionar proyecto</span>
+									{/if}
+								</SelectTrigger>
+								<SelectContent>
+									{#each activeProjects as project (project.id)}
+										<SelectItem value={project.id} label={project.name} />
+									{/each}
+								</SelectContent>
+							</Select>
+						</div>
+						<div class="grid gap-2">
+							<Label>Tipo</Label>
+							<Select type="single" bind:value={selectedTypeId} disabled={startingTimer}>
+								<SelectTrigger class="w-full">
+									{#if selectedType}
+										{selectedType.name}
+									{:else}
+										<span class="text-muted-foreground">Seleccionar tipo</span>
+									{/if}
+								</SelectTrigger>
+								<SelectContent>
+									{#each timeEntryTypes as type (type.id)}
+										<SelectItem value={type.id} label={type.name} />
+									{/each}
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
+					<div class="flex items-center justify-between flex-wrap gap-4">
+						<div class="flex items-center gap-3">
+							<Switch id="isOffice" bind:checked={isOffice} disabled={startingTimer} />
+							<Label for="isOffice" class="cursor-pointer">
+								{isOffice ? 'Oficina' : 'Remoto'}
+							</Label>
+						</div>
+						<Button onclick={handleStartTimer} disabled={!canStartTimer} size="lg">
+							{#if startingTimer}
+								<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+							{:else}
+								<span class="material-symbols-rounded mr-2 text-lg!">play_arrow</span>
+							{/if}
+							Iniciar temporizador
+						</Button>
+					</div>
+				</div>
+			{/if}
+		</CardContent>
+	</Card>
+
+	<!-- Time Entries Table Card -->
+	<Card class="w-full max-w-5xl mx-auto">
+		<CardHeader class="flex flex-row items-center justify-between space-y-0">
+			<CardTitle class="text-2xl font-semibold tracking-tight">Historial de registros</CardTitle>
+			<Button onclick={handleCreateEntry}>
+				<span class="material-symbols-rounded mr-2 text-lg">add</span>
+				Nuevo registro
+			</Button>
+		</CardHeader>
+		<CardContent>
+			{#if loadingEntries}
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Código</TableHead>
-							<TableHead>Nombre</TableHead>
-							{#if !hasSingleCompany}
-								<TableHead>Empresa</TableHead>
-							{/if}
-							<TableHead>Estado</TableHead>
-							<TableHead>Creado</TableHead>
-							{#if isAdmin}
-								<TableHead class="w-[100px]">Acciones</TableHead>
-							{/if}
+							<TableHead>Fecha</TableHead>
+							<TableHead>Proyecto</TableHead>
+							<TableHead>Tipo</TableHead>
+							<TableHead>Inicio</TableHead>
+							<TableHead>Fin</TableHead>
+							<TableHead>Duración</TableHead>
+							<TableHead>Lugar</TableHead>
+							<TableHead class="w-[100px]">Acciones</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{#each Array(5) as _}
 							<TableRow>
-								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-								{#if !hasSingleCompany}
-									<TableCell><Skeleton class="h-4 w-24" /></TableCell>
-								{/if}
-								<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								{#if isAdmin}
-									<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-								{/if}
+								<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+								<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+								<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+								<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+								<TableCell><Skeleton class="h-8 w-20" /></TableCell>
 							</TableRow>
 						{/each}
 					</TableBody>
 				</Table>
-			{:else if projectsError}
+			{:else if entriesError}
 				<div class="flex items-center justify-center py-8 text-destructive">
 					<span class="material-symbols-rounded mr-2">error</span>
-					{projectsError}
+					{entriesError}
 				</div>
-			{:else if projects.length === 0}
+			{:else if timeEntries.length === 0}
 				<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-					<span class="material-symbols-rounded text-4xl! mb-2">folder_off</span>
-					<p>No hay proyectos disponibles</p>
-					{#if isAdmin}
-						<Button variant="outline" class="mt-4" onclick={handleCreateProject}>
-							<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-							Crear primer proyecto
-						</Button>
-					{/if}
+					<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+					<p>No hay registros de tiempo</p>
+					<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
+						<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+						Crear primer registro
+					</Button>
 				</div>
 			{:else}
 				<TooltipProvider>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Código</TableHead>
-								<TableHead>Nombre</TableHead>
-								{#if !hasSingleCompany}
-									<TableHead>Empresa</TableHead>
-								{/if}
-								<TableHead>Estado</TableHead>
-								<TableHead>Creado</TableHead>
-								{#if isAdmin}
-									<TableHead class="w-[100px]">Acciones</TableHead>
-								{/if}
+								<TableHead>Fecha</TableHead>
+								<TableHead>Proyecto</TableHead>
+								<TableHead>Tipo</TableHead>
+								<TableHead>Inicio</TableHead>
+								<TableHead>Fin</TableHead>
+								<TableHead>Duración</TableHead>
+								<TableHead>Lugar</TableHead>
+								<TableHead class="w-[100px]">Acciones</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each projects as project (project.id)}
+							{#each timeEntries as entry (entry.id)}
 								<TableRow>
 									<TableCell class="font-medium">
+										{formatDate(entry.startedAt)}
+									</TableCell>
+									<TableCell>
 										<Tooltip>
-											<TooltipTrigger class="max-w-[120px] truncate">
-												{project.code}
+											<TooltipTrigger class="max-w-[150px] truncate">
+												{entry.project?.name ?? '-'}
 											</TooltipTrigger>
 											<TooltipContent>
-												<p>{project.code}</p>
+												<p>{entry.project?.name ?? '-'}</p>
 											</TooltipContent>
 										</Tooltip>
 									</TableCell>
 									<TableCell>
-										<Tooltip>
-											<TooltipTrigger class="max-w-[400px] truncate">
-												{project.name}
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>{project.name}</p>
-											</TooltipContent>
-										</Tooltip>
+										<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
 									</TableCell>
-									{#if !hasSingleCompany}
-										<TableCell>{project.companyName}</TableCell>
-									{/if}
+									<TableCell class="text-muted-foreground">
+										{formatTime(entry.startedAt)}
+									</TableCell>
+									<TableCell class="text-muted-foreground">
+										{formatTime(entry.endedAt)}
+									</TableCell>
+									<TableCell class="font-medium">
+										{formatDuration(entry.minutes)}
+									</TableCell>
 									<TableCell>
-										{#if project.isActive}
-											<Badge variant="success">Activo</Badge>
-										{:else}
-											<Badge variant="destructive">Inactivo</Badge>
-										{/if}
+										<Badge variant={entry.isOffice ? 'default' : 'outline'}>
+											{entry.isOffice ? 'Oficina' : 'Remoto'}
+										</Badge>
 									</TableCell>
-									<TableCell class="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
-									{#if isAdmin}
-										<TableCell>
-											<div class="flex items-center gap-1">
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0"
-													onclick={() => handleEditProject(project)}
-												>
-													<span class="material-symbols-rounded text-xl!">edit</span>
-													<span class="sr-only">Editar</span>
-												</Button>
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-													onclick={() => handleDeleteProject(project)}
-												>
-													<span class="material-symbols-rounded text-xl!">delete</span>
-													<span class="sr-only">Eliminar</span>
-												</Button>
-											</div>
-										</TableCell>
-									{/if}
+									<TableCell>
+										<div class="flex items-center gap-1">
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0"
+												onclick={() => handleEditEntry(entry)}
+											>
+												<span class="material-symbols-rounded text-xl!">edit</span>
+												<span class="sr-only">Editar</span>
+											</Button>
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+												onclick={() => handleDeleteEntry(entry)}
+											>
+												<span class="material-symbols-rounded text-xl!">delete</span>
+												<span class="sr-only">Eliminar</span>
+											</Button>
+										</div>
+									</TableCell>
 								</TableRow>
 							{/each}
 						</TableBody>
@@ -326,272 +626,21 @@
 			{/if}
 		</CardContent>
 	</Card>
-
-	<!-- Users Card (Admin only) -->
-	{#if isAdmin}
-		<Card class="w-full max-w-5xl mx-auto">
-			<CardHeader>
-				<CardTitle class="text-2xl font-semibold tracking-tight">Usuarios</CardTitle>
-			</CardHeader>
-			<CardContent>
-				{#if loadingUsers}
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Nombre</TableHead>
-								<TableHead>Email</TableHead>
-								<TableHead>Coste/hora</TableHead>
-								<TableHead>Estado</TableHead>
-								<TableHead>Rol</TableHead>
-								<TableHead>Creado</TableHead>
-								<TableHead class="w-[80px]">Acciones</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{#each Array(5) as _}
-								<TableRow>
-									<TableCell><Skeleton class="h-4 w-28" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-40" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-									<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
-									<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton class="h-8 w-8" /></TableCell>
-								</TableRow>
-							{/each}
-						</TableBody>
-					</Table>
-				{:else if usersError}
-					<div class="flex items-center justify-center py-8 text-destructive">
-						<span class="material-symbols-rounded mr-2">error</span>
-						{usersError}
-					</div>
-				{:else if users.length === 0}
-					<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-						<span class="material-symbols-rounded text-4xl! mb-2">person_off</span>
-						<p>No hay usuarios disponibles</p>
-					</div>
-				{:else}
-					<TooltipProvider>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Nombre</TableHead>
-									<TableHead>Email</TableHead>
-									<TableHead>Coste/hora</TableHead>
-									<TableHead>Estado</TableHead>
-									<TableHead>Rol</TableHead>
-									<TableHead>Creado</TableHead>
-									<TableHead class="w-[80px]">Acciones</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{#each users as user (user.id)}
-									<TableRow>
-										<TableCell class="font-medium">
-											<Tooltip>
-												<TooltipTrigger class="max-w-[150px] truncate">
-													{user.name}
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>{user.name}</p>
-												</TooltipContent>
-											</Tooltip>
-										</TableCell>
-										<TableCell>
-											<Tooltip>
-												<TooltipTrigger class="max-w-[200px] truncate">
-													{user.email}
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>{user.email}</p>
-												</TooltipContent>
-											</Tooltip>
-										</TableCell>
-										<TableCell>{formatCurrency(user.hourlyCost)}</TableCell>
-										<TableCell>
-											{#if user.isActive}
-												<Badge variant="success">Activo</Badge>
-											{:else}
-												<Badge variant="destructive">Inactivo</Badge>
-											{/if}
-										</TableCell>
-										<TableCell>
-											{#if user.isAdmin}
-												<Badge variant="default">Admin</Badge>
-											{:else}
-												<Badge variant="secondary">Usuario</Badge>
-											{/if}
-										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
-										<TableCell>
-											<Button
-												variant="ghost"
-												size="sm"
-												class="h-8 w-8 p-0"
-												onclick={() => handleEditUser(user)}
-											>
-												<span class="material-symbols-rounded text-xl!">edit</span>
-												<span class="sr-only">Editar</span>
-											</Button>
-										</TableCell>
-									</TableRow>
-								{/each}
-							</TableBody>
-						</Table>
-					</TooltipProvider>
-				{/if}
-			</CardContent>
-		</Card>
-
-		<!-- Externals Card (Admin only) -->
-		<Card class="w-full max-w-5xl mx-auto">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0">
-				<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
-				<Button onclick={handleCreateExternal}>
-					<span class="material-symbols-rounded mr-2 text-lg">add</span>
-					Nuevo externo
-				</Button>
-			</CardHeader>
-			<CardContent>
-				{#if loadingExternals}
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Nombre</TableHead>
-								<TableHead>Coste/hora</TableHead>
-								<TableHead>Estado</TableHead>
-								<TableHead>Creado</TableHead>
-								<TableHead class="w-[100px]">Acciones</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{#each Array(5) as _}
-								<TableRow>
-									<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-									<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-								</TableRow>
-							{/each}
-						</TableBody>
-					</Table>
-				{:else if externalsError}
-					<div class="flex items-center justify-center py-8 text-destructive">
-						<span class="material-symbols-rounded mr-2">error</span>
-						{externalsError}
-					</div>
-				{:else if externals.length === 0}
-					<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-						<span class="material-symbols-rounded text-4xl! mb-2">group_off</span>
-						<p>No hay externos disponibles</p>
-						<Button variant="outline" class="mt-4" onclick={handleCreateExternal}>
-							<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-							Crear primer externo
-						</Button>
-					</div>
-				{:else}
-					<TooltipProvider>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Nombre</TableHead>
-									<TableHead>Coste/hora</TableHead>
-									<TableHead>Estado</TableHead>
-									<TableHead>Creado</TableHead>
-									<TableHead class="w-[100px]">Acciones</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{#each externals as external (external.id)}
-									<TableRow>
-										<TableCell class="font-medium">
-											<Tooltip>
-												<TooltipTrigger class="max-w-[250px] truncate">
-													{external.name}
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>{external.name}</p>
-												</TooltipContent>
-											</Tooltip>
-										</TableCell>
-										<TableCell>{formatCurrency(external.hourlyCost)}</TableCell>
-										<TableCell>
-											{#if external.isActive}
-												<Badge variant="success">Activo</Badge>
-											{:else}
-												<Badge variant="destructive">Inactivo</Badge>
-											{/if}
-										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell>
-										<TableCell>
-											<div class="flex items-center gap-1">
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0"
-													onclick={() => handleEditExternal(external)}
-												>
-													<span class="material-symbols-rounded text-xl!">edit</span>
-													<span class="sr-only">Editar</span>
-												</Button>
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-													onclick={() => handleDeleteExternal(external)}
-												>
-													<span class="material-symbols-rounded text-xl!">delete</span>
-													<span class="sr-only">Eliminar</span>
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								{/each}
-							</TableBody>
-						</Table>
-					</TooltipProvider>
-				{/if}
-			</CardContent>
-		</Card>
-	{/if}
 </div>
 
-<!-- Project Modals -->
-<ProjectFormModal
-	bind:open={projectFormModalOpen}
-	project={selectedProject}
-	onClose={handleProjectModalClose}
-	onSuccess={handleProjectSuccess}
+<!-- Modals -->
+<TimeEntryFormModal
+	bind:open={formModalOpen}
+	entry={selectedEntry}
+	{projects}
+	{timeEntryTypes}
+	onClose={handleModalClose}
+	onSuccess={handleEntrySuccess}
 />
 
-<ProjectDeleteDialog
+<TimeEntryDeleteDialog
 	bind:open={deleteDialogOpen}
-	project={selectedProject}
-	onClose={handleProjectModalClose}
-	onSuccess={handleProjectSuccess}
-/>
-
-<!-- User Modal -->
-<UserFormModal
-	bind:open={userFormModalOpen}
-	user={selectedUser}
-	onClose={handleUserModalClose}
-	onSuccess={handleUserSuccess}
-/>
-
-<!-- External Modals -->
-<ExternalFormModal
-	bind:open={externalFormModalOpen}
-	external={selectedExternal}
-	onClose={handleExternalModalClose}
-	onSuccess={handleExternalSuccess}
-/>
-
-<ExternalDeleteDialog
-	bind:open={externalDeleteDialogOpen}
-	external={selectedExternal}
-	onClose={handleExternalModalClose}
-	onSuccess={handleExternalSuccess}
+	entry={selectedEntry}
+	onClose={handleModalClose}
+	onSuccess={handleEntrySuccess}
 />

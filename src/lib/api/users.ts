@@ -1,6 +1,7 @@
+import { PUBLIC_API_URL } from '$env/static/public';
 import { fetchWithAuth } from '$lib/auth';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = PUBLIC_API_URL;
 
 // Types
 export type User = {

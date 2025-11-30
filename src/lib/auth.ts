@@ -1,8 +1,9 @@
+import { PUBLIC_API_URL } from '$env/static/public';
 import { get } from 'svelte/store';
 import { auth, type AuthUser } from '$lib/stores/auth';
 import { fetchUsers, type User } from '$lib/api/users';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = PUBLIC_API_URL;
 
 type LoginResponse = {
 	user: AuthUser;
