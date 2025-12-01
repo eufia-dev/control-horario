@@ -17,6 +17,15 @@
 		SelectItem,
 		SelectTrigger
 	} from '$lib/components/ui/select';
+	import { Calendar } from '$lib/components/ui/calendar';
+	import * as Popover from '$lib/components/ui/popover';
+	import {
+		type DateValue,
+		DateFormatter,
+		getLocalTimeZone,
+		CalendarDate
+	} from '@internationalized/date';
+	import { cn } from '$lib/utils';
 	import {
 		createTimeEntry,
 		updateTimeEntry,
@@ -45,11 +54,15 @@
 		onSuccess
 	}: Props = $props();
 
+	const df = new DateFormatter('es-ES', {
+		dateStyle: 'medium'
+	});
+
 	let projectId = $state<string | undefined>(undefined);
 	let typeId = $state<string | undefined>(undefined);
-	let startDate = $state('');
+	let startDateValue = $state<DateValue | undefined>(undefined);
 	let startTime = $state('');
-	let endDate = $state('');
+	let endDateValue = $state<DateValue | undefined>(undefined);
 	let endTime = $state('');
 	let minutes = $state(0);
 	let isOffice = $state(true);
@@ -71,9 +84,11 @@
 
 	// Calculate minutes from start/end times
 	$effect(() => {
-		if (startDate && startTime && endDate && endTime) {
-			const start = new Date(`${startDate}T${startTime}`);
-			const end = new Date(`${endDate}T${endTime}`);
+		if (startDateValue && startTime && endDateValue && endTime) {
+			const startDateStr = dateValueToString(startDateValue);
+			const endDateStr = dateValueToString(endDateValue);
+			const start = new Date(`${startDateStr}T${startTime}`);
+			const end = new Date(`${endDateStr}T${endTime}`);
 			const diffMs = end.getTime() - start.getTime();
 			if (diffMs > 0) {
 				minutes = Math.round(diffMs / 60000);
@@ -81,9 +96,15 @@
 		}
 	});
 
-	function formatDateForInput(dateString: string): string {
-		const date = new Date(dateString);
-		return date.toISOString().split('T')[0];
+	function dateToDateValue(date: Date): DateValue {
+		return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+	}
+
+	function dateValueToString(dateValue: DateValue): string {
+		const year = dateValue.year;
+		const month = String(dateValue.month).padStart(2, '0');
+		const day = String(dateValue.day).padStart(2, '0');
+		return `${year}-${month}-${day}`;
 	}
 
 	function formatTimeForInput(dateString: string): string {
@@ -94,9 +115,9 @@
 	function resetForm() {
 		projectId = undefined;
 		typeId = undefined;
-		startDate = '';
+		startDateValue = undefined;
 		startTime = '';
-		endDate = '';
+		endDateValue = undefined;
 		endTime = '';
 		minutes = 0;
 		isOffice = true;
@@ -107,9 +128,9 @@
 		if (entry) {
 			projectId = entry.projectId;
 			typeId = entry.typeId;
-			startDate = formatDateForInput(entry.startedAt);
+			startDateValue = dateToDateValue(new Date(entry.startedAt));
 			startTime = formatTimeForInput(entry.startedAt);
-			endDate = formatDateForInput(entry.endedAt);
+			endDateValue = dateToDateValue(new Date(entry.endedAt));
 			endTime = formatTimeForInput(entry.endedAt);
 			minutes = entry.minutes;
 			isOffice = entry.isOffice;
@@ -118,9 +139,9 @@
 			// Set defaults for new entry
 			const now = new Date();
 			const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-			startDate = formatDateForInput(oneHourAgo.toISOString());
+			startDateValue = dateToDateValue(oneHourAgo);
 			startTime = formatTimeForInput(oneHourAgo.toISOString());
-			endDate = formatDateForInput(now.toISOString());
+			endDateValue = dateToDateValue(now);
 			endTime = formatTimeForInput(now.toISOString());
 			minutes = 60;
 
@@ -163,18 +184,20 @@
 			return;
 		}
 
-		if (!startDate || !startTime) {
+		if (!startDateValue || !startTime) {
 			error = 'La fecha y hora de inicio son obligatorias';
 			return;
 		}
 
-		if (!endDate || !endTime) {
+		if (!endDateValue || !endTime) {
 			error = 'La fecha y hora de fin son obligatorias';
 			return;
 		}
 
-		const startedAt = new Date(`${startDate}T${startTime}`).toISOString();
-		const endedAt = new Date(`${endDate}T${endTime}`).toISOString();
+		const startDateStr = dateValueToString(startDateValue);
+		const endDateStr = dateValueToString(endDateValue);
+		const startedAt = new Date(`${startDateStr}T${startTime}`).toISOString();
+		const endedAt = new Date(`${endDateStr}T${endTime}`).toISOString();
 
 		if (new Date(endedAt) <= new Date(startedAt)) {
 			error = 'La fecha de fin debe ser posterior a la de inicio';
@@ -277,23 +300,63 @@
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div class="grid gap-2">
-					<Label for="startDate">Fecha inicio</Label>
-					<Input id="startDate" type="date" bind:value={startDate} disabled={submitting} />
+					<Label>Fecha inicio</Label>
+					<Popover.Root>
+						<Popover.Trigger class="w-full justify-start">
+							{#snippet child({ props })}
+								<Button
+									variant="outline"
+									class={cn(
+										'w-full justify-start text-start font-normal',
+										!startDateValue && 'text-muted-foreground'
+									)}
+									disabled={submitting}
+									{...props}
+								>
+									<span class="material-symbols-rounded me-2 text-lg!">calendar_today</span>
+									{startDateValue ? df.format(startDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
+								</Button>
+							{/snippet}
+						</Popover.Trigger>
+						<Popover.Content class="w-auto p-0">
+							<Calendar bind:value={startDateValue} type="single" initialFocus />
+						</Popover.Content>
+					</Popover.Root>
 				</div>
 				<div class="grid gap-2">
 					<Label for="startTime">Hora inicio</Label>
-					<Input id="startTime" type="time" bind:value={startTime} disabled={submitting} />
+					<Input type="time" bind:value={startTime} disabled={submitting} />
 				</div>
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div class="grid gap-2">
-					<Label for="endDate">Fecha fin</Label>
-					<Input id="endDate" type="date" bind:value={endDate} disabled={submitting} />
+					<Label>Fecha fin</Label>
+					<Popover.Root>
+						<Popover.Trigger class="w-full justify-start">
+							{#snippet child({ props })}
+								<Button
+									variant="outline"
+									class={cn(
+										'w-full justify-start text-start font-normal',
+										!endDateValue && 'text-muted-foreground'
+									)}
+									disabled={submitting}
+									{...props}
+								>
+									<span class="material-symbols-rounded me-2 text-lg!">calendar_today</span>
+									{endDateValue ? df.format(endDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
+								</Button>
+							{/snippet}
+						</Popover.Trigger>
+						<Popover.Content class="w-auto p-0">
+							<Calendar bind:value={endDateValue} type="single" initialFocus />
+						</Popover.Content>
+					</Popover.Root>
 				</div>
 				<div class="grid gap-2">
-					<Label for="endTime">Hora fin</Label>
-					<Input id="endTime" type="time" bind:value={endTime} disabled={submitting} />
+					<Label for="startTime">Hora inicio</Label>
+					<Input type="time" bind:value={startTime} disabled={submitting} />
 				</div>
 			</div>
 

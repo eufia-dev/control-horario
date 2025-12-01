@@ -9,6 +9,7 @@
 		TableHead,
 		TableCell
 	} from '$lib/components/ui/table';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -28,6 +29,8 @@
 	} from '$lib/components/ui/tooltip';
 	import TimeEntryFormModal from '$lib/components/time-entry-form-modal.svelte';
 	import TimeEntryDeleteDialog from '$lib/components/time-entry-delete-dialog.svelte';
+	import ExternalHoursFormModal from '$lib/components/external-hours-form-modal.svelte';
+	import ExternalHoursDeleteDialog from '$lib/components/external-hours-delete-dialog.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import {
 		fetchMyTimeEntries,
@@ -40,6 +43,16 @@
 		type ActiveTimer,
 		type TimeEntryType
 	} from '$lib/api/time-entries';
+	import {
+		fetchExternals,
+		fetchAllExternalHours,
+		type External,
+		type ExternalHours
+	} from '$lib/api/externals';
+	import { auth } from '$lib/stores/auth';
+
+	// Auth state
+	const isAdmin = $derived($auth.user?.isAdmin ?? false);
 
 	// Data state
 	let projects = $state<Project[]>([]);
@@ -47,14 +60,21 @@
 	let timeEntries = $state<TimeEntry[]>([]);
 	let activeTimer = $state<ActiveTimer | null>(null);
 
+	// External data state (admin only)
+	let externals = $state<External[]>([]);
+	let externalHours = $state<ExternalHours[]>([]);
+
 	// Loading states
 	let loadingProjects = $state(true);
 	let loadingTypes = $state(true);
 	let loadingEntries = $state(true);
 	let loadingTimer = $state(true);
+	let loadingExternals = $state(true);
+	let loadingExternalHours = $state(true);
 
 	// Error states
 	let entriesError = $state<string | null>(null);
+	let externalHoursError = $state<string | null>(null);
 
 	// Timer form state (for starting new timer)
 	let selectedProjectId = $state<string | undefined>(undefined);
@@ -70,10 +90,18 @@
 	let switchIsOffice = $state(true);
 	let switchingTimer = $state(false);
 
-	// Modal state
+	// Modal state for time entries
 	let formModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 	let selectedEntry = $state<TimeEntry | null>(null);
+
+	// Modal state for external hours
+	let externalHoursFormOpen = $state(false);
+	let externalHoursDeleteOpen = $state(false);
+	let selectedExternalHours = $state<ExternalHours | null>(null);
+
+	// Tabs state
+	let activeTab = $state('my-entries');
 
 	// Elapsed time state
 	let elapsedSeconds = $state(0);
@@ -88,6 +116,14 @@
 
 	const canStartTimer = $derived(
 		selectedProjectId && selectedTypeId && !startingTimer && !activeTimer
+	);
+
+	// Enrich external hours with project info
+	const enrichedExternalHours = $derived(
+		externalHours.map((h) => ({
+			...h,
+			project: projects.find((p) => p.id === h.projectId)
+		}))
 	);
 
 	async function loadProjects() {
@@ -148,6 +184,31 @@
 			console.error('Error loading active timer:', e);
 		} finally {
 			loadingTimer = false;
+		}
+	}
+
+	async function loadExternals() {
+		if (!isAdmin) return;
+		loadingExternals = true;
+		try {
+			externals = await fetchExternals();
+		} catch (e) {
+			console.error('Error loading externals:', e);
+		} finally {
+			loadingExternals = false;
+		}
+	}
+
+	async function loadExternalHours() {
+		if (!isAdmin) return;
+		loadingExternalHours = true;
+		externalHoursError = null;
+		try {
+			externalHours = await fetchAllExternalHours();
+		} catch (e) {
+			externalHoursError = e instanceof Error ? e.message : 'Error desconocido';
+		} finally {
+			loadingExternalHours = false;
 		}
 	}
 
@@ -299,11 +360,38 @@
 		loadEntries();
 	}
 
+	// External hours handlers
+	function handleCreateExternalHours() {
+		selectedExternalHours = null;
+		externalHoursFormOpen = true;
+	}
+
+	function handleEditExternalHours(entry: ExternalHours) {
+		selectedExternalHours = entry;
+		externalHoursFormOpen = true;
+	}
+
+	function handleDeleteExternalHours(entry: ExternalHours) {
+		selectedExternalHours = entry;
+		externalHoursDeleteOpen = true;
+	}
+
+	function handleExternalHoursModalClose() {
+		selectedExternalHours = null;
+	}
+
+	function handleExternalHoursSuccess() {
+		loadExternalHours();
+	}
+
 	onMount(() => {
 		loadProjects();
 		loadTypes();
 		loadEntries();
 		loadActiveTimer();
+		// Load admin-only data
+		loadExternals();
+		loadExternalHours();
 	});
 
 	onDestroy(() => {
@@ -495,61 +583,277 @@
 		</CardContent>
 	</Card>
 
-	<!-- Time Entries Table Card -->
+	<!-- Time Entries / External Hours Card -->
 	<Card class="w-full max-w-5xl mx-auto">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Historial de registros</CardTitle>
-			<Button onclick={handleCreateEntry}>
-				<span class="material-symbols-rounded mr-2 text-lg">add</span>
-				Nuevo registro
-			</Button>
+			{#if isAdmin}
+				{#if activeTab === 'my-entries'}
+					<Button onclick={handleCreateEntry}>
+						<span class="material-symbols-rounded mr-2 text-lg">add</span>
+						Nuevo registro
+					</Button>
+				{:else}
+					<Button onclick={handleCreateExternalHours}>
+						<span class="material-symbols-rounded mr-2 text-lg">add</span>
+						Nuevas horas externo
+					</Button>
+				{/if}
+			{:else}
+				<Button onclick={handleCreateEntry}>
+					<span class="material-symbols-rounded mr-2 text-lg">add</span>
+					Nuevo registro
+				</Button>
+			{/if}
 		</CardHeader>
 		<CardContent>
-			{#if loadingEntries}
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Fecha</TableHead>
-							<TableHead>Proyecto</TableHead>
-							<TableHead>Tipo</TableHead>
-							<TableHead>Inicio</TableHead>
-							<TableHead>Fin</TableHead>
-							<TableHead>Duración</TableHead>
-							<TableHead>Lugar</TableHead>
-							<TableHead class="w-[100px]">Acciones</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each Array(5) as _}
-							<TableRow>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-								<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-								<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			{:else if entriesError}
-				<div class="flex items-center justify-center py-8 text-destructive">
-					<span class="material-symbols-rounded mr-2">error</span>
-					{entriesError}
-				</div>
-			{:else if timeEntries.length === 0}
-				<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-					<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-					<p>No hay registros de tiempo</p>
-					<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
-						<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-						Crear primer registro
-					</Button>
-				</div>
+			{#if isAdmin}
+				<Tabs bind:value={activeTab} class="w-full">
+					<TabsList class="mb-4">
+						<TabsTrigger value="my-entries">
+							<span class="material-symbols-rounded mr-2 text-lg!">person</span>
+							Mis Registros
+						</TabsTrigger>
+						<TabsTrigger value="external-hours">
+							<span class="material-symbols-rounded mr-2 text-lg!">group</span>
+							Horas Externos
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent value="my-entries">
+						{#if loadingEntries}
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Fecha</TableHead>
+										<TableHead>Proyecto</TableHead>
+										<TableHead>Tipo</TableHead>
+										<TableHead>Inicio</TableHead>
+										<TableHead>Fin</TableHead>
+										<TableHead>Duración</TableHead>
+										<TableHead>Lugar</TableHead>
+										<TableHead class="w-[100px]">Acciones</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{#each Array(5) as _}
+										<TableRow>
+											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+											<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+											<TableCell><Skeleton class="h-8 w-20" /></TableCell>
+										</TableRow>
+									{/each}
+								</TableBody>
+							</Table>
+						{:else if entriesError}
+							<div class="flex items-center justify-center py-8 text-destructive">
+								<span class="material-symbols-rounded mr-2">error</span>
+								{entriesError}
+							</div>
+						{:else if timeEntries.length === 0}
+							<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+								<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+								<p>No hay registros de tiempo</p>
+								<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
+									<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+									Crear primer registro
+								</Button>
+							</div>
+						{:else}
+							<TooltipProvider>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Fecha</TableHead>
+											<TableHead>Proyecto</TableHead>
+											<TableHead>Tipo</TableHead>
+											<TableHead>Inicio</TableHead>
+											<TableHead>Fin</TableHead>
+											<TableHead>Duración</TableHead>
+											<TableHead>Lugar</TableHead>
+											<TableHead class="w-[100px]">Acciones</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{#each timeEntries as entry (entry.id)}
+											<TableRow>
+												<TableCell class="font-medium">
+													{formatDate(entry.startedAt)}
+												</TableCell>
+												<TableCell>
+													<Tooltip>
+														<TooltipTrigger class="max-w-[150px] truncate">
+															{entry.project?.name ?? '-'}
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{entry.project?.name ?? '-'}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell>
+													<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
+												</TableCell>
+												<TableCell class="text-muted-foreground">
+													{formatTime(entry.startedAt)}
+												</TableCell>
+												<TableCell class="text-muted-foreground">
+													{formatTime(entry.endedAt)}
+												</TableCell>
+												<TableCell class="font-medium">
+													{formatDuration(entry.minutes)}
+												</TableCell>
+												<TableCell>
+													<Badge variant={entry.isOffice ? 'default' : 'outline'}>
+														{entry.isOffice ? 'Oficina' : 'Remoto'}
+													</Badge>
+												</TableCell>
+												<TableCell>
+													<div class="flex items-center gap-1">
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0"
+															onclick={() => handleEditEntry(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">edit</span>
+															<span class="sr-only">Editar</span>
+														</Button>
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+															onclick={() => handleDeleteEntry(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">delete</span>
+															<span class="sr-only">Eliminar</span>
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+										{/each}
+									</TableBody>
+								</Table>
+							</TooltipProvider>
+						{/if}
+					</TabsContent>
+
+					<TabsContent value="external-hours">
+						{#if loadingExternalHours || loadingExternals}
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Fecha</TableHead>
+										<TableHead>Externo</TableHead>
+										<TableHead>Proyecto</TableHead>
+										<TableHead>Duración</TableHead>
+										<TableHead class="w-[100px]">Acciones</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{#each Array(5) as _}
+										<TableRow>
+											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+											<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+											<TableCell><Skeleton class="h-8 w-20" /></TableCell>
+										</TableRow>
+									{/each}
+								</TableBody>
+							</Table>
+						{:else if externalHoursError}
+							<div class="flex items-center justify-center py-8 text-destructive">
+								<span class="material-symbols-rounded mr-2">error</span>
+								{externalHoursError}
+							</div>
+						{:else if enrichedExternalHours.length === 0}
+							<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+								<span class="material-symbols-rounded text-4xl! mb-2">group</span>
+								<p>No hay horas de externos registradas</p>
+								<Button variant="outline" class="mt-4" onclick={handleCreateExternalHours}>
+									<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+									Registrar primeras horas
+								</Button>
+							</div>
+						{:else}
+							<TooltipProvider>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Fecha</TableHead>
+											<TableHead>Externo</TableHead>
+											<TableHead>Proyecto</TableHead>
+											<TableHead>Duración</TableHead>
+											<TableHead class="w-[100px]">Acciones</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{#each enrichedExternalHours as entry (entry.id)}
+											<TableRow>
+												<TableCell class="font-medium">
+													{formatDate(entry.date)}
+												</TableCell>
+												<TableCell>
+													<Tooltip>
+														<TooltipTrigger class="max-w-[150px] truncate">
+															{entry.external?.name ?? '-'}
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{entry.external?.name ?? '-'}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell>
+													<Tooltip>
+														<TooltipTrigger class="max-w-[150px] truncate">
+															{entry.project?.name ?? '-'}
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{entry.project?.name ?? '-'}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell class="font-medium">
+													{formatDuration(entry.minutes)}
+												</TableCell>
+												<TableCell>
+													<div class="flex items-center gap-1">
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0"
+															onclick={() => handleEditExternalHours(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">edit</span>
+															<span class="sr-only">Editar</span>
+														</Button>
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+															onclick={() => handleDeleteExternalHours(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">delete</span>
+															<span class="sr-only">Eliminar</span>
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+										{/each}
+									</TableBody>
+								</Table>
+							</TooltipProvider>
+						{/if}
+					</TabsContent>
+				</Tabs>
 			{:else}
-				<TooltipProvider>
+				<!-- Non-admin view: just the time entries table -->
+				{#if loadingEntries}
 					<Table>
 						<TableHeader>
 							<TableRow>
@@ -564,71 +868,116 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each timeEntries as entry (entry.id)}
+							{#each Array(5) as _}
 								<TableRow>
-									<TableCell class="font-medium">
-										{formatDate(entry.startedAt)}
-									</TableCell>
-									<TableCell>
-										<Tooltip>
-											<TooltipTrigger class="max-w-[150px] truncate">
-												{entry.project?.name ?? '-'}
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>{entry.project?.name ?? '-'}</p>
-											</TooltipContent>
-										</Tooltip>
-									</TableCell>
-									<TableCell>
-										<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
-									</TableCell>
-									<TableCell class="text-muted-foreground">
-										{formatTime(entry.startedAt)}
-									</TableCell>
-									<TableCell class="text-muted-foreground">
-										{formatTime(entry.endedAt)}
-									</TableCell>
-									<TableCell class="font-medium">
-										{formatDuration(entry.minutes)}
-									</TableCell>
-									<TableCell>
-										<Badge variant={entry.isOffice ? 'default' : 'outline'}>
-											{entry.isOffice ? 'Oficina' : 'Remoto'}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<div class="flex items-center gap-1">
-											<Button
-												variant="ghost"
-												size="sm"
-												class="h-8 w-8 p-0"
-												onclick={() => handleEditEntry(entry)}
-											>
-												<span class="material-symbols-rounded text-xl!">edit</span>
-												<span class="sr-only">Editar</span>
-											</Button>
-											<Button
-												variant="ghost"
-												size="sm"
-												class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-												onclick={() => handleDeleteEntry(entry)}
-											>
-												<span class="material-symbols-rounded text-xl!">delete</span>
-												<span class="sr-only">Eliminar</span>
-											</Button>
-										</div>
-									</TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+									<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+									<TableCell><Skeleton class="h-8 w-20" /></TableCell>
 								</TableRow>
 							{/each}
 						</TableBody>
 					</Table>
-				</TooltipProvider>
+				{:else if entriesError}
+					<div class="flex items-center justify-center py-8 text-destructive">
+						<span class="material-symbols-rounded mr-2">error</span>
+						{entriesError}
+					</div>
+				{:else if timeEntries.length === 0}
+					<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+						<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+						<p>No hay registros de tiempo</p>
+						<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
+							<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+							Crear primer registro
+						</Button>
+					</div>
+				{:else}
+					<TooltipProvider>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Fecha</TableHead>
+									<TableHead>Proyecto</TableHead>
+									<TableHead>Tipo</TableHead>
+									<TableHead>Inicio</TableHead>
+									<TableHead>Fin</TableHead>
+									<TableHead>Duración</TableHead>
+									<TableHead>Lugar</TableHead>
+									<TableHead class="w-[100px]">Acciones</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{#each timeEntries as entry (entry.id)}
+									<TableRow>
+										<TableCell class="font-medium">
+											{formatDate(entry.startedAt)}
+										</TableCell>
+										<TableCell>
+											<Tooltip>
+												<TooltipTrigger class="max-w-[150px] truncate">
+													{entry.project?.name ?? '-'}
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>{entry.project?.name ?? '-'}</p>
+												</TooltipContent>
+											</Tooltip>
+										</TableCell>
+										<TableCell>
+											<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
+										</TableCell>
+										<TableCell class="text-muted-foreground">
+											{formatTime(entry.startedAt)}
+										</TableCell>
+										<TableCell class="text-muted-foreground">
+											{formatTime(entry.endedAt)}
+										</TableCell>
+										<TableCell class="font-medium">
+											{formatDuration(entry.minutes)}
+										</TableCell>
+										<TableCell>
+											<Badge variant={entry.isOffice ? 'default' : 'outline'}>
+												{entry.isOffice ? 'Oficina' : 'Remoto'}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											<div class="flex items-center gap-1">
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0"
+													onclick={() => handleEditEntry(entry)}
+												>
+													<span class="material-symbols-rounded text-xl!">edit</span>
+													<span class="sr-only">Editar</span>
+												</Button>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+													onclick={() => handleDeleteEntry(entry)}
+												>
+													<span class="material-symbols-rounded text-xl!">delete</span>
+													<span class="sr-only">Eliminar</span>
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								{/each}
+							</TableBody>
+						</Table>
+					</TooltipProvider>
+				{/if}
 			{/if}
 		</CardContent>
 	</Card>
 </div>
 
-<!-- Modals -->
+<!-- Time Entry Modals -->
 <TimeEntryFormModal
 	bind:open={formModalOpen}
 	entry={selectedEntry}
@@ -644,3 +993,22 @@
 	onClose={handleModalClose}
 	onSuccess={handleEntrySuccess}
 />
+
+<!-- External Hours Modals (admin only) -->
+{#if isAdmin}
+	<ExternalHoursFormModal
+		bind:open={externalHoursFormOpen}
+		entry={selectedExternalHours}
+		{externals}
+		{projects}
+		onClose={handleExternalHoursModalClose}
+		onSuccess={handleExternalHoursSuccess}
+	/>
+
+	<ExternalHoursDeleteDialog
+		bind:open={externalHoursDeleteOpen}
+		entry={selectedExternalHours}
+		onClose={handleExternalHoursModalClose}
+		onSuccess={handleExternalHoursSuccess}
+	/>
+{/if}

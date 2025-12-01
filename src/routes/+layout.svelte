@@ -77,7 +77,7 @@
 
 <div class="min-h-screen flex flex-col">
 	<header class="flex items-center justify-between px-4 py-3 border-b border-border">
-		<div class="flex items-center gap-6">
+		<div class="flex items-center gap-4">
 			<a
 				href="/"
 				class="flex items-center gap-2">
@@ -89,7 +89,7 @@
 			</a>
 			
 			{#if isAuthed && user?.isAdmin}
-				<nav class="flex items-center gap-1 ml-4 border-l border-border pl-6">
+				<nav class="flex items-center gap-1 ml-4 border-l border-border pl-4">
 					<Button
 						href="/"
 						variant="ghost"
@@ -100,22 +100,22 @@
 						<span>Fichajes</span>
 					</Button>
 					<Button
-						href="/analytics"
-						variant="ghost"
-						size="sm"
-						class="gap-1.5"
-					>
-						<span class="material-symbols-rounded text-lg!">analytics</span>
-						<span>Analytics</span>
-					</Button>
-					<Button
 						href="/admin"
 						variant="ghost"
 						size="sm"
 						class="gap-1.5"
 					>
 						<span class="material-symbols-rounded text-lg!">settings</span>
-						<span>Ajustes</span>
+						<span>Configuración</span>
+					</Button>
+					<Button
+						href="/analytics"
+						variant="ghost"
+						size="sm"
+						class="gap-1.5"
+					>
+						<span class="material-symbols-rounded text-lg!">analytics</span>
+						<span>Analíticas</span>
 					</Button>
 				</nav>
 			{/if}
