@@ -42,6 +42,7 @@
 		"vite": "^7.2.2"
 	},
 	"dependencies": {
-		"@fontsource-variable/saira": "^5.2.11"
+		"@fontsource-variable/saira": "^5.2.11",
+		"@sveltejs/adapter-vercel": "^6.2.0"
 	}
 }
