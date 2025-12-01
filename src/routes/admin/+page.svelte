@@ -202,8 +202,8 @@
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Proyectos</CardTitle>
 				<Button onclick={handleCreateProject}>
-					<span class="material-symbols-rounded mr-2 text-lg">add</span>
-					Nuevo proyecto
+					<span class="material-symbols-rounded text-lg!">add</span>
+					Añadir
 				</Button>
 			</CardHeader>
 			<CardContent>
@@ -451,8 +451,8 @@
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
 				<Button onclick={handleCreateExternal}>
-					<span class="material-symbols-rounded mr-2 text-lg">add</span>
-					Nuevo externo
+					<span class="material-symbols-rounded text-lg!">add</span>
+					Añadir
 				</Button>
 			</CardHeader>
 			<CardContent>

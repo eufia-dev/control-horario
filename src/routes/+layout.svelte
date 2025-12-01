@@ -4,6 +4,7 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { auth, isAuthenticated, type AuthUser } from '$lib/stores/auth';
 	import { initAuthFromRefresh, logout } from '$lib/auth';
+	import { slide } from 'svelte/transition';
 
 	import { Button } from '$lib/components/ui/button';
 	import { stringToColor, getInitials } from '$lib/utils';
@@ -13,6 +14,7 @@
 	let isInitializing = $state(true);
 	let isAuthed = $state(false);
 	let user = $state<AuthUser | null>(null);
+	let mobileMenuOpen = $state(false);
 
 	let unsubAuth: (() => void) | undefined;
 	let unsubIsAuthed: (() => void) | undefined;
@@ -76,20 +78,21 @@
 </script>
 
 <div class="min-h-screen flex flex-col">
-	<header class="flex items-center justify-between px-4 py-3 border-b border-border">
+	<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
 		<div class="flex items-center gap-4">
 			<a
 				href="/"
 				class="flex items-center gap-2">
 				<span>Control horario</span>
 				{#if isAuthed && user?.organizationName}
-					<span>-</span>
-					<span class="font-semibold tracking-tight">{user.organizationName}</span>
+					<span class="hidden sm:inline">-</span>
+					<span class="hidden sm:inline font-semibold tracking-tight">{user.organizationName}</span>
 				{/if}
 			</a>
 			
+			<!-- Desktop navigation -->
 			{#if isAuthed && user?.isAdmin}
-				<nav class="flex items-center gap-1 ml-4 border-l border-border pl-4">
+				<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
 					<Button
 						href="/"
 						variant="ghost"
@@ -137,9 +140,82 @@
 					onclick={handleLogout}
 					variant="ghost"
 					size="sm"
+					class="hidden sm:flex"
 				>
 					<span class="material-symbols-rounded text-lg!">logout</span>
 				</Button>
+				<!-- Mobile menu button (admin only) -->
+				{#if user?.isAdmin}
+					<Button
+						type="button"
+						onclick={() => mobileMenuOpen = !mobileMenuOpen}
+						variant="ghost"
+						size="sm"
+						class="md:hidden"
+					>
+						<span class="material-symbols-rounded text-lg!">
+							{mobileMenuOpen ? 'close' : 'menu'}
+						</span>
+					</Button>
+				{/if}
+			</div>
+		{/if}
+		
+		<!-- Mobile menu dropdown -->
+		{#if isAuthed && user?.isAdmin && mobileMenuOpen}
+			<div 
+				class="fixed inset-0 top-[57px] md:hidden bg-background z-50 flex flex-col"
+				transition:slide={{ duration: 200 }}
+			>
+				<nav class="flex flex-col p-4 gap-2 flex-1">
+					{#if user?.organizationName}
+						<div class="px-4 py-3 text-base text-muted-foreground font-medium border-b border-border mb-2">
+							{user.organizationName}
+						</div>
+					{/if}
+					<Button
+						href="/"
+						variant="ghost"
+						size="lg"
+						class="justify-start gap-4 h-14 text-lg"
+						onclick={() => mobileMenuOpen = false}
+					>
+						<span class="material-symbols-rounded text-2xl!">schedule</span>
+						<span>Fichajes</span>
+					</Button>
+					<Button
+						href="/admin"
+						variant="ghost"
+						size="lg"
+						class="justify-start gap-4 h-14 text-lg"
+						onclick={() => mobileMenuOpen = false}
+					>
+						<span class="material-symbols-rounded text-2xl!">settings</span>
+						<span>Configuración</span>
+					</Button>
+					<Button
+						href="/analytics"
+						variant="ghost"
+						size="lg"
+						class="justify-start gap-4 h-14 text-lg"
+						onclick={() => mobileMenuOpen = false}
+					>
+						<span class="material-symbols-rounded text-2xl!">analytics</span>
+						<span>Analíticas</span>
+					</Button>
+				</nav>
+				<div class="p-4 border-t border-border mt-auto">
+					<Button
+						type="button"
+						onclick={() => { mobileMenuOpen = false; handleLogout(); }}
+						variant="ghost"
+						size="lg"
+						class="justify-start gap-4 w-full h-14 text-lg text-destructive hover:text-destructive"
+					>
+						<span class="material-symbols-rounded text-2xl!">logout</span>
+						<span>Cerrar sesión</span>
+					</Button>
+				</div>
 			</div>
 		{/if}
 	</header>

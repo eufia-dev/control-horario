@@ -313,7 +313,7 @@
 									disabled={submitting}
 									{...props}
 								>
-									<span class="material-symbols-rounded me-2 text-lg!">calendar_today</span>
+									<span class="material-symbols-rounded text-lg!">calendar_today</span>
 									{startDateValue ? df.format(startDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
 								</Button>
 							{/snippet}
@@ -344,7 +344,7 @@
 									disabled={submitting}
 									{...props}
 								>
-									<span class="material-symbols-rounded me-2 text-lg!">calendar_today</span>
+									<span class="material-symbols-rounded text-lg!">calendar_today</span>
 									{endDateValue ? df.format(endDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
 								</Button>
 							{/snippet}
@@ -382,7 +382,7 @@
 				</Button>
 				<Button type="submit" disabled={submitting}>
 					{#if submitting}
-						<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
 					{/if}
 					{submitLabel}
 				</Button>

@@ -139,7 +139,7 @@
 								disabled={submitting}
 							>
 								{#if submitting}
-									<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+									<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
 								{/if}
 								Guardar
 							</Button>
@@ -155,7 +155,7 @@
 						size="sm"
 						onclick={startEditing}
 					>
-						<span class="material-symbols-rounded text-base! mr-1">edit</span>
+						<span class="material-symbols-rounded text-lg!">edit</span>
 						Editar perfil
 					</Button>
 				{/if}

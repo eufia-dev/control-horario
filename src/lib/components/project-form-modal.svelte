@@ -225,7 +225,7 @@
 				</Button>
 				<Button type="submit" disabled={submitting}>
 					{#if submitting}
-						<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
 					{/if}
 					{submitLabel}
 				</Button>

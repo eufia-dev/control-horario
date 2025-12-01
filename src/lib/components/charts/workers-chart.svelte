@@ -1,28 +1,38 @@
 <script lang="ts">
 	import { ChartContainer, ChartTooltip, type ChartConfig } from '$lib/components/ui/chart';
-	import { Chart, Svg, Axis, Bars, Grid, Tooltip } from 'layerchart';
+	import { Chart, Svg, Axis, Bars, Bar, Grid, Tooltip } from 'layerchart';
 	import { scaleBand, scaleLinear } from 'd3-scale';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '$lib/components/ui/select';
 	import {
 		type WorkerSummary,
 		type ProjectBreakdown,
 		fetchWorkerBreakdown,
 		formatCost
 	} from '$lib/api/analytics';
+	import { stringToColor } from '$lib/utils';
 
 	// Props
 	let {
 		workers,
-		loading = false
+		loading = false,
+		currentUserId = null
 	}: {
 		workers: WorkerSummary[];
 		loading?: boolean;
+		currentUserId?: string | null;
 	} = $props();
 
-	// State
-	let viewMode = $state<'hours' | 'cost'>('hours');
+	// State - separate view modes for each chart
+	let mainViewMode = $state<'hours' | 'cost'>('hours');
+	let breakdownViewMode = $state<'hours' | 'cost'>('hours');
 	let selectedWorkerId = $state<string | null>(null);
 	let selectedWorkerType = $state<'internal' | 'external' | null>(null);
 	let breakdownData = $state<ProjectBreakdown[]>([]);
@@ -54,7 +64,11 @@
 			...w,
 			label: w.name.split(' ')[0], // First name for x-axis
 			fullName: w.name,
-			value: viewMode === 'cost' ? w.totalCost : w.totalMinutes / 60
+			value: mainViewMode === 'cost' ? w.totalCost : w.totalMinutes / 60,
+			color: stringToColor(w.id + w.type),
+			// Keep cost and hours available for tooltip
+			cost: w.totalCost,
+			hours: w.totalMinutes / 60
 		}));
 		return data;
 	});
@@ -67,22 +81,36 @@
 		workers.find((w) => w.id === selectedWorkerId && w.type === selectedWorkerType)
 	);
 
-	// Auto-select first worker when data loads
+	// Combined key for dropdown (id:type)
+	const selectedWorkerKey = $derived(
+		selectedWorkerId && selectedWorkerType ? `${selectedWorkerId}:${selectedWorkerType}` : undefined
+	);
+
+	// Auto-select current user or first worker when data loads
 	$effect(() => {
 		if (workers.length > 0 && !selectedWorkerId) {
-			handleWorkerClick(workers[0]);
+			// Try to find and select current user first
+			if (currentUserId) {
+				const currentUser = workers.find((w) => w.id === currentUserId && w.type === 'internal');
+				if (currentUser) {
+					selectWorker(currentUser.id, currentUser.type);
+					return;
+				}
+			}
+			// Fall back to first worker
+			selectWorker(workers[0].id, workers[0].type);
 		}
 	});
 
-	// Handle bar click to select worker
-	async function handleWorkerClick(worker: WorkerSummary) {
-		if (selectedWorkerId === worker.id && selectedWorkerType === worker.type) return;
+	// Handle worker selection from dropdown
+	async function selectWorker(workerId: string, type: 'internal' | 'external') {
+		if (selectedWorkerId === workerId && selectedWorkerType === type) return;
 
-		selectedWorkerId = worker.id;
-		selectedWorkerType = worker.type;
+		selectedWorkerId = workerId;
+		selectedWorkerType = type;
 		loadingBreakdown = true;
 		try {
-			const response = await fetchWorkerBreakdown(worker.id, worker.type);
+			const response = await fetchWorkerBreakdown(workerId, type);
 			breakdownData = response.projects;
 		} catch (e) {
 			console.error('Error loading worker breakdown:', e);
@@ -92,22 +120,33 @@
 		}
 	}
 
+	// Handle dropdown value change
+	function handleWorkerChange(value: string) {
+		const [id, type] = value.split(':');
+		if (id && (type === 'internal' || type === 'external')) {
+			selectWorker(id, type);
+		}
+	}
+
 	// Transform breakdown data for vertical bar chart
 	const breakdownChartData = $derived(
-		breakdownData.map((p, index) => ({
+		breakdownData.map((p) => ({
 			...p,
 			label: p.code,
 			fullName: p.name,
-			value: viewMode === 'cost' ? p.cost : p.minutes / 60,
-			colorIndex: (index % 5) + 1
+			value: breakdownViewMode === 'cost' ? p.cost : p.minutes / 60,
+			color: stringToColor(p.id),
+			// Keep cost and hours available for tooltip
+			projectCost: p.cost,
+			projectHours: p.minutes / 60
 		}))
 	);
 
 	const maxBreakdownValue = $derived(Math.max(...breakdownChartData.map((d) => d.value), 1));
 
 	// Format value based on view mode
-	function formatValue(value: number): string {
-		if (viewMode === 'cost') {
+	function formatValue(value: number, mode: 'hours' | 'cost'): string {
+		if (mode === 'cost') {
 			return formatCost(value);
 		}
 		return `${value.toFixed(1)}h`;
@@ -116,23 +155,23 @@
 
 <div class="grid gap-6 lg:grid-cols-2">
 	<!-- Main Workers Chart -->
-	<Card>
+	<Card class="overflow-hidden">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-			<CardTitle class="text-xl font-semibold">Distribución por Trabajador</CardTitle>
+			<CardTitle class="text-xl font-semibold">Trabajadores</CardTitle>
 			<div class="flex gap-1 rounded-lg bg-muted p-1">
 				<Button
-					variant={viewMode === 'hours' ? 'default' : 'ghost'}
+					variant={mainViewMode === 'hours' ? 'default' : 'ghost'}
 					size="sm"
 					class="h-7 px-3 text-xs"
-					onclick={() => (viewMode = 'hours')}
+					onclick={() => (mainViewMode = 'hours')}
 				>
 					Horas
 				</Button>
 				<Button
-					variant={viewMode === 'cost' ? 'default' : 'ghost'}
+					variant={mainViewMode === 'cost' ? 'default' : 'ghost'}
 					size="sm"
 					class="h-7 px-3 text-xs"
-					onclick={() => (viewMode = 'cost')}
+					onclick={() => (mainViewMode = 'cost')}
 				>
 					Coste
 				</Button>
@@ -152,78 +191,131 @@
 			<div class="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
 				<span class="material-symbols-rounded text-4xl! mb-2">group</span>
 				<p>No hay datos de trabajadores</p>
-				<p class="text-xs mt-2">Raw workers prop: {JSON.stringify(workers).slice(0, 100)}</p>
 			</div>
 			{:else}
 				<!-- Vertical Bar Chart -->
-				<ChartContainer config={chartConfig} class="h-[300px] w-full">
+				<ChartContainer config={chartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={chartData}
 						x="label"
-						xScale={scaleBand().padding(0.3)}
+						xScale={scaleBand().padding(0.2)}
 						xDomain={chartData.map((d) => d.label)}
 						y="value"
 						yScale={scaleLinear()}
 						yDomain={[0, maxValue * 1.1]}
-						padding={{ left: 60, right: 20, top: 20, bottom: 40 }}
+						padding={{ left: 48, right: 8, top: 16, bottom: 32 }}
+						tooltip={{ mode: 'band' }}
 					>
 						<Svg>
 							<Grid y class="stroke-muted" />
 							<Axis
 								placement="left"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
-								format={(d: number) => (viewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
+								format={(d: number) => (mainViewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
 							/>
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
 							/>
-							<Bars
-								radius={4}
-								strokeWidth={0}
-								fill="var(--chart-1)"
-							/>
+								<Bars radius={4} strokeWidth={0}>
+								{#each chartData as item (`${item.id}:${item.type}`)}
+									<Bar data={item} fill={item.color} radius={4} strokeWidth={0} />
+								{/each}
+							</Bars>
 						</Svg>
-						<Tooltip.Root>
-							<ChartTooltip />
+						<Tooltip.Root variant="none">
+							{#snippet children({ data })}
+								{#if data}
+									<div class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl">
+										<div class="font-medium mb-1.5">{data.fullName}</div>
+										<div class="text-muted-foreground text-[10px] mb-1.5">
+											{data.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(data.hourlyCost)}/h
+										</div>
+										<div class="flex items-center justify-between gap-4">
+											<span class="text-muted-foreground">Coste total</span>
+											<span class="font-mono font-medium">{formatCost(data.cost)}</span>
+										</div>
+										<div class="flex items-center justify-between gap-4 mt-1">
+											<span class="text-muted-foreground">Horas</span>
+											<span class="font-mono font-medium">{data.hours.toFixed(1)}h</span>
+										</div>
+									</div>
+								{/if}
+							{/snippet}
 						</Tooltip.Root>
 					</Chart>
 				</ChartContainer>
 
-				<!-- Legend -->
-				<div class="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-					<div class="flex items-center gap-4">
+				<!-- Legend - dynamic colors per worker, centered -->
+				<div class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground">
+					{#each chartData as worker (`${worker.id}:${worker.type}`)}
 						<div class="flex items-center gap-1.5">
-							<span class="w-2.5 h-2.5 rounded-sm bg-chart-1"></span>
-							<span>Internos</span>
+							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {worker.color}"></span>
+							<span>{worker.label}</span>
 						</div>
-						<div class="flex items-center gap-1.5">
-							<span class="w-2.5 h-2.5 rounded-sm bg-chart-2"></span>
-							<span>Externos</span>
-						</div>
-					</div>
-					<span>Click en una barra para ver desglose →</span>
+					{/each}
 				</div>
 			{/if}
 		</CardContent>
 	</Card>
 
 	<!-- Worker Breakdown Card -->
-	<Card>
-		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-			<div>
-				<CardTitle class="text-xl font-semibold">
-					{#if selectedWorker}
-						{selectedWorker.name}
-					{:else}
-						Proyectos del Trabajador
-					{/if}
-				</CardTitle>
+	<Card class="overflow-hidden">
+		<CardHeader class="flex flex-row items-start justify-between gap-4 pb-2">
+			<div class="flex-1 min-w-0">
+				<CardTitle class="text-xl font-semibold">Por trabajador</CardTitle>
 				{#if selectedWorker}
 					<p class="text-xs text-muted-foreground mt-1">
-						{selectedWorker.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(selectedWorker.hourlyCost)}/h · {formatValue(selectedWorker.type === 'internal' ? (viewMode === 'cost' ? selectedWorker.totalCost : selectedWorker.totalMinutes / 60) : (viewMode === 'cost' ? selectedWorker.totalCost : selectedWorker.totalMinutes / 60))} total
+						{selectedWorker.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(selectedWorker.hourlyCost)}/h · {formatValue(breakdownViewMode === 'cost' ? selectedWorker.totalCost : selectedWorker.totalMinutes / 60, breakdownViewMode)} total
 					</p>
 				{/if}
+			</div>
+			<div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+				<!-- Worker dropdown -->
+				{#if workers.length > 0}
+					<Select
+						type="single"
+						value={selectedWorkerKey}
+						onValueChange={(value) => value && handleWorkerChange(value)}
+					>
+						<SelectTrigger class="w-[160px]" size="sm">
+							{#if selectedWorker}
+								<span>{selectedWorker.name.split(' ')[0]}</span>
+							{:else}
+								<span class="text-muted-foreground">Seleccionar...</span>
+							{/if}
+						</SelectTrigger>
+						<SelectContent>
+							{#each workers as worker (`${worker.id}:${worker.type}`)}
+								<SelectItem value={`${worker.id}:${worker.type}`} label={worker.name}>
+									<span class="font-medium">{worker.name}</span>
+									<span class="text-muted-foreground text-xs ml-1">
+										({worker.type === 'internal' ? 'Int' : 'Ext'})
+									</span>
+								</SelectItem>
+							{/each}
+						</SelectContent>
+					</Select>
+				{/if}
+				<!-- View mode toggle -->
+				<div class="flex gap-1 rounded-lg bg-muted p-1">
+					<Button
+						variant={breakdownViewMode === 'hours' ? 'default' : 'ghost'}
+						size="sm"
+						class="h-7 px-3 text-xs"
+						onclick={() => (breakdownViewMode = 'hours')}
+					>
+						Horas
+					</Button>
+					<Button
+						variant={breakdownViewMode === 'cost' ? 'default' : 'ghost'}
+						size="sm"
+						class="h-7 px-3 text-xs"
+						onclick={() => (breakdownViewMode = 'cost')}
+					>
+						Coste
+					</Button>
+				</div>
 			</div>
 		</CardHeader>
 		<CardContent>
@@ -248,50 +340,61 @@
 				</div>
 			{:else}
 				<!-- Breakdown Vertical Bar Chart -->
-				<ChartContainer config={breakdownChartConfig} class="h-[300px] w-full">
+				<ChartContainer config={breakdownChartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={breakdownChartData}
 						x="label"
-						xScale={scaleBand().padding(0.3)}
+						xScale={scaleBand().padding(0.2)}
 						xDomain={breakdownChartData.map((d) => d.label)}
 						y="value"
 						yScale={scaleLinear()}
 						yDomain={[0, maxBreakdownValue * 1.1]}
-						padding={{ left: 60, right: 20, top: 20, bottom: 40 }}
+						padding={{ left: 48, right: 8, top: 16, bottom: 32 }}
+						tooltip={{ mode: 'band' }}
 					>
 						<Svg>
 							<Grid y class="stroke-muted/50" />
 							<Axis
 								placement="left"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
-								format={(d: number) => (viewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
+								format={(d: number) => (breakdownViewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
 							/>
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
 							/>
-							<Bars
-								radius={3}
-								strokeWidth={0}
-								fill="var(--chart-3)"
-							/>
+								<Bars radius={3} strokeWidth={0}>
+								{#each breakdownChartData as item (item.id)}
+									<Bar data={item} fill={item.color} radius={3} strokeWidth={0} />
+								{/each}
+							</Bars>
 						</Svg>
-						<Tooltip.Root>
-							<ChartTooltip />
+						<Tooltip.Root variant="none">
+							{#snippet children({ data })}
+								{#if data}
+									<div class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl">
+										<div class="font-medium mb-1.5">{data.fullName}</div>
+										<div class="flex items-center justify-between gap-4">
+											<span class="text-muted-foreground">Coste</span>
+											<span class="font-mono font-medium">{formatCost(data.projectCost)}</span>
+										</div>
+										<div class="flex items-center justify-between gap-4 mt-1">
+											<span class="text-muted-foreground">Horas</span>
+											<span class="font-mono font-medium">{data.projectHours.toFixed(1)}h</span>
+										</div>
+									</div>
+								{/if}
+							{/snippet}
 						</Tooltip.Root>
 					</Chart>
 				</ChartContainer>
 
-				<!-- Project list for clarity -->
-				<div class="flex flex-wrap gap-2 mt-2 text-xs">
-					{#each breakdownChartData as project, index (project.id)}
-						{@const colorIndex = (index % 5) + 1}
-						<div class="flex items-center gap-1 px-2 py-1 rounded bg-muted/50">
-							<span
-								class="w-2 h-2 rounded-full"
-								style="background-color: var(--chart-{colorIndex})"
-							></span>
-							<span class="text-muted-foreground">{project.code}</span>
+				<!-- Legend - dynamic colors per project, centered -->
+				<div class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground">
+					{#each breakdownChartData as project (project.id)}
+						<div class="flex items-center gap-1.5">
+							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {project.color}"></span>
+							<span>{project.code}</span>
 						</div>
 					{/each}
 				</div>

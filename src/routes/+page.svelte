@@ -499,7 +499,7 @@
 								</Button>
 								<Button onclick={handleSwitchTimer} disabled={!switchProjectId || !switchTypeId || switchingTimer}>
 									{#if switchingTimer}
-										<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
 									{/if}
 									Cambiar tarea
 								</Button>
@@ -569,11 +569,11 @@
 								{isOffice ? 'Oficina' : 'Remoto'}
 							</Label>
 						</div>
-						<Button onclick={handleStartTimer} disabled={!canStartTimer} size="lg">
+						<Button onclick={handleStartTimer} disabled={!canStartTimer}>
 							{#if startingTimer}
-								<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
 							{:else}
-								<span class="material-symbols-rounded mr-2 text-lg!">play_arrow</span>
+								<span class="material-symbols-rounded text-lg!">play_arrow</span>
 							{/if}
 							Iniciar temporizador
 						</Button>
@@ -586,23 +586,23 @@
 	<!-- Time Entries / External Hours Card -->
 	<Card class="w-full max-w-5xl mx-auto">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0">
-			<CardTitle class="text-2xl font-semibold tracking-tight">Historial de registros</CardTitle>
+			<CardTitle class="text-2xl font-semibold tracking-tight">Historial</CardTitle>
 			{#if isAdmin}
 				{#if activeTab === 'my-entries'}
 					<Button onclick={handleCreateEntry}>
-						<span class="material-symbols-rounded mr-2 text-lg">add</span>
-						Nuevo registro
+						<span class="material-symbols-rounded text-lg!">add</span>
+						Añadir
 					</Button>
 				{:else}
 					<Button onclick={handleCreateExternalHours}>
-						<span class="material-symbols-rounded mr-2 text-lg">add</span>
-						Nuevas horas externo
+						<span class="material-symbols-rounded text-lg!">add</span>
+						Añadir externas
 					</Button>
 				{/if}
 			{:else}
 				<Button onclick={handleCreateEntry}>
-					<span class="material-symbols-rounded mr-2 text-lg">add</span>
-					Nuevo registro
+					<span class="material-symbols-rounded text-lg!">add</span>
+					Añadir
 				</Button>
 			{/if}
 		</CardHeader>
@@ -616,7 +616,7 @@
 						</TabsTrigger>
 						<TabsTrigger value="external-hours">
 							<span class="material-symbols-rounded mr-2 text-lg!">group</span>
-							Horas Externos
+							Externos
 						</TabsTrigger>
 					</TabsList>
 

@@ -16,6 +16,7 @@
 
 	// Auth check - admin only
 	const isAdmin = $derived($auth.user?.isAdmin ?? false);
+	const currentUserId = $derived($auth.user?.id ?? null);
 
 	// Data state
 	let projects = $state<ProjectSummary[]>([]);
@@ -86,14 +87,14 @@
 <div class="container mx-auto px-4 py-8">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold tracking-tight">Analytics</h1>
+		<h1 class="text-2xl font-bold tracking-tight">Analíticas</h1>
 		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
 	</div>
 
 	<!-- Summary Cards -->
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
 		<!-- Total Hours Card -->
-		<Card>
+		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">schedule</span>
@@ -111,7 +112,7 @@
 		</Card>
 
 		<!-- Total Cost Card -->
-		<Card>
+		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">euro</span>
@@ -127,7 +128,7 @@
 		</Card>
 
 		<!-- Active Projects Card -->
-		<Card>
+		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Proyectos Activos</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">folder</span>
@@ -143,7 +144,7 @@
 		</Card>
 
 		<!-- Workers Card -->
-		<Card>
+		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Trabajadores</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
@@ -200,7 +201,7 @@
 				</CardContent>
 			</Card>
 		{:else}
-			<WorkersChart {workers} loading={loadingWorkers} />
+			<WorkersChart {workers} loading={loadingWorkers} {currentUserId} />
 		{/if}
 	</div>
 </div>
