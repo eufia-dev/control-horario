@@ -168,10 +168,10 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium">Contraseña</p>
-					<p class="text-sm text-muted-foreground">Cambia tu contraseña de acceso</p>
+					<p class="text-sm text-muted-foreground">Restablece tu contraseña por correo electrónico</p>
 				</div>
 				<Button href="/reset-password" variant="outline" size="sm">
-					Cambiar
+					Restablecer
 				</Button>
 			</div>
 		</CardContent>

@@ -10,7 +10,7 @@ export type External = {
 	hourlyCost: number;
 	isActive: boolean;
 	createdAt: string;
-	organizationId: string;
+	companyId: string;
 };
 
 export type CreateExternalDto = {
@@ -29,7 +29,7 @@ export type ExternalHours = {
 	id: string;
 	externalId: string;
 	projectId: string;
-	organizationId: string;
+	companyId: string;
 	date: string;
 	minutes: number;
 	createdAt: string;

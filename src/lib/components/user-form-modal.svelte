@@ -11,7 +11,14 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '$lib/components/ui/select';
 	import { updateUser, type User, type UpdateUserDto } from '$lib/api/users';
+	import type { UserRole } from '$lib/stores/auth';
 
 	type Props = {
 		open: boolean;
@@ -26,16 +33,25 @@
 	let email = $state('');
 	let hourlyCost = $state(0);
 	let isActive = $state(true);
-	let isAdmin = $state(false);
+	let role = $state<UserRole>('WORKER');
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
+
+	const roleOptions: { value: UserRole; label: string }[] = [
+		{ value: 'OWNER', label: 'Propietario' },
+		{ value: 'ADMIN', label: 'Administrador' },
+		{ value: 'WORKER', label: 'Trabajador' },
+		{ value: 'AUDITOR', label: 'Auditor' }
+	];
+
+	const selectedRoleLabel = $derived(roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol');
 
 	function resetForm() {
 		name = '';
 		email = '';
 		hourlyCost = 0;
 		isActive = true;
-		isAdmin = false;
+		role = 'WORKER';
 		error = null;
 	}
 
@@ -45,7 +61,7 @@
 			email = user.email;
 			hourlyCost = user.hourlyCost;
 			isActive = user.isActive;
-			isAdmin = user.isAdmin;
+			role = user.role;
 		} else {
 			resetForm();
 		}
@@ -102,7 +118,7 @@
 				email: email.trim(),
 				hourlyCost,
 				isActive,
-				isAdmin
+				role
 			};
 			await updateUser(user.id, data);
 			onSuccess();
@@ -156,14 +172,23 @@
 				/>
 			</div>
 
-			<div class="flex items-center gap-3">
-				<Switch id="isActive" bind:checked={isActive} disabled={submitting} />
-				<Label for="isActive" class="cursor-pointer">Usuario activo</Label>
+			<div class="grid gap-2">
+				<Label>Rol</Label>
+				<Select type="single" bind:value={role} disabled={submitting}>
+					<SelectTrigger class="w-full">
+						{selectedRoleLabel}
+					</SelectTrigger>
+					<SelectContent>
+						{#each roleOptions as option (option.value)}
+							<SelectItem value={option.value} label={option.label} />
+						{/each}
+					</SelectContent>
+				</Select>
 			</div>
 
 			<div class="flex items-center gap-3">
-				<Switch id="isAdmin" bind:checked={isAdmin} disabled={submitting} />
-				<Label for="isAdmin" class="cursor-pointer">Administrador</Label>
+				<Switch id="isActive" bind:checked={isActive} disabled={submitting} />
+				<Label for="isActive" class="cursor-pointer">Usuario activo</Label>
 			</div>
 
 			{#if error}
@@ -184,4 +209,3 @@
 		</form>
 	</DialogContent>
 </Dialog>
-

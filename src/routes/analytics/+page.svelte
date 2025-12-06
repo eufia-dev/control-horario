@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { auth } from '$lib/stores/auth';
+	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import {
@@ -15,7 +15,13 @@
 	} from '$lib/api/analytics';
 
 	// Auth check - admin only
-	const isAdmin = $derived($auth.user?.isAdmin ?? false);
+	let isAdmin = $state(false);
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value;
+		});
+		return unsub;
+	});
 	const currentUserId = $derived($auth.user?.id ?? null);
 
 	// Data state
@@ -66,7 +72,8 @@
 
 	onMount(() => {
 		// Redirect non-admins
-		if (!isAdmin) {
+		const role = $auth.user?.role;
+		if (role !== 'OWNER' && role !== 'ADMIN') {
 			goto('/');
 			return;
 		}
@@ -78,7 +85,8 @@
 
 	// Also check when auth changes
 	$effect(() => {
-		if (!$auth.isInitializing && !isAdmin) {
+		const role = $auth.user?.role;
+		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
 			goto('/');
 		}
 	});

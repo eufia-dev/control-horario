@@ -49,10 +49,16 @@
 		type External,
 		type ExternalHours
 	} from '$lib/api/externals';
-	import { auth } from '$lib/stores/auth';
+	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 
 	// Auth state
-	const isAdmin = $derived($auth.user?.isAdmin ?? false);
+	let isAdmin = $state(false);
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value;
+		});
+		return unsub;
+	});
 
 	// Data state
 	let projects = $state<Project[]>([]);

@@ -1,5 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { fetchWithAuth } from '$lib/auth';
+import type { UserRole } from '$lib/stores/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
@@ -11,7 +12,7 @@ export type User = {
 	hourlyCost: number;
 	isActive: boolean;
 	createdAt: string;
-	isAdmin: boolean;
+	role: UserRole;
 };
 
 export type UpdateUserDto = {
@@ -19,7 +20,7 @@ export type UpdateUserDto = {
 	email: string;
 	hourlyCost: number;
 	isActive: boolean;
-	isAdmin: boolean;
+	role: UserRole;
 };
 
 // Helper for JSON responses

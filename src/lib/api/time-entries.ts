@@ -13,7 +13,7 @@ export type TimeEntry = {
 	id: string;
 	userId: string;
 	projectId: string;
-	organizationId: string;
+	companyId: string;
 	typeId: string;
 	startedAt: string;
 	endedAt: string;
@@ -30,7 +30,7 @@ export type TimeEntry = {
 		name: string;
 		code: string;
 	};
-	organization?: {
+	company?: {
 		id: string;
 		name: string;
 	};
@@ -44,7 +44,7 @@ export type ActiveTimer = {
 	id: string;
 	userId: string;
 	projectId: string;
-	organizationId: string;
+	companyId: string;
 	typeId: string;
 	startedAt: string;
 	isOffice: boolean;
@@ -59,7 +59,7 @@ export type ActiveTimer = {
 		name: string;
 		code: string;
 	};
-	organization?: {
+	company?: {
 		id: string;
 		name: string;
 	};
