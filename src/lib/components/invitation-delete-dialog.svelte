@@ -43,7 +43,8 @@
 			<AlertDialog.Title>¿Eliminar invitación?</AlertDialog.Title>
 			<AlertDialog.Description>
 				{#if invitation}
-					Se eliminará la invitación enviada a <strong>{invitation.email}</strong>. Esta acción no se puede deshacer.
+					Se eliminará la invitación enviada a <strong>{invitation.email}</strong>. Esta acción no
+					se puede deshacer.
 				{/if}
 			</AlertDialog.Description>
 		</AlertDialog.Header>
@@ -68,4 +69,3 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-

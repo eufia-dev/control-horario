@@ -10,12 +10,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Calendar } from '$lib/components/ui/calendar';
 	import * as Popover from '$lib/components/ui/popover';
 	import {
@@ -303,7 +298,9 @@
 			</div>
 
 			<div class="text-sm text-muted-foreground text-right">
-				Duración total: <span class="font-medium text-foreground">{formatDuration(totalMinutes)}</span>
+				Duración total: <span class="font-medium text-foreground"
+					>{formatDuration(totalMinutes)}</span
+				>
 			</div>
 
 			{#if error}
@@ -324,4 +321,3 @@
 		</form>
 	</DialogContent>
 </Dialog>
-

@@ -16,10 +16,7 @@
 	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
 	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
 
-	const steps = [
-		{ label: 'Elige una opción', completed: true },
-		{ label: 'Crea tu empresa' }
-	];
+	const steps = [{ label: 'Elige una opción', completed: true }, { label: 'Crea tu empresa' }];
 
 	let companyName = $state('');
 	let cif = $state('');
@@ -104,12 +101,7 @@
 						<FieldLabel>
 							<Label for="cif">CIF / NIF (opcional)</Label>
 						</FieldLabel>
-						<Input
-							id="cif"
-							type="text"
-							placeholder="B12345678"
-							bind:value={cif}
-						/>
+						<Input id="cif" type="text" placeholder="B12345678" bind:value={cif} />
 						<FieldDescription class="text-xs text-muted-foreground">
 							Identificador fiscal de la empresa
 						</FieldDescription>
@@ -153,4 +145,3 @@
 		</Card>
 	</div>
 </div>
-

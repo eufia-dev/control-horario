@@ -36,9 +36,7 @@
 			emailSent = true;
 		} catch (error) {
 			errorMessage =
-				error instanceof Error
-					? error.message
-					: 'No se ha podido enviar el correo de recuperación';
+				error instanceof Error ? error.message : 'No se ha podido enviar el correo de recuperación';
 		} finally {
 			isSending = false;
 		}

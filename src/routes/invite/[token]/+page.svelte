@@ -78,12 +78,12 @@
 					<span class="material-symbols-rounded text-6xl! text-primary animate-pulse">mail</span>
 				</div>
 				<CardTitle class="text-xl">Procesando invitación...</CardTitle>
-				<CardDescription>
-					Verificando tu invitación, por favor espera
-				</CardDescription>
+				<CardDescription>Verificando tu invitación, por favor espera</CardDescription>
 			</CardHeader>
 			<CardContent class="flex justify-center py-6">
-				<span class="material-symbols-rounded animate-spin text-4xl! text-muted-foreground">progress_activity</span>
+				<span class="material-symbols-rounded animate-spin text-4xl! text-muted-foreground"
+					>progress_activity</span
+				>
 			</CardContent>
 		{:else if needsAuth}
 			<CardHeader class="text-center">
@@ -91,13 +91,12 @@
 					<span class="material-symbols-rounded text-6xl! text-primary">person_add</span>
 				</div>
 				<CardTitle class="text-xl">Inicia sesión para continuar</CardTitle>
-				<CardDescription>
-					Necesitas una cuenta para aceptar esta invitación
-				</CardDescription>
+				<CardDescription>Necesitas una cuenta para aceptar esta invitación</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<p class="text-sm text-muted-foreground text-center">
-					Has recibido una invitación para unirte a una empresa. Crea una cuenta o inicia sesión para aceptarla.
+					Has recibido una invitación para unirte a una empresa. Crea una cuenta o inicia sesión
+					para aceptarla.
 				</p>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-3">
@@ -116,12 +115,12 @@
 					<span class="material-symbols-rounded text-6xl! text-destructive">error</span>
 				</div>
 				<CardTitle class="text-xl">Error con la invitación</CardTitle>
-				<CardDescription>
-					No se pudo procesar la invitación
-				</CardDescription>
+				<CardDescription>No se pudo procesar la invitación</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div class="flex items-center gap-3 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20">
+				<div
+					class="flex items-center gap-3 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
+				>
 					<span class="material-symbols-rounded text-xl!">warning</span>
 					<p class="text-sm">{error}</p>
 				</div>
@@ -145,14 +144,13 @@
 					<span class="material-symbols-rounded text-6xl! text-success">check_circle</span>
 				</div>
 				<CardTitle class="text-xl">Invitación aceptada</CardTitle>
-				<CardDescription>
-					Redirigiendo al dashboard...
-				</CardDescription>
+				<CardDescription>Redirigiendo al dashboard...</CardDescription>
 			</CardHeader>
 			<CardContent class="flex justify-center py-6">
-				<span class="material-symbols-rounded animate-spin text-4xl! text-muted-foreground">progress_activity</span>
+				<span class="material-symbols-rounded animate-spin text-4xl! text-muted-foreground"
+					>progress_activity</span
+				>
 			</CardContent>
 		{/if}
 	</Card>
 </div>
-

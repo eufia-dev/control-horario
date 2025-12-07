@@ -11,12 +11,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { updateUser, type User, type UpdateUserDto } from '$lib/api/users';
 	import type { UserRole } from '$lib/stores/auth';
 
@@ -44,7 +39,9 @@
 		{ value: 'AUDITOR', label: 'Auditor' }
 	];
 
-	const selectedRoleLabel = $derived(roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol');
+	const selectedRoleLabel = $derived(
+		roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'
+	);
 
 	function resetForm() {
 		name = '';

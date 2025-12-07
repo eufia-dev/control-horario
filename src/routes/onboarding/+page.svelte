@@ -17,10 +17,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
 
-	const steps = [
-		{ label: 'Elige una opción' },
-		{ label: 'Completa el proceso' }
-	];
+	const steps = [{ label: 'Elige una opción' }, { label: 'Completa el proceso' }];
 
 	let selectedPath = $state<'create' | 'join' | null>(null);
 	let pendingInvitations = $state<typeof $auth.pendingInvitations>([]);
@@ -81,9 +78,7 @@
 						<span class="material-symbols-rounded text-primary">mail</span>
 						Invitaciones pendientes
 					</CardTitle>
-					<CardDescription>
-						Has sido invitado a unirte a las siguientes empresas
-					</CardDescription>
+					<CardDescription>Has sido invitado a unirte a las siguientes empresas</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-3">
 					{#each pendingInvitations as invitation (invitation.id)}
@@ -189,4 +184,3 @@
 		</Card>
 	</div>
 </div>
-

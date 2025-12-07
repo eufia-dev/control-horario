@@ -137,9 +137,7 @@
 			{/if}
 
 			<Dialog.Footer>
-				<Button variant="outline" type="button" onclick={handleClose}>
-					Cancelar
-				</Button>
+				<Button variant="outline" type="button" onclick={handleClose}>Cancelar</Button>
 				<Button type="submit" disabled={isSubmitting}>
 					{#if isSubmitting}
 						Enviando...
@@ -151,4 +149,3 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
-

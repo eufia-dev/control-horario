@@ -25,25 +25,30 @@
 	let unsubIsAdmin: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
-// Public routes that don't require authentication
-const publicRoutes = ['/login', '/register', '/reset-password'];
+	// Public routes that don't require authentication
+	const publicRoutes = ['/login', '/register', '/reset-password'];
 
-// Routes that are accessible during onboarding
-const onboardingRoutes = ['/onboarding', '/onboarding/create-company', '/onboarding/join', '/onboarding/status'];
+	// Routes that are accessible during onboarding
+	const onboardingRoutes = [
+		'/onboarding',
+		'/onboarding/create-company',
+		'/onboarding/join',
+		'/onboarding/status'
+	];
 
-// Routes for invite handling
-const inviteRoutePrefix = '/invite/';
-const authCallbackPrefix = '/auth/callback';
+	// Routes for invite handling
+	const inviteRoutePrefix = '/invite/';
+	const authCallbackPrefix = '/auth/callback';
 
-const pathname = $derived($page.url.pathname);
-const isAuthCallbackPage = $derived(isAuthCallbackRoute(pathname));
+	const pathname = $derived($page.url.pathname);
+	const isAuthCallbackPage = $derived(isAuthCallbackRoute(pathname));
 
 	function isPublicRoute(pathname: string): boolean {
 		return publicRoutes.includes(pathname);
 	}
 
 	function isOnboardingRoute(pathname: string): boolean {
-		return onboardingRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+		return onboardingRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 	}
 
 	function isInviteRoute(pathname: string): boolean {
@@ -103,7 +108,7 @@ const isAuthCallbackPage = $derived(isAuthCallbackRoute(pathname));
 		if (onboardingStatus === 'PENDING_APPROVAL') {
 			// Only allow status page and join page for submitting new requests
 			const allowedPendingRoutes = ['/onboarding/status', '/onboarding/join'];
-			if (!allowedPendingRoutes.some(r => pathname.startsWith(r)) && !isInviteRoute(pathname)) {
+			if (!allowedPendingRoutes.some((r) => pathname.startsWith(r)) && !isInviteRoute(pathname)) {
 				goto(routeForOnboardingStatus('PENDING_APPROVAL'));
 			}
 			return;
@@ -181,10 +186,7 @@ const isAuthCallbackPage = $derived(isAuthCallbackRoute(pathname));
 	const initials = $derived(user?.name ? getInitials(user.name) : '');
 
 	// Determine if we should show the header
-	const showHeader = $derived(
-		onboardingStatus === 'ACTIVE' ||
-		(!isInitializing && !isAuthed)
-	);
+	const showHeader = $derived(onboardingStatus === 'ACTIVE' || (!isInitializing && !isAuthed));
 </script>
 
 <div class="min-h-screen flex flex-col">

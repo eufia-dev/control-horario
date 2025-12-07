@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { approveJoinRequest, rejectJoinRequest, type AdminJoinRequest } from '$lib/api/invitations';
+	import {
+		approveJoinRequest,
+		rejectJoinRequest,
+		type AdminJoinRequest
+	} from '$lib/api/invitations';
 	import type { UserRole } from '$lib/stores/auth';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { Input } from '$lib/components/ui/input';
@@ -89,7 +93,8 @@
 			<AlertDialog.Description>
 				{#if request}
 					{#if isApprove}
-						¿Aprobar la solicitud de <strong>{request.name}</strong> ({request.email}) para unirse a la empresa?
+						¿Aprobar la solicitud de <strong>{request.name}</strong> ({request.email}) para unirse a
+						la empresa?
 					{:else}
 						¿Rechazar la solicitud de <strong>{request.name}</strong> ({request.email})?
 					{/if}
@@ -154,4 +159,3 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-

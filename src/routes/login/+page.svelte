@@ -93,9 +93,7 @@
 			resetSent = true;
 		} catch (error) {
 			resetError =
-				error instanceof Error
-					? error.message
-					: 'No se ha podido enviar el correo de recuperación';
+				error instanceof Error ? error.message : 'No se ha podido enviar el correo de recuperación';
 		} finally {
 			isSendingReset = false;
 		}
@@ -259,7 +257,7 @@
 						>
 							¿Has olvidado tu contraseña?
 						</button>
-						
+
 						<div class="relative w-full">
 							<div class="absolute inset-0 flex items-center">
 								<span class="w-full border-t border-muted"></span>
@@ -268,7 +266,7 @@
 								<span class="bg-card px-2 text-muted-foreground">¿Nuevo aquí?</span>
 							</div>
 						</div>
-						
+
 						<a
 							href="/register{redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}"
 							class="w-full"

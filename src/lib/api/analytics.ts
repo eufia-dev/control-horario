@@ -147,4 +147,3 @@ export function formatCost(cost: number): string {
 		maximumFractionDigits: 2
 	}).format(cost);
 }
-

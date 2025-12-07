@@ -128,12 +128,7 @@
 		<form onsubmit={handleSubmit} class="grid gap-4 py-4">
 			<div class="grid gap-2">
 				<Label for="name">Nombre</Label>
-				<Input
-					id="name"
-					bind:value={name}
-					placeholder="Nombre del externo"
-					disabled={submitting}
-				/>
+				<Input id="name" bind:value={name} placeholder="Nombre del externo" disabled={submitting} />
 			</div>
 
 			<div class="grid gap-2">
@@ -173,4 +168,3 @@
 		</form>
 	</DialogContent>
 </Dialog>
-

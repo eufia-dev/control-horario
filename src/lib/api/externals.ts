@@ -171,4 +171,3 @@ export async function deleteExternalHours(externalId: string, hoursId: string): 
 	});
 	await handleJsonResponse<unknown>(response);
 }
-

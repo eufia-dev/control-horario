@@ -206,4 +206,3 @@ export async function cancelTimer(): Promise<ActiveTimer> {
 	});
 	return handleJsonResponse<ActiveTimer>(response);
 }
-

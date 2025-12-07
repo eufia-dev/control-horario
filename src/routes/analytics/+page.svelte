@@ -199,10 +199,7 @@
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-3xl! mb-2">error</span>
 						<p class="text-sm">{workersError}</p>
-						<button
-							class="mt-4 text-sm text-primary hover:underline"
-							onclick={() => loadWorkers()}
-						>
+						<button class="mt-4 text-sm text-primary hover:underline" onclick={() => loadWorkers()}>
 							Reintentar
 						</button>
 					</div>

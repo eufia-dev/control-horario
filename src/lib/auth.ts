@@ -49,7 +49,9 @@ async function getAccessToken(): Promise<string | null> {
  * Returns the status type for routing decisions
  * @param tokenOverride - Optional token to use (useful right after login/signup when session might not be stored yet)
  */
-export async function checkAndSetOnboardingStatus(tokenOverride?: string): Promise<OnboardingStatusType> {
+export async function checkAndSetOnboardingStatus(
+	tokenOverride?: string
+): Promise<OnboardingStatusType> {
 	const result = await apiCheckOnboarding(tokenOverride);
 	console.debug('[auth] checkAndSetOnboardingStatus result', result.status, {
 		hasUser: Boolean(result.user),
@@ -61,18 +63,10 @@ export async function checkAndSetOnboardingStatus(tokenOverride?: string): Promi
 		auth.setUser(result.user);
 		return 'ACTIVE';
 	} else if (result.status === 'ONBOARDING_REQUIRED') {
-		auth.setOnboardingStatus(
-			'ONBOARDING_REQUIRED',
-			result.pendingInvitations ?? [],
-			[]
-		);
+		auth.setOnboardingStatus('ONBOARDING_REQUIRED', result.pendingInvitations ?? [], []);
 		return 'ONBOARDING_REQUIRED';
 	} else if (result.status === 'PENDING_APPROVAL') {
-		auth.setOnboardingStatus(
-			'PENDING_APPROVAL',
-			[],
-			result.requests ?? []
-		);
+		auth.setOnboardingStatus('PENDING_APPROVAL', [], result.requests ?? []);
 		return 'PENDING_APPROVAL';
 	}
 
@@ -84,14 +78,14 @@ export async function checkAndSetOnboardingStatus(tokenOverride?: string): Promi
  */
 export function routeForOnboardingStatus(status: OnboardingStatusType | null): string {
 	switch (status) {
-	case 'ACTIVE':
-		return '/';
-	case 'ONBOARDING_REQUIRED':
-		return '/onboarding';
-	case 'PENDING_APPROVAL':
-		return '/onboarding/status';
-	default:
-		return '/onboarding';
+		case 'ACTIVE':
+			return '/';
+		case 'ONBOARDING_REQUIRED':
+			return '/onboarding';
+		case 'PENDING_APPROVAL':
+			return '/onboarding/status';
+		default:
+			return '/onboarding';
 	}
 }
 
@@ -354,7 +348,9 @@ export function cleanupAuthUrl(currentUrl?: URL) {
  * Handle Supabase auth callbacks (signup confirmation, magic link, recovery).
  * Returns the mode, onboarding status (if applicable), and the suggested next route.
  */
-export async function processAuthCallback(locationOverride?: Location | URL): Promise<AuthCallbackResult> {
+export async function processAuthCallback(
+	locationOverride?: Location | URL
+): Promise<AuthCallbackResult> {
 	if (typeof window === 'undefined' && !locationOverride) {
 		return { mode: 'error', error: 'Auth callback only runs in the browser' };
 	}
@@ -364,7 +360,9 @@ export async function processAuthCallback(locationOverride?: Location | URL): Pr
 			? locationOverride
 			: new URL(locationOverride?.href ?? window.location.href);
 
-	const hashParams = new URLSearchParams(url.hash.startsWith('#') ? url.hash.substring(1) : url.hash);
+	const hashParams = new URLSearchParams(
+		url.hash.startsWith('#') ? url.hash.substring(1) : url.hash
+	);
 	const searchParams = url.searchParams;
 
 	const hashType = hashParams.get('type');
@@ -386,7 +384,10 @@ export async function processAuthCallback(locationOverride?: Location | URL): Pr
 
 			if (!session) {
 				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-				console.debug('[auth] processAuthCallback exchange result', { error, hasSession: Boolean(data.session) });
+				console.debug('[auth] processAuthCallback exchange result', {
+					error,
+					hasSession: Boolean(data.session)
+				});
 				if (error) {
 					throw new Error('El enlace de confirmación no es válido o ha expirado.');
 				}
@@ -417,8 +418,8 @@ export async function processAuthCallback(locationOverride?: Location | URL): Pr
 				}
 			}
 
-		// Ensure initializing is off for the recovery password UI
-		auth.setInitializing(false);
+			// Ensure initializing is off for the recovery password UI
+			auth.setInitializing(false);
 			return { mode: 'passwordReset' };
 		}
 
@@ -491,6 +492,8 @@ export function subscribeToAuthChanges() {
  * Check if there's an active Supabase session (for checking auth without full init)
  */
 export async function hasActiveSession(): Promise<boolean> {
-	const { data: { session } } = await supabase.auth.getSession();
+	const {
+		data: { session }
+	} = await supabase.auth.getSession();
 	return !!session;
 }

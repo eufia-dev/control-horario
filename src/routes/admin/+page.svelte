@@ -100,7 +100,10 @@
 	const hasSingleCompany = $derived(companies.length === 1);
 
 	// Helper to get role badge variant and label
-	function getRoleBadge(role: string): { variant: 'default' | 'secondary' | 'outline'; label: string } {
+	function getRoleBadge(role: string): {
+		variant: 'default' | 'secondary' | 'outline';
+		label: string;
+	} {
 		switch (role) {
 			case 'OWNER':
 				return { variant: 'default', label: 'Propietario' };
@@ -319,7 +322,10 @@
 	}
 
 	// Helper functions for invitations
-	function getInvitationStatus(invitation: Invitation): { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string } {
+	function getInvitationStatus(invitation: Invitation): {
+		variant: 'default' | 'secondary' | 'destructive' | 'outline';
+		label: string;
+	} {
 		if (invitation.usedAt) {
 			return { variant: 'secondary', label: 'Usado' };
 		}
@@ -330,8 +336,12 @@
 	}
 
 	// Derived values for pending counts
-	const pendingJoinRequestsCount = $derived(joinRequests.filter(r => r.status === 'PENDING').length);
-	const pendingInvitationsCount = $derived(invitations.filter(i => !i.usedAt && new Date(i.expiresAt) >= new Date()).length);
+	const pendingJoinRequestsCount = $derived(
+		joinRequests.filter((r) => r.status === 'PENDING').length
+	);
+	const pendingInvitationsCount = $derived(
+		invitations.filter((i) => !i.usedAt && new Date(i.expiresAt) >= new Date()).length
+	);
 </script>
 
 {#if isAdmin}
@@ -437,7 +447,9 @@
 												<Badge variant="destructive">Inactivo</Badge>
 											{/if}
 										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
+										<TableCell class="text-muted-foreground"
+											>{formatDate(project.createdAt)}</TableCell
+										>
 										<TableCell>
 											<div class="flex items-center gap-1">
 												<Button
@@ -561,7 +573,8 @@
 										<TableCell>
 											<Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
 										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+										<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell
+										>
 										<TableCell>
 											<Button
 												variant="ghost"
@@ -662,7 +675,9 @@
 												<Badge variant="destructive">Inactivo</Badge>
 											{/if}
 										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell>
+										<TableCell class="text-muted-foreground"
+											>{formatDate(external.createdAt)}</TableCell
+										>
 										<TableCell>
 											<div class="flex items-center gap-1">
 												<Button
@@ -782,8 +797,12 @@
 										<TableCell>
 											<Badge variant={status.variant}>{status.label}</Badge>
 										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(invitation.createdAt)}</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(invitation.expiresAt)}</TableCell>
+										<TableCell class="text-muted-foreground"
+											>{formatDate(invitation.createdAt)}</TableCell
+										>
+										<TableCell class="text-muted-foreground"
+											>{formatDate(invitation.expiresAt)}</TableCell
+										>
 										<TableCell>
 											<div class="flex items-center gap-1">
 												{#if !invitation.usedAt && new Date(invitation.expiresAt) >= new Date()}
@@ -913,7 +932,9 @@
 												<Badge variant="destructive">Rechazado</Badge>
 											{/if}
 										</TableCell>
-										<TableCell class="text-muted-foreground">{formatDate(request.createdAt)}</TableCell>
+										<TableCell class="text-muted-foreground"
+											>{formatDate(request.createdAt)}</TableCell
+										>
 										<TableCell>
 											{#if isPending}
 												<div class="flex items-center gap-1">

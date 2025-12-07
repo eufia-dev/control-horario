@@ -86,8 +86,7 @@
 				Estás a punto de eliminar el registro de
 				<strong class="text-foreground">{entry?.project?.name ?? 'proyecto desconocido'}</strong>
 				del <strong class="text-foreground">{entry ? formatDate(entry.startedAt) : ''}</strong>
-				({entry ? formatDuration(entry.minutes) : ''}).
-				Esta acción no se puede deshacer.
+				({entry ? formatDuration(entry.minutes) : ''}). Esta acción no se puede deshacer.
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 
@@ -96,7 +95,9 @@
 		{/if}
 
 		<AlertDialogFooter>
-			<AlertDialogCancel disabled={deleting || success} onclick={handleClose}>Cancelar</AlertDialogCancel>
+			<AlertDialogCancel disabled={deleting || success} onclick={handleClose}
+				>Cancelar</AlertDialogCancel
+			>
 			<AlertDialogAction
 				variant={success ? 'success' : 'destructive'}
 				class="min-w-[100px] transition-all duration-300"
@@ -104,10 +105,13 @@
 				onclick={handleDelete}
 			>
 				{#if deleting}
-					<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+					<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span
+					>
 					Eliminando...
 				{:else if success}
-					<span class="material-symbols-rounded mr-1 text-base animate-in zoom-in duration-200">check_circle</span>
+					<span class="material-symbols-rounded mr-1 text-base animate-in zoom-in duration-200"
+						>check_circle</span
+					>
 					Eliminado
 				{:else}
 					Eliminar
@@ -116,4 +120,3 @@
 		</AlertDialogFooter>
 	</AlertDialogContent>
 </AlertDialog>
-

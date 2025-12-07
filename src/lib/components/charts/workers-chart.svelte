@@ -5,12 +5,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		type WorkerSummary,
 		type ProjectBreakdown,
@@ -187,11 +182,11 @@
 						</div>
 					{/each}
 				</div>
-		{:else if chartData.length === 0}
-			<div class="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
-				<span class="material-symbols-rounded text-4xl! mb-2">group</span>
-				<p>No hay datos de trabajadores</p>
-			</div>
+			{:else if chartData.length === 0}
+				<div class="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
+					<span class="material-symbols-rounded text-4xl! mb-2">group</span>
+					<p>No hay datos de trabajadores</p>
+				</div>
 			{:else}
 				<!-- Vertical Bar Chart -->
 				<ChartContainer config={chartConfig} class="h-[300px] w-full min-w-0">
@@ -211,13 +206,16 @@
 							<Axis
 								placement="left"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
-								format={(d: number) => (mainViewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
+								format={(d: number) =>
+									mainViewMode === 'cost'
+										? `€${d >= 1000 ? `${(d / 1000).toFixed(0)}k` : d}`
+										: `${d}h`}
 							/>
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
 							/>
-								<Bars radius={4} strokeWidth={0}>
+							<Bars radius={4} strokeWidth={0}>
 								{#each chartData as item (`${item.id}:${item.type}`)}
 									<Bar data={item} fill={item.color} radius={4} strokeWidth={0} />
 								{/each}
@@ -226,10 +224,14 @@
 						<Tooltip.Root variant="none">
 							{#snippet children({ data })}
 								{#if data}
-									<div class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl">
+									<div
+										class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl"
+									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
 										<div class="text-muted-foreground text-[10px] mb-1.5">
-											{data.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(data.hourlyCost)}/h
+											{data.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(
+												data.hourlyCost
+											)}/h
 										</div>
 										<div class="flex items-center justify-between gap-4">
 											<span class="text-muted-foreground">Coste total</span>
@@ -247,7 +249,9 @@
 				</ChartContainer>
 
 				<!-- Legend - dynamic colors per worker, centered -->
-				<div class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground">
+				<div
+					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
+				>
 					{#each chartData as worker (`${worker.id}:${worker.type}`)}
 						<div class="flex items-center gap-1.5">
 							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {worker.color}"></span>
@@ -266,7 +270,14 @@
 				<CardTitle class="text-xl font-semibold">Por trabajador</CardTitle>
 				{#if selectedWorker}
 					<p class="text-xs text-muted-foreground mt-1">
-						{selectedWorker.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(selectedWorker.hourlyCost)}/h · {formatValue(breakdownViewMode === 'cost' ? selectedWorker.totalCost : selectedWorker.totalMinutes / 60, breakdownViewMode)} total
+						{selectedWorker.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(
+							selectedWorker.hourlyCost
+						)}/h · {formatValue(
+							breakdownViewMode === 'cost'
+								? selectedWorker.totalCost
+								: selectedWorker.totalMinutes / 60,
+							breakdownViewMode
+						)} total
 					</p>
 				{/if}
 			</div>
@@ -357,13 +368,16 @@
 							<Axis
 								placement="left"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
-								format={(d: number) => (breakdownViewMode === 'cost' ? `€${d >= 1000 ? `${(d/1000).toFixed(0)}k` : d}` : `${d}h`)}
+								format={(d: number) =>
+									breakdownViewMode === 'cost'
+										? `€${d >= 1000 ? `${(d / 1000).toFixed(0)}k` : d}`
+										: `${d}h`}
 							/>
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
 							/>
-								<Bars radius={3} strokeWidth={0}>
+							<Bars radius={3} strokeWidth={0}>
 								{#each breakdownChartData as item (item.id)}
 									<Bar data={item} fill={item.color} radius={3} strokeWidth={0} />
 								{/each}
@@ -372,7 +386,9 @@
 						<Tooltip.Root variant="none">
 							{#snippet children({ data })}
 								{#if data}
-									<div class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl">
+									<div
+										class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl"
+									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
 										<div class="flex items-center justify-between gap-4">
 											<span class="text-muted-foreground">Coste</span>
@@ -390,7 +406,9 @@
 				</ChartContainer>
 
 				<!-- Legend - dynamic colors per project, centered -->
-				<div class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground">
+				<div
+					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
+				>
 					{#each breakdownChartData as project (project.id)}
 						<div class="flex items-center gap-1.5">
 							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {project.color}"></span>

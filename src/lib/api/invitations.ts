@@ -151,4 +151,3 @@ export async function rejectJoinRequest(
 	});
 	return handleJsonResponse<AdminJoinRequest>(response);
 }
-

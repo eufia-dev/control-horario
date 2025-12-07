@@ -12,12 +12,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		createProject,
 		updateProject,
@@ -179,17 +174,18 @@
 
 			<div class="grid gap-2">
 				<Label for="name">Nombre</Label>
-				<Input id="name" bind:value={name} placeholder="Nombre del proyecto" disabled={submitting} />
+				<Input
+					id="name"
+					bind:value={name}
+					placeholder="Nombre del proyecto"
+					disabled={submitting}
+				/>
 			</div>
 
 			{#if !hasSingleCompany}
 				<div class="grid gap-2">
 					<Label>Empresa</Label>
-					<Select
-						type="single"
-						bind:value={companyId}
-						disabled={submitting || loadingCompanies}
-					>
+					<Select type="single" bind:value={companyId} disabled={submitting || loadingCompanies}>
 						<SelectTrigger class="w-full">
 							{#if loadingCompanies}
 								<span class="text-muted-foreground">Cargando empresas...</span>
@@ -233,4 +229,3 @@
 		</form>
 	</DialogContent>
 </Dialog>
-

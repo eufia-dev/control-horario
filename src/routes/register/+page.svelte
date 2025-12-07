@@ -25,7 +25,7 @@
 	let errorMessage = $state<string | null>(null);
 	let passwordError = $state<string | null>(null);
 	let confirmPasswordError = $state<string | null>(null);
-	
+
 	// Email confirmation state
 	let emailConfirmationRequired = $state(false);
 	let registeredEmail = $state('');
@@ -121,9 +121,7 @@
 			</CardContent>
 			<CardFooter class="flex flex-col gap-4">
 				<a href="/login" class="w-full">
-					<Button variant="outline" class="w-full">
-						Volver a iniciar sesión
-					</Button>
+					<Button variant="outline" class="w-full">Volver a iniciar sesión</Button>
 				</a>
 			</CardFooter>
 		</Card>
@@ -131,9 +129,7 @@
 		<Card class="w-full max-w-md -mt-10">
 			<CardHeader class="space-y-1">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Crear cuenta</CardTitle>
-				<CardDescription>
-					Introduce tus datos para registrarte en la plataforma.
-				</CardDescription>
+				<CardDescription>Introduce tus datos para registrarte en la plataforma.</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form
@@ -162,14 +158,14 @@
 							<Label for="password">Contraseña</Label>
 						</FieldLabel>
 						<InputGroup>
-						<InputGroupInput
-							id="password"
-							type={showPassword ? 'text' : 'password'}
-							placeholder="Mínimo 8 caracteres"
-							bind:value={password}
-							required
-							minlength={8}
-							autocomplete="new-password"
+							<InputGroupInput
+								id="password"
+								type={showPassword ? 'text' : 'password'}
+								placeholder="Mínimo 8 caracteres"
+								bind:value={password}
+								required
+								minlength={8}
+								autocomplete="new-password"
 								oninput={() => {
 									if (passwordError) passwordError = null;
 								}}
@@ -194,14 +190,14 @@
 							<Label for="confirm-password">Confirmar contraseña</Label>
 						</FieldLabel>
 						<InputGroup>
-						<InputGroupInput
-							id="confirm-password"
-							type={showConfirmPassword ? 'text' : 'password'}
-							placeholder="Repite tu contraseña"
-							bind:value={confirmPassword}
-							required
-							minlength={8}
-							autocomplete="new-password"
+							<InputGroupInput
+								id="confirm-password"
+								type={showConfirmPassword ? 'text' : 'password'}
+								placeholder="Repite tu contraseña"
+								bind:value={confirmPassword}
+								required
+								minlength={8}
+								autocomplete="new-password"
 								oninput={() => {
 									if (confirmPasswordError) confirmPasswordError = null;
 								}}
@@ -245,4 +241,3 @@
 		</Card>
 	{/if}
 </div>
-

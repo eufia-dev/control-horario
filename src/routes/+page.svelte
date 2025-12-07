@@ -15,12 +15,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		Tooltip,
 		TooltipContent,
@@ -151,7 +146,7 @@
 		loadingTypes = true;
 		try {
 			timeEntryTypes = await fetchTimeEntryTypes();
-			
+
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (!selectedTypeId) {
 				if (trabajoType) {
@@ -430,7 +425,9 @@
 						<div class="flex flex-col gap-1">
 							<div class="flex items-center gap-2">
 								<span class="relative flex h-3 w-3">
-									<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"></span>
+									<span
+										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"
+									></span>
 									<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
 								</span>
 								<span class="text-sm font-medium text-success">En curso</span>
@@ -494,7 +491,11 @@
 								</div>
 							</div>
 							<div class="flex items-center gap-3">
-								<Switch id="switchIsOffice" bind:checked={switchIsOffice} disabled={switchingTimer} />
+								<Switch
+									id="switchIsOffice"
+									bind:checked={switchIsOffice}
+									disabled={switchingTimer}
+								/>
 								<Label for="switchIsOffice" class="cursor-pointer">
 									{switchIsOffice ? 'Oficina' : 'Remoto'}
 								</Label>
@@ -503,9 +504,14 @@
 								<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
 									Cancelar
 								</Button>
-								<Button onclick={handleSwitchTimer} disabled={!switchProjectId || !switchTypeId || switchingTimer}>
+								<Button
+									onclick={handleSwitchTimer}
+									disabled={!switchProjectId || !switchTypeId || switchingTimer}
+								>
 									{#if switchingTimer}
-										<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin text-base"
+											>progress_activity</span
+										>
 									{/if}
 									Cambiar tarea
 								</Button>
@@ -514,15 +520,27 @@
 					{:else}
 						<!-- Timer Actions -->
 						<div class="flex gap-3 flex-wrap">
-							<Button variant="destructive" onclick={handleStopTimer} disabled={stoppingTimer} class="flex-1 sm:flex-none">
+							<Button
+								variant="destructive"
+								onclick={handleStopTimer}
+								disabled={stoppingTimer}
+								class="flex-1 sm:flex-none"
+							>
 								{#if stoppingTimer}
-									<span class="material-symbols-rounded mr-2 animate-spin text-base">progress_activity</span>
+									<span class="material-symbols-rounded mr-2 animate-spin text-base"
+										>progress_activity</span
+									>
 								{:else}
 									<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
 								{/if}
 								Detener
 							</Button>
-							<Button variant="outline" onclick={handleShowSwitchForm} disabled={stoppingTimer} class="flex-1 sm:flex-none">
+							<Button
+								variant="outline"
+								onclick={handleShowSwitchForm}
+								disabled={stoppingTimer}
+								class="flex-1 sm:flex-none"
+							>
 								<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
 								Cambiar tarea
 							</Button>
@@ -577,7 +595,9 @@
 						</div>
 						<Button onclick={handleStartTimer} disabled={!canStartTimer}>
 							{#if startingTimer}
-								<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-base"
+									>progress_activity</span
+								>
 							{:else}
 								<span class="material-symbols-rounded text-lg!">play_arrow</span>
 							{/if}

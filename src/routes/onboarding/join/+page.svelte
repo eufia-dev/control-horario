@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { searchCompanies, getCompanyByCode, requestJoin, type CompanySearchResult } from '$lib/api/onboarding';
+	import {
+		searchCompanies,
+		getCompanyByCode,
+		requestJoin,
+		type CompanySearchResult
+	} from '$lib/api/onboarding';
 	import {
 		Card,
 		CardHeader,
@@ -16,10 +21,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
 
-	const steps = [
-		{ label: 'Elige una opción', completed: true },
-		{ label: 'Únete a una empresa' }
-	];
+	const steps = [{ label: 'Elige una opción', completed: true }, { label: 'Únete a una empresa' }];
 
 	// Search state
 	let searchQuery = $state('');
@@ -152,7 +154,9 @@
 					>
 						<div class="p-4 rounded-lg bg-muted/50 border border-border">
 							<div class="flex items-center gap-3">
-								<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+								<div
+									class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary"
+								>
 									<span class="material-symbols-rounded">business</span>
 								</div>
 								<div>
@@ -182,10 +186,13 @@
 							<FieldError class="text-sm text-destructive">{submitError}</FieldError>
 						{/if}
 
-						<div class="flex items-center gap-3 p-4 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/20">
+						<div
+							class="flex items-center gap-3 p-4 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/20"
+						>
 							<span class="material-symbols-rounded text-xl!">info</span>
 							<p class="text-sm">
-								Tu solicitud será revisada por un administrador de la empresa. Te notificaremos cuando sea aprobada.
+								Tu solicitud será revisada por un administrador de la empresa. Te notificaremos
+								cuando sea aprobada.
 							</p>
 						</div>
 
@@ -233,7 +240,9 @@
 							/>
 							{#if isSearching}
 								<div class="absolute right-3 top-1/2 -translate-y-1/2">
-									<span class="material-symbols-rounded animate-spin text-muted-foreground">progress_activity</span>
+									<span class="material-symbols-rounded animate-spin text-muted-foreground"
+										>progress_activity</span
+									>
 								</div>
 							{/if}
 						</div>
@@ -246,7 +255,10 @@
 					{#if searchResults.length > 0}
 						<div class="space-y-2">
 							<p class="text-sm text-muted-foreground">
-								{searchResults.length} empresa{searchResults.length !== 1 ? 's' : ''} encontrada{searchResults.length !== 1 ? 's' : ''}
+								{searchResults.length} empresa{searchResults.length !== 1 ? 's' : ''} encontrada{searchResults.length !==
+								1
+									? 's'
+									: ''}
 							</p>
 							<div class="space-y-2 max-h-48 overflow-y-auto">
 								{#each searchResults as company (company.id)}
@@ -255,7 +267,9 @@
 										class="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors text-left"
 										onclick={() => handleSelectCompany(company)}
 									>
-										<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0">
+										<div
+											class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0"
+										>
 											<span class="material-symbols-rounded">business</span>
 										</div>
 										<span class="font-medium">{company.name}</span>
@@ -271,7 +285,9 @@
 
 					<div class="relative">
 						<Separator />
-						<span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-sm text-muted-foreground">
+						<span
+							class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-sm text-muted-foreground"
+						>
 							o
 						</span>
 					</div>
@@ -316,7 +332,9 @@
 								class="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors text-left"
 								onclick={() => handleSelectCompany(codeCompany!)}
 							>
-								<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0">
+								<div
+									class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0"
+								>
 									<span class="material-symbols-rounded">business</span>
 								</div>
 								<div>
@@ -338,4 +356,3 @@
 		{/if}
 	</div>
 </div>
-

@@ -96,4 +96,3 @@ export async function fetchCompanies(): Promise<Company[]> {
 	const response = await fetchWithAuth(`${API_BASE}/companies`);
 	return handleJsonResponse<Company[]>(response);
 }
-

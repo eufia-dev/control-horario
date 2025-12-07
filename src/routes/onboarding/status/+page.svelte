@@ -169,7 +169,9 @@
 								<div class="p-4 rounded-lg border border-border bg-card">
 									<div class="flex items-center justify-between">
 										<div class="flex items-center gap-3">
-											<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0">
+											<div
+												class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0"
+											>
 												<span class="material-symbols-rounded">business</span>
 											</div>
 											<div>
@@ -181,7 +183,9 @@
 										</div>
 										<div class="flex items-center gap-2">
 											<Badge variant={statusBadge.variant}>
-												<span class="material-symbols-rounded text-sm! mr-1">{statusBadge.icon}</span>
+												<span class="material-symbols-rounded text-sm! mr-1"
+													>{statusBadge.icon}</span
+												>
 												{statusBadge.label}
 											</Badge>
 											<Button
@@ -192,7 +196,9 @@
 												disabled={cancellingId === request.id}
 											>
 												{#if cancellingId === request.id}
-													<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+													<span class="material-symbols-rounded animate-spin text-lg!"
+														>progress_activity</span
+													>
 												{:else}
 													<span class="material-symbols-rounded text-lg!">close</span>
 												{/if}
@@ -203,7 +209,9 @@
 							{/each}
 						</div>
 
-						<div class="flex items-center gap-3 p-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20">
+						<div
+							class="flex items-center gap-3 p-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-500/20"
+						>
 							<span class="material-symbols-rounded text-xl!">info</span>
 							<p class="text-sm">
 								Un administrador debe aprobar tu solicitud. Esto puede tardar un poco.
@@ -223,13 +231,17 @@
 								<div class="p-4 rounded-lg border border-border bg-muted/30">
 									<div class="flex items-center justify-between">
 										<div class="flex items-center gap-3">
-											<div class="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-muted-foreground shrink-0">
+											<div
+												class="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-muted-foreground shrink-0"
+											>
 												<span class="material-symbols-rounded">business</span>
 											</div>
 											<div>
 												<p class="font-medium">{request.companyName}</p>
 												<p class="text-sm text-muted-foreground">
-													{request.reviewedAt ? `Revisado: ${formatDate(request.reviewedAt)}` : formatDate(request.createdAt)}
+													{request.reviewedAt
+														? `Revisado: ${formatDate(request.reviewedAt)}`
+														: formatDate(request.createdAt)}
 												</p>
 											</div>
 										</div>
@@ -260,4 +272,3 @@
 		</Card>
 	</div>
 </div>
-

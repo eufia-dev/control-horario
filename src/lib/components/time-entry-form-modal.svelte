@@ -11,12 +11,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Calendar } from '$lib/components/ui/calendar';
 	import * as Popover from '$lib/components/ui/popover';
 	import {
@@ -148,7 +143,7 @@
 			if (activeProjects.length > 0) {
 				projectId = activeProjects[0].id;
 			}
-			
+
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
 				typeId = trabajoType.id;
@@ -314,7 +309,9 @@
 									{...props}
 								>
 									<span class="material-symbols-rounded text-lg!">calendar_today</span>
-									{startDateValue ? df.format(startDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
+									{startDateValue
+										? df.format(startDateValue.toDate(getLocalTimeZone()))
+										: 'Seleccionar fecha'}
 								</Button>
 							{/snippet}
 						</Popover.Trigger>
@@ -345,7 +342,9 @@
 									{...props}
 								>
 									<span class="material-symbols-rounded text-lg!">calendar_today</span>
-									{endDateValue ? df.format(endDateValue.toDate(getLocalTimeZone())) : 'Seleccionar fecha'}
+									{endDateValue
+										? df.format(endDateValue.toDate(getLocalTimeZone()))
+										: 'Seleccionar fecha'}
 								</Button>
 							{/snippet}
 						</Popover.Trigger>
@@ -390,4 +389,3 @@
 		</form>
 	</DialogContent>
 </Dialog>
-

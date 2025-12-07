@@ -85,10 +85,16 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
  * Check the onboarding status of the current user
  * @param tokenOverride - Optional token to use (useful right after login/signup when session might not be stored yet)
  */
-export async function checkOnboardingStatus(tokenOverride?: string): Promise<OnboardingCheckResponse> {
-	const response = await fetchWithAuth(`${API_BASE}/onboarding/check`, {
-		method: 'POST'
-	}, tokenOverride);
+export async function checkOnboardingStatus(
+	tokenOverride?: string
+): Promise<OnboardingCheckResponse> {
+	const response = await fetchWithAuth(
+		`${API_BASE}/onboarding/check`,
+		{
+			method: 'POST'
+		},
+		tokenOverride
+	);
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 
@@ -177,4 +183,3 @@ export async function getCompanyByCode(code: string): Promise<CompanySearchResul
 	const response = await fetchWithAuth(`${API_BASE}/companies/by-code/${encodeURIComponent(code)}`);
 	return handleJsonResponse<CompanySearchResult>(response);
 }
-
