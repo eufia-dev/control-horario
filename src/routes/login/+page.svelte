@@ -16,7 +16,6 @@
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
 
-	// Get redirect URL from query params (used when coming from invite link)
 	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
 
 	let email = $state('');
@@ -26,7 +25,6 @@
 	let errorMessage = $state<string | null>(null);
 	let passwordError = $state<string | null>(null);
 
-	// Forgot password state
 	let showForgotPassword = $state(false);
 	let forgotEmail = $state('');
 	let isSendingReset = $state(false);
@@ -49,13 +47,11 @@
 		try {
 			const status = await login(email, password);
 
-			// If there's a redirect URL (from invite), go there
 			if (redirectUrl) {
 				await goto(redirectUrl);
 				return;
 			}
 
-			// Route based on onboarding status
 			switch (status) {
 				case 'ACTIVE':
 					await goto('/');

@@ -90,7 +90,6 @@
 			return;
 		}
 
-		// Basic email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email.trim())) {
 			error = 'El formato del email no es válido';

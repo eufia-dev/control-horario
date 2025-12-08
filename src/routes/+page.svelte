@@ -46,7 +46,6 @@
 	} from '$lib/api/externals';
 	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 
-	// Auth state
 	let isAdmin = $state(false);
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -55,17 +54,14 @@
 		return unsub;
 	});
 
-	// Data state
 	let projects = $state<Project[]>([]);
 	let timeEntryTypes = $state<TimeEntryType[]>([]);
 	let timeEntries = $state<TimeEntry[]>([]);
 	let activeTimer = $state<ActiveTimer | null>(null);
 
-	// External data state (admin only)
 	let externals = $state<External[]>([]);
 	let externalHours = $state<ExternalHours[]>([]);
 
-	// Loading states
 	let loadingProjects = $state(true);
 	let loadingTypes = $state(true);
 	let loadingEntries = $state(true);
@@ -73,42 +69,34 @@
 	let loadingExternals = $state(true);
 	let loadingExternalHours = $state(true);
 
-	// Error states
 	let entriesError = $state<string | null>(null);
 	let externalHoursError = $state<string | null>(null);
 
-	// Timer form state (for starting new timer)
 	let selectedProjectId = $state<string | undefined>(undefined);
 	let selectedTypeId = $state<string | undefined>(undefined);
 	let isOffice = $state(true);
 	let startingTimer = $state(false);
 	let stoppingTimer = $state(false);
 
-	// Switch task state
 	let showSwitchForm = $state(false);
 	let switchProjectId = $state<string | undefined>(undefined);
 	let switchTypeId = $state<string | undefined>(undefined);
 	let switchIsOffice = $state(true);
 	let switchingTimer = $state(false);
 
-	// Modal state for time entries
 	let formModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 	let selectedEntry = $state<TimeEntry | null>(null);
 
-	// Modal state for external hours
 	let externalHoursFormOpen = $state(false);
 	let externalHoursDeleteOpen = $state(false);
 	let selectedExternalHours = $state<ExternalHours | null>(null);
 
-	// Tabs state
 	let activeTab = $state('my-entries');
 
-	// Elapsed time state
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-	// Derived values
 	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
 	const selectedType = $derived(timeEntryTypes.find((t) => t.id === selectedTypeId));
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
@@ -119,7 +107,6 @@
 		selectedProjectId && selectedTypeId && !startingTimer && !activeTimer
 	);
 
-	// Enrich external hours with project info
 	const enrichedExternalHours = $derived(
 		externalHours.map((h) => ({
 			...h,
@@ -131,7 +118,6 @@
 		loadingProjects = true;
 		try {
 			projects = await fetchProjects();
-			// Auto-select first active project if none selected
 			if (!selectedProjectId && activeProjects.length > 0) {
 				selectedProjectId = activeProjects[0].id;
 			}
@@ -301,7 +287,6 @@
 	}
 
 	function handleShowSwitchForm() {
-		// Pre-populate with current timer's type and office setting
 		if (activeTimer) {
 			switchTypeId = activeTimer.typeId;
 			switchIsOffice = activeTimer.isOffice;
@@ -337,7 +322,6 @@
 		}
 	}
 
-	// Entry handlers
 	function handleCreateEntry() {
 		selectedEntry = null;
 		formModalOpen = true;
@@ -361,7 +345,6 @@
 		loadEntries();
 	}
 
-	// External hours handlers
 	function handleCreateExternalHours() {
 		selectedExternalHours = null;
 		externalHoursFormOpen = true;
@@ -390,7 +373,6 @@
 		loadTypes();
 		loadEntries();
 		loadActiveTimer();
-		// Load admin-only data
 		loadExternals();
 		loadExternalHours();
 	});
@@ -401,7 +383,6 @@
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
-	<!-- Active Timer Card -->
 	<Card class="w-full max-w-5xl mx-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
@@ -419,7 +400,6 @@
 					</div>
 				</div>
 			{:else if activeTimer}
-				<!-- Timer Running State -->
 				<div class="flex flex-col gap-6">
 					<div class="flex items-center justify-between flex-wrap gap-4">
 						<div class="flex flex-col gap-1">
@@ -1003,7 +983,6 @@
 	</Card>
 </div>
 
-<!-- Time Entry Modals -->
 <TimeEntryFormModal
 	bind:open={formModalOpen}
 	entry={selectedEntry}
@@ -1020,7 +999,6 @@
 	onSuccess={handleEntrySuccess}
 />
 
-<!-- External Hours Modals (admin only) -->
 {#if isAdmin}
 	<ExternalHoursFormModal
 		bind:open={externalHoursFormOpen}

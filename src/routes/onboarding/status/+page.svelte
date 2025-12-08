@@ -21,7 +21,6 @@
 	let error = $state<string | null>(null);
 	let cancellingId = $state<string | null>(null);
 
-	// Load requests on mount
 	onMount(async () => {
 		await loadRequests();
 	});
@@ -46,7 +45,6 @@
 
 		try {
 			await cancelJoinRequest(requestId);
-			// Reload requests
 			await loadRequests();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al cancelar la solicitud';
@@ -56,7 +54,6 @@
 	};
 
 	const handleRefresh = async () => {
-		// Check onboarding status - if approved, will redirect to dashboard
 		try {
 			const status = await checkAndSetOnboardingStatus();
 			if (status === 'ACTIVE') {

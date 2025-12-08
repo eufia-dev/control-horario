@@ -21,7 +21,6 @@ const storage = {
 
 export const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
 	auth: {
-		// Let Supabase parse the URL for PKCE, we guard duplicate exchanges in our handler
 		detectSessionInUrl: true,
 		flowType: 'pkce',
 		storage

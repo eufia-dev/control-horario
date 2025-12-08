@@ -3,7 +3,6 @@ import { fetchWithAuth } from '$lib/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type External = {
 	id: string;
 	name: string;
@@ -24,7 +23,6 @@ export type UpdateExternalDto = {
 	isActive?: boolean;
 };
 
-// External Hours Types
 export type ExternalHours = {
 	id: string;
 	externalId: string;
@@ -33,7 +31,6 @@ export type ExternalHours = {
 	date: string;
 	minutes: number;
 	createdAt: string;
-	// Populated fields for display
 	external?: External;
 	project?: { id: string; name: string };
 };
@@ -50,7 +47,6 @@ export type UpdateExternalHoursDto = {
 	minutes?: number;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -70,7 +66,6 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-// Externals API
 export async function fetchExternals(): Promise<External[]> {
 	const response = await fetchWithAuth(`${API_BASE}/externals`);
 	return handleJsonResponse<External[]>(response);
@@ -110,29 +105,24 @@ export async function deleteExternal(id: string): Promise<void> {
 	await handleJsonResponse<unknown>(response);
 }
 
-// External Hours API
-
 export async function fetchExternalHours(externalId: string): Promise<ExternalHours[]> {
 	const response = await fetchWithAuth(`${API_BASE}/externals/${externalId}/hours`);
 	return handleJsonResponse<ExternalHours[]>(response);
 }
 
 export async function fetchAllExternalHours(): Promise<ExternalHours[]> {
-	// Fetch all externals first, then fetch hours for each and combine
 	const externals = await fetchExternals();
 	const allHours: ExternalHours[] = [];
 
 	for (const external of externals) {
 		try {
 			const hours = await fetchExternalHours(external.id);
-			// Attach external info to each hours entry
 			allHours.push(...hours.map((h) => ({ ...h, external })));
 		} catch {
 			// Skip if no hours found for this external
 		}
 	}
 
-	// Sort by date descending
 	return allHours.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 

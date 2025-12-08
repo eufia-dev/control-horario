@@ -26,16 +26,13 @@
 	let passwordError = $state<string | null>(null);
 	let confirmPasswordError = $state<string | null>(null);
 
-	// Email confirmation state
 	let emailConfirmationRequired = $state(false);
 	let registeredEmail = $state('');
 
-	// Resend confirmation state
 	let isResending = $state(false);
 	let resendSuccess = $state(false);
 	let resendError = $state<string | null>(null);
 
-	// Get redirect URL from query params (used when coming from invite link)
 	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
 
 	const handleSubmit = async () => {
@@ -45,13 +42,11 @@
 		passwordError = null;
 		confirmPasswordError = null;
 
-		// Validate password length
 		if (password.length < 8) {
 			passwordError = 'La contraseña debe tener al menos 8 caracteres.';
 			return;
 		}
 
-		// Validate password match
 		if (password !== confirmPassword) {
 			confirmPasswordError = 'Las contraseñas no coinciden.';
 			return;
@@ -62,20 +57,17 @@
 		try {
 			const status = await register(email, password);
 
-			// Handle email confirmation requirement
 			if (status === 'EMAIL_CONFIRMATION_REQUIRED') {
 				registeredEmail = email;
 				emailConfirmationRequired = true;
 				return;
 			}
 
-			// If there's a redirect URL (from invite), go there
 			if (redirectUrl) {
 				await goto(redirectUrl);
 				return;
 			}
 
-			// Route based on onboarding status
 			switch (status) {
 				case 'ACTIVE':
 					await goto('/');

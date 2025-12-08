@@ -4,7 +4,6 @@ import type { UserRole } from '$lib/stores/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type OnboardingStatusType = 'ACTIVE' | 'ONBOARDING_REQUIRED' | 'PENDING_APPROVAL';
 
 export type PendingInvitation = {
@@ -61,7 +60,6 @@ export type RequestJoinDto = {
 	name: string;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -81,10 +79,6 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-/**
- * Check the onboarding status of the current user
- * @param tokenOverride - Optional token to use (useful right after login/signup when session might not be stored yet)
- */
 export async function checkOnboardingStatus(
 	tokenOverride?: string
 ): Promise<OnboardingCheckResponse> {
@@ -98,9 +92,6 @@ export async function checkOnboardingStatus(
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 
-/**
- * Create a new company and assign the current user as owner
- */
 export async function createCompany(data: CreateCompanyDto): Promise<OnboardingCheckResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/create-company`, {
 		method: 'POST',
@@ -112,9 +103,6 @@ export async function createCompany(data: CreateCompanyDto): Promise<OnboardingC
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 
-/**
- * Accept an invitation using its token
- */
 export async function acceptInvitation(token: string, userName: string): Promise<OnboardingCheckResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/accept-invitation/${token}`, {
 		method: 'POST',
@@ -127,9 +115,6 @@ export async function acceptInvitation(token: string, userName: string): Promise
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 
-/**
- * Request to join a company
- */
 export async function requestJoin(data: RequestJoinDto): Promise<JoinRequest> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/request-join`, {
 		method: 'POST',
@@ -141,17 +126,11 @@ export async function requestJoin(data: RequestJoinDto): Promise<JoinRequest> {
 	return handleJsonResponse<JoinRequest>(response);
 }
 
-/**
- * Get the current user's pending join requests
- */
 export async function getMyRequests(): Promise<JoinRequest[]> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/my-requests`);
 	return handleJsonResponse<JoinRequest[]>(response);
 }
 
-/**
- * Cancel a pending join request
- */
 export async function cancelJoinRequest(requestId: string): Promise<void> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/my-requests/${requestId}`, {
 		method: 'DELETE'
@@ -171,9 +150,6 @@ export async function cancelJoinRequest(requestId: string): Promise<void> {
 	}
 }
 
-/**
- * Search companies by name (public, limited info)
- */
 export async function searchCompanies(query: string): Promise<CompanySearchResult[]> {
 	const response = await fetchWithAuth(
 		`${API_BASE}/companies/search?q=${encodeURIComponent(query)}`
@@ -181,9 +157,6 @@ export async function searchCompanies(query: string): Promise<CompanySearchResul
 	return handleJsonResponse<CompanySearchResult[]>(response);
 }
 
-/**
- * Get a company by its invite code
- */
 export async function getCompanyByCode(code: string): Promise<CompanySearchResult> {
 	const response = await fetchWithAuth(`${API_BASE}/companies/by-code/${encodeURIComponent(code)}`);
 	return handleJsonResponse<CompanySearchResult>(response);

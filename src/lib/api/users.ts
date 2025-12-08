@@ -4,7 +4,6 @@ import type { UserRole } from '$lib/stores/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type User = {
 	id: string;
 	name: string;
@@ -23,7 +22,6 @@ export type UpdateUserDto = {
 	role: UserRole;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -43,7 +41,6 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-// Users API
 export async function fetchUsers(): Promise<User[]> {
 	const response = await fetchWithAuth(`${API_BASE}/users`);
 	return handleJsonResponse<User[]>(response);

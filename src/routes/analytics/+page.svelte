@@ -14,7 +14,6 @@
 		type WorkerSummary
 	} from '$lib/api/analytics';
 
-	// Auth check - admin only
 	let isAdmin = $state(false);
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -24,19 +23,15 @@
 	});
 	const currentUserId = $derived($auth.user?.id ?? null);
 
-	// Data state
 	let projects = $state<ProjectSummary[]>([]);
 	let workers = $state<WorkerSummary[]>([]);
 
-	// Loading states
 	let loadingProjects = $state(true);
 	let loadingWorkers = $state(true);
 
-	// Error states
 	let projectsError = $state<string | null>(null);
 	let workersError = $state<string | null>(null);
 
-	// Summary stats
 	const totalHours = $derived(projects.reduce((sum, p) => sum + p.totalMinutes, 0) / 60);
 	const totalCost = $derived(projects.reduce((sum, p) => sum + p.totalCost, 0));
 	const activeProjectsCount = $derived(projects.length);
@@ -71,19 +66,16 @@
 	}
 
 	onMount(() => {
-		// Redirect non-admins
 		const role = $auth.user?.role;
 		if (role !== 'OWNER' && role !== 'ADMIN') {
 			goto('/');
 			return;
 		}
 
-		// Load data
 		loadProjects();
 		loadWorkers();
 	});
 
-	// Also check when auth changes
 	$effect(() => {
 		const role = $auth.user?.role;
 		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
@@ -99,9 +91,7 @@
 		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
 	</div>
 
-	<!-- Summary Cards -->
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-		<!-- Total Hours Card -->
 		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
@@ -119,7 +109,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Total Cost Card -->
 		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
@@ -135,7 +124,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Active Projects Card -->
 		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Proyectos Activos</CardTitle>
@@ -151,7 +139,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Workers Card -->
 		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Trabajadores</CardTitle>
@@ -170,9 +157,7 @@
 		</Card>
 	</div>
 
-	<!-- Charts -->
 	<div class="space-y-8">
-		<!-- Projects Chart -->
 		{#if projectsError}
 			<Card>
 				<CardContent class="py-8">
@@ -192,7 +177,6 @@
 			<ProjectsChart {projects} loading={loadingProjects} />
 		{/if}
 
-		<!-- Workers Chart -->
 		{#if workersError}
 			<Card>
 				<CardContent class="py-8">

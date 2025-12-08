@@ -21,7 +21,6 @@
 	let isPasswordReset = $state(false);
 	let errorMessage = $state<string | null>(null);
 
-	// Password form state
 	let newPassword = $state('');
 	let confirmPassword = $state('');
 	let showNewPassword = $state(false);
@@ -30,7 +29,6 @@
 	let passwordError = $state<string | null>(null);
 	let passwordUpdated = $state(false);
 
-	// Resend confirmation email state
 	let resendEmail = $state('');
 	let isResending = $state(false);
 	let resendSuccess = $state(false);

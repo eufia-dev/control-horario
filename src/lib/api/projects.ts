@@ -3,7 +3,6 @@ import { fetchWithAuth } from '$lib/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type Project = {
 	id: string;
 	name: string;
@@ -31,7 +30,6 @@ export type UpdateProjectDto = {
 	isActive?: boolean;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -51,7 +49,6 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-// Projects API
 export async function fetchProjects(): Promise<Project[]> {
 	const response = await fetchWithAuth(`${API_BASE}/projects`);
 	return handleJsonResponse<Project[]>(response);
@@ -91,7 +88,6 @@ export async function deleteProject(id: string): Promise<void> {
 	await handleJsonResponse<unknown>(response);
 }
 
-// Companies API
 export async function fetchCompanies(): Promise<Company[]> {
 	const response = await fetchWithAuth(`${API_BASE}/companies`);
 	return handleJsonResponse<Company[]>(response);

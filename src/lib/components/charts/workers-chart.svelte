@@ -14,7 +14,6 @@
 	} from '$lib/api/analytics';
 	import { stringToColor } from '$lib/utils';
 
-	// Props
 	let {
 		workers,
 		loading = false,
@@ -25,7 +24,6 @@
 		currentUserId?: string | null;
 	} = $props();
 
-	// State - separate view modes for each chart
 	let mainViewMode = $state<'hours' | 'cost'>('hours');
 	let breakdownViewMode = $state<'hours' | 'cost'>('hours');
 	let selectedWorkerId = $state<string | null>(null);
@@ -33,7 +31,6 @@
 	let breakdownData = $state<ProjectBreakdown[]>([]);
 	let loadingBreakdown = $state(false);
 
-	// Chart config for colors and labels
 	const chartConfig: ChartConfig = {
 		internal: {
 			label: 'Internos',
@@ -45,7 +42,6 @@
 		}
 	};
 
-	// Breakdown chart config
 	const breakdownChartConfig: ChartConfig = {
 		project: {
 			label: 'Proyecto',
@@ -53,38 +49,31 @@
 		}
 	};
 
-	// Transform data for vertical bar chart
 	const chartData = $derived.by(() => {
 		const data = workers.map((w) => ({
 			...w,
-			label: w.name.split(' ')[0], // First name for x-axis
+			label: w.name.split(' ')[0],
 			fullName: w.name,
 			value: mainViewMode === 'cost' ? w.totalCost : w.totalMinutes / 60,
 			color: stringToColor(w.id + w.type),
-			// Keep cost and hours available for tooltip
 			cost: w.totalCost,
 			hours: w.totalMinutes / 60
 		}));
 		return data;
 	});
 
-	// Max value for scale
 	const maxValue = $derived(Math.max(...chartData.map((d) => d.value), 1));
 
-	// Selected worker
 	const selectedWorker = $derived(
 		workers.find((w) => w.id === selectedWorkerId && w.type === selectedWorkerType)
 	);
 
-	// Combined key for dropdown (id:type)
 	const selectedWorkerKey = $derived(
 		selectedWorkerId && selectedWorkerType ? `${selectedWorkerId}:${selectedWorkerType}` : undefined
 	);
 
-	// Auto-select current user or first worker when data loads
 	$effect(() => {
 		if (workers.length > 0 && !selectedWorkerId) {
-			// Try to find and select current user first
 			if (currentUserId) {
 				const currentUser = workers.find((w) => w.id === currentUserId && w.type === 'internal');
 				if (currentUser) {
@@ -92,12 +81,10 @@
 					return;
 				}
 			}
-			// Fall back to first worker
 			selectWorker(workers[0].id, workers[0].type);
 		}
 	});
 
-	// Handle worker selection from dropdown
 	async function selectWorker(workerId: string, type: 'internal' | 'external') {
 		if (selectedWorkerId === workerId && selectedWorkerType === type) return;
 
@@ -115,7 +102,6 @@
 		}
 	}
 
-	// Handle dropdown value change
 	function handleWorkerChange(value: string) {
 		const [id, type] = value.split(':');
 		if (id && (type === 'internal' || type === 'external')) {
@@ -123,7 +109,6 @@
 		}
 	}
 
-	// Transform breakdown data for vertical bar chart
 	const breakdownChartData = $derived(
 		breakdownData.map((p) => ({
 			...p,
@@ -131,7 +116,6 @@
 			fullName: p.name,
 			value: breakdownViewMode === 'cost' ? p.cost : p.minutes / 60,
 			color: stringToColor(p.id),
-			// Keep cost and hours available for tooltip
 			projectCost: p.cost,
 			projectHours: p.minutes / 60
 		}))
@@ -139,7 +123,6 @@
 
 	const maxBreakdownValue = $derived(Math.max(...breakdownChartData.map((d) => d.value), 1));
 
-	// Format value based on view mode
 	function formatValue(value: number, mode: 'hours' | 'cost'): string {
 		if (mode === 'cost') {
 			return formatCost(value);
@@ -149,7 +132,6 @@
 </script>
 
 <div class="grid gap-6 lg:grid-cols-2">
-	<!-- Main Workers Chart -->
 	<Card class="overflow-hidden">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 			<CardTitle class="text-xl font-semibold">Trabajadores</CardTitle>
@@ -188,7 +170,6 @@
 					<p>No hay datos de trabajadores</p>
 				</div>
 			{:else}
-				<!-- Vertical Bar Chart -->
 				<ChartContainer config={chartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={chartData}
@@ -248,7 +229,6 @@
 					</Chart>
 				</ChartContainer>
 
-				<!-- Legend - dynamic colors per worker, centered -->
 				<div
 					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
 				>
@@ -263,7 +243,6 @@
 		</CardContent>
 	</Card>
 
-	<!-- Worker Breakdown Card -->
 	<Card class="overflow-hidden">
 		<CardHeader class="flex flex-row items-start justify-between gap-4 pb-2">
 			<div class="flex-1 min-w-0">
@@ -282,7 +261,6 @@
 				{/if}
 			</div>
 			<div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-				<!-- Worker dropdown -->
 				{#if workers.length > 0}
 					<Select
 						type="single"
@@ -308,7 +286,6 @@
 						</SelectContent>
 					</Select>
 				{/if}
-				<!-- View mode toggle -->
 				<div class="flex gap-1 rounded-lg bg-muted p-1">
 					<Button
 						variant={breakdownViewMode === 'hours' ? 'default' : 'ghost'}
@@ -350,7 +327,6 @@
 					<p>No hay datos de proyectos</p>
 				</div>
 			{:else}
-				<!-- Breakdown Vertical Bar Chart -->
 				<ChartContainer config={breakdownChartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={breakdownChartData}
@@ -405,7 +381,6 @@
 					</Chart>
 				</ChartContainer>
 
-				<!-- Legend - dynamic colors per project, centered -->
 				<div
 					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
 				>

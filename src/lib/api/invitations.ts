@@ -5,7 +5,6 @@ import type { JoinRequestStatus } from './onboarding';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type Invitation = {
 	id: string;
 	companyId: string;
@@ -42,7 +41,6 @@ export type RejectJoinRequestDto = {
 	reason?: string;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -62,19 +60,11 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-// Invitations API
-
-/**
- * Fetch all invitations for the current user's company
- */
 export async function fetchInvitations(): Promise<Invitation[]> {
 	const response = await fetchWithAuth(`${API_BASE}/invitations`);
 	return handleJsonResponse<Invitation[]>(response);
 }
 
-/**
- * Create a new invitation
- */
 export async function createInvitation(data: CreateInvitationDto): Promise<Invitation> {
 	const response = await fetchWithAuth(`${API_BASE}/invitations`, {
 		method: 'POST',
@@ -86,9 +76,6 @@ export async function createInvitation(data: CreateInvitationDto): Promise<Invit
 	return handleJsonResponse<Invitation>(response);
 }
 
-/**
- * Delete an invitation
- */
 export async function deleteInvitation(id: string): Promise<void> {
 	const response = await fetchWithAuth(`${API_BASE}/invitations/${id}`, {
 		method: 'DELETE'
@@ -108,19 +95,11 @@ export async function deleteInvitation(id: string): Promise<void> {
 	}
 }
 
-// Join Requests API
-
-/**
- * Fetch all pending join requests for the current user's company
- */
 export async function fetchJoinRequests(): Promise<AdminJoinRequest[]> {
 	const response = await fetchWithAuth(`${API_BASE}/join-requests`);
 	return handleJsonResponse<AdminJoinRequest[]>(response);
 }
 
-/**
- * Approve a join request
- */
 export async function approveJoinRequest(
 	id: string,
 	data?: ApproveJoinRequestDto
@@ -135,9 +114,6 @@ export async function approveJoinRequest(
 	return handleJsonResponse<AdminJoinRequest>(response);
 }
 
-/**
- * Reject a join request
- */
 export async function rejectJoinRequest(
 	id: string,
 	data?: RejectJoinRequestDto

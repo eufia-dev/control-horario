@@ -2,24 +2,26 @@
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { auth } from '$lib/stores/auth';
-import { acceptInvitation } from '$lib/api/onboarding';
 import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardContent,
-	CardFooter
-} from '$lib/components/ui/card';
+	acceptInvitation,
+	createCompany,
+	getCompanyByCode,
+	requestJoin,
+	searchCompanies,
+	type CompanySearchResult
+} from '$lib/api/onboarding';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
 import { Button } from '$lib/components/ui/button';
 import * as RadioGroup from '$lib/components/ui/radio-group';
 import { Label } from '$lib/components/ui/label';
 import { Input } from '$lib/components/ui/input';
-import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
+import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
+import { Carousel, CarouselContent, CarouselItem } from '$lib/components/ui/carousel';
 import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
-import { fly, fade } from 'svelte/transition';
+import { fade } from 'svelte/transition';
+import type { CarouselAPI } from '$lib/components/ui/carousel/context';
 
-const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }];
+const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 'Completa' }];
 
 	let selectedPath = $state<'create' | 'join' | ''>('');
 	let pendingInvitations = $state<typeof $auth.pendingInvitations>([]);
@@ -29,10 +31,31 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }];
 	let userName = $state($page.url.searchParams.get('userName') ?? '');
 	let showOtherOptions = $state(false);
 	let userToggledOptions = $state(false);
-	let stage = $state(0); // 0 = name, 1 = options
-	let transitionDirection = $state<'forward' | 'backward'>('forward');
+	let stage = $state(0);
+	let carouselApi = $state<CarouselAPI | undefined>(undefined);
 
-	// Subscribe to auth store to get pending invitations and prefill name
+	// create company form
+	let companyName = $state('');
+	let cif = $state('');
+	let createError = $state<string | null>(null);
+	let isSubmittingCreate = $state(false);
+
+	// join company form
+	let searchQuery = $state('');
+	let searchResults = $state<CompanySearchResult[]>([]);
+	let isSearching = $state(false);
+	let searchError = $state<string | null>(null);
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	let inviteCode = $state('');
+	let codeCompany = $state<CompanySearchResult | null>(null);
+	let isCheckingCode = $state(false);
+	let codeError = $state<string | null>(null);
+
+	let selectedCompany = $state<CompanySearchResult | null>(null);
+	let joinError = $state<string | null>(null);
+	let isSubmittingJoin = $state(false);
+
 	$effect(() => {
 		const unsub = auth.subscribe((state) => {
 			pendingInvitations = state.pendingInvitations;
@@ -44,6 +67,144 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }];
 			}
 		});
 		return unsub;
+	});
+
+	const handleCreateSubmit = async () => {
+		if (isSubmittingCreate) return;
+
+		createError = null;
+
+		if (!companyName.trim()) {
+			createError = 'El nombre de la empresa es obligatorio';
+			return;
+		}
+
+		const trimmedUserName = userName.trim();
+		if (!trimmedUserName) {
+			createError = 'Tu nombre es obligatorio';
+			stage = 0;
+			carouselApi?.scrollTo(0);
+			return;
+		}
+
+		isSubmittingCreate = true;
+
+		try {
+			const result = await createCompany({
+				companyName: companyName.trim(),
+				cif: cif.trim() || undefined,
+				userName: trimmedUserName
+			});
+
+			if (result.status === 'ACTIVE' && result.user) {
+				auth.setUser(result.user);
+				await goto('/');
+			} else {
+				createError = 'Error inesperado al crear la empresa';
+			}
+		} catch (error) {
+			createError = error instanceof Error ? error.message : 'Error al crear la empresa';
+		} finally {
+			isSubmittingCreate = false;
+		}
+	};
+
+	const handleSearchInput = (value: string) => {
+		searchQuery = value;
+		searchError = null;
+
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
+
+		if (value.trim().length < 2) {
+			searchResults = [];
+			return;
+		}
+
+		searchTimeout = setTimeout(async () => {
+			isSearching = true;
+			try {
+				searchResults = await searchCompanies(value.trim());
+			} catch (error) {
+				searchError = error instanceof Error ? error.message : 'Error al buscar empresas';
+				searchResults = [];
+			} finally {
+				isSearching = false;
+			}
+		}, 300);
+	};
+
+	const handleCheckCode = async () => {
+		if (!inviteCode.trim()) return;
+
+		isCheckingCode = true;
+		codeError = null;
+		codeCompany = null;
+
+		try {
+			codeCompany = await getCompanyByCode(inviteCode.trim());
+			if (codeCompany) {
+				selectedCompany = codeCompany;
+				joinError = null;
+			}
+		} catch (error) {
+			codeError = error instanceof Error ? error.message : 'Código no válido';
+		} finally {
+			isCheckingCode = false;
+		}
+	};
+
+	const handleSelectCompany = (company: CompanySearchResult) => {
+		selectedCompany = company;
+		joinError = null;
+	};
+
+	const handleClearSelection = () => {
+		selectedCompany = null;
+		joinError = null;
+	};
+
+	const handleJoinSubmit = async () => {
+		if (!selectedCompany || isSubmittingJoin) return;
+
+		const trimmedName = userName.trim();
+		if (!trimmedName) {
+			joinError = 'Tu nombre es obligatorio';
+			stage = 0;
+			carouselApi?.scrollTo(0);
+			return;
+		}
+
+		isSubmittingJoin = true;
+		joinError = null;
+
+		try {
+			await requestJoin({
+				companyId: selectedCompany.id,
+				name: trimmedName
+			});
+			await goto('/onboarding/status');
+		} catch (error) {
+			joinError = error instanceof Error ? error.message : 'Error al enviar la solicitud';
+		} finally {
+			isSubmittingJoin = false;
+		}
+	};
+
+	$effect(() => {
+		if (!carouselApi) return;
+
+		const syncStage = () => {
+			stage = carouselApi?.selectedScrollSnap() ?? 0;
+		};
+
+		carouselApi.on('select', syncStage);
+		syncStage();
+
+		return () => {
+			carouselApi?.off('select', syncStage);
+		};
 	});
 
 	const handleAcceptInvitation = async (token: string, invitationId: string) => {
@@ -60,7 +221,6 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }];
 
 		try {
 			await acceptInvitation(token, userName.trim());
-			// Invitation accepted successfully, redirect to dashboard
 			await goto('/');
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'Error al aceptar la invitación';
@@ -77,22 +237,30 @@ const handleContinue = () => {
 			return;
 		}
 		errorMessage = null;
-		transitionDirection = 'forward';
 		stage = 1;
+		carouselApi?.scrollTo(1);
 		return;
 	}
 
-	const withUserName = (path: string) => {
-		const params = new URLSearchParams();
-		params.set('userName', userName.trim());
-		return `${path}?${params.toString()}`;
-	};
-
-	if (selectedPath === 'create') {
-		goto(withUserName('/onboarding/create-company'));
-	} else if (selectedPath === 'join') {
-		goto(withUserName('/onboarding/join'));
+	if (stage === 1) {
+		if (!selectedPath) {
+			errorMessage = 'Selecciona una opción para continuar';
+			return;
+		}
+		errorMessage = null;
+		stage = 2;
+		carouselApi?.scrollTo(2);
+		return;
 	}
+
+	if (!userName.trim()) {
+		errorMessage = 'Tu nombre es obligatorio para continuar';
+		stage = 0;
+		carouselApi?.scrollTo(0);
+		return;
+	}
+
+	errorMessage = null;
 };
 </script>
 
@@ -100,21 +268,16 @@ const handleContinue = () => {
 	<div class="w-full max-w-2xl space-y-6">
 		<OnboardingSteps {steps} currentStep={stage} />
 
-		{#key stage}
-			<div
-				in:fly={{
-					x: transitionDirection === 'forward' ? 160 : -160,
-					opacity: 0,
-					duration: 260
-				}}
-				out:fly={{
-					x: transitionDirection === 'forward' ? -160 : 160,
-					opacity: 0,
-					duration: 220
-				}}
-			>
-				<Card class="shadow-lg max-w-xl mx-auto">
-					{#if stage === 0}
+		<Carousel
+			class="w-full"
+			opts={{ align: 'start', duration: 20 }}
+			setApi={(api) => {
+				carouselApi = api;
+			}}
+		>
+			<CarouselContent class="w-full items-start">
+				<CarouselItem class="flex justify-center">
+					<Card class="shadow-lg max-w-xl w-full">
 						<CardHeader>
 							<CardTitle class="text-xl flex items-center gap-2">
 								<span class="material-symbols-rounded text-primary">badge</span>
@@ -144,7 +307,11 @@ const handleContinue = () => {
 								<span class="material-symbols-rounded text-lg! ml-2">arrow_forward</span>
 							</Button>
 						</CardFooter>
-					{:else}
+					</Card>
+				</CarouselItem>
+
+				<CarouselItem class="flex justify-center">
+					<Card class="shadow-lg max-w-xl w-full">
 						<CardContent class="space-y-6">
 							{#if pendingInvitations.length === 0}
 								<div class="text-center py-4">
@@ -276,8 +443,8 @@ const handleContinue = () => {
 							<Button
 								variant="ghost"
 								onclick={() => {
-									transitionDirection = 'backward';
 									stage = 0;
+									carouselApi?.scrollTo(0);
 								}}
 							>
 								<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
@@ -288,9 +455,187 @@ const handleContinue = () => {
 								<span class="material-symbols-rounded text-lg! ml-2">arrow_forward</span>
 							</Button>
 						</CardFooter>
-					{/if}
-				</Card>
-			</div>
-		{/key}
+					</Card>
+				</CarouselItem>
+
+				<CarouselItem class="flex justify-center">
+					<Card class="shadow-lg max-w-xl w-full">
+						{#if selectedPath === 'create'}
+							<CardHeader>
+								<CardTitle class="text-xl flex items-center gap-2">
+									<span class="material-symbols-rounded text-primary">add_business</span>
+									Crear nueva empresa
+								</CardTitle>
+							</CardHeader>
+							<CardContent class="space-y-5">
+								<Field>
+									<FieldLabel>
+										<Label for="company-name">Nombre de la empresa *</Label>
+									</FieldLabel>
+									<Input
+										id="company-name"
+										type="text"
+										placeholder="Mi Empresa S.L."
+										bind:value={companyName}
+									/>
+								</Field>
+								<Field>
+									<FieldLabel>
+										<Label for="cif">CIF / NIF (opcional)</Label>
+									</FieldLabel>
+									<Input id="cif" type="text" placeholder="B12345678" bind:value={cif} />
+									<FieldDescription class="text-xs text-muted-foreground">
+										Identificador fiscal de la empresa
+									</FieldDescription>
+								</Field>
+								{#if createError}
+									<FieldError class="text-sm">{createError}</FieldError>
+								{/if}
+							</CardContent>
+							<CardFooter class="flex items-center justify-between gap-3">
+								<Button
+									variant="ghost"
+									onclick={() => {
+										stage = 1;
+										carouselApi?.scrollTo(1);
+									}}
+								>
+									<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
+									Volver
+								</Button>
+								<Button onclick={handleCreateSubmit} disabled={isSubmittingCreate}>
+									{#if isSubmittingCreate}
+										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+										Creando...
+									{:else}
+										Crear empresa
+									{/if}
+								</Button>
+							</CardFooter>
+						{:else if selectedPath === 'join'}
+							<CardHeader>
+								<CardTitle class="text-xl flex items-center gap-2">
+									<span class="material-symbols-rounded text-primary">group_add</span>
+									Unirse a una empresa
+								</CardTitle>
+							</CardHeader>
+							<CardContent class="space-y-6">
+								<div class="space-y-3">
+									<Field>
+										<FieldLabel>
+											<Label for="search">Buscar empresa</Label>
+										</FieldLabel>
+										<Input
+											id="search"
+											type="text"
+											placeholder="Nombre de la empresa"
+											value={searchQuery}
+											oninput={(e) => handleSearchInput(e.currentTarget.value)}
+										/>
+									</Field>
+									{#if searchError}
+										<FieldError class="text-sm">{searchError}</FieldError>
+									{/if}
+									{#if searchResults.length > 0}
+										<div class="space-y-2 rounded-lg border border-border p-2">
+											{#each searchResults as company}
+												<button
+													type="button"
+													class="w-full text-left rounded-md px-3 py-2 hover:bg-accent/70 transition border border-transparent hover:border-border"
+													onclick={() => handleSelectCompany(company)}
+												>
+													<p class="font-medium">{company.name}</p>
+													<p class="text-xs text-muted-foreground">
+														{company.inviteCode ? `Código: ${company.inviteCode}` : 'Sin código'}
+													</p>
+												</button>
+											{/each}
+										</div>
+									{:else if isSearching}
+										<p class="text-sm text-muted-foreground">Buscando...</p>
+									{/if}
+								</div>
+
+								<div class="space-y-3">
+									<Field>
+										<FieldLabel>
+											<Label for="invite-code">Código de invitación</Label>
+										</FieldLabel>
+										<Input
+											id="invite-code"
+											type="text"
+											placeholder="Código alfanumérico"
+											bind:value={inviteCode}
+										/>
+									</Field>
+									<div class="flex gap-3">
+										<Button variant="secondary" onclick={handleCheckCode} disabled={isCheckingCode}>
+											{#if isCheckingCode}
+												<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+												Verificando...
+											{:else}
+												Validar código
+											{/if}
+										</Button>
+										{#if codeError}
+											<FieldError class="text-sm">{codeError}</FieldError>
+										{/if}
+									</div>
+									{#if codeCompany}
+										<div class="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
+											<p class="font-semibold text-primary">{codeCompany.name}</p>
+											<p class="text-xs text-muted-foreground">
+												{codeCompany.inviteCode ? `Código: ${codeCompany.inviteCode}` : 'Sin código'}
+											</p>
+										</div>
+									{/if}
+								</div>
+
+								{#if selectedCompany}
+									<div class="rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-center justify-between gap-3">
+										<div>
+											<p class="font-semibold">{selectedCompany.name}</p>
+											<p class="text-xs text-muted-foreground">
+												{selectedCompany.inviteCode
+													? `Código: ${selectedCompany.inviteCode}`
+													: 'Sin código'}
+											</p>
+										</div>
+										<Button size="sm" variant="ghost" onclick={handleClearSelection}>
+											<span class="material-symbols-rounded mr-1 text-base">close</span>
+											Quitar
+										</Button>
+									</div>
+								{/if}
+
+								{#if joinError}
+									<FieldError class="text-sm">{joinError}</FieldError>
+								{/if}
+							</CardContent>
+							<CardFooter class="flex items-center justify-between gap-3">
+								<Button
+									variant="ghost"
+									onclick={() => {
+										stage = 1;
+										carouselApi?.scrollTo(1);
+									}}
+								>
+									<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
+									Volver
+								</Button>
+								<Button onclick={handleJoinSubmit} disabled={!selectedCompany || isSubmittingJoin}>
+									{#if isSubmittingJoin}
+										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+										Enviando...
+									{:else}
+										Solicitar acceso
+									{/if}
+								</Button>
+							</CardFooter>
+						{/if}
+					</Card>
+				</CarouselItem>
+			</CarouselContent>
+		</Carousel>
 	</div>
 </div>

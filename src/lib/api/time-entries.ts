@@ -3,7 +3,6 @@ import { fetchWithAuth } from '$lib/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
-// Types
 export type TimeEntryType = {
 	id: string;
 	name: string;
@@ -104,7 +103,6 @@ export type SwitchTimerResponse = {
 	activeTimer: ActiveTimer;
 };
 
-// Helper for JSON responses
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -124,13 +122,11 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : (null as T);
 }
 
-// Time Entry Types API
 export async function fetchTimeEntryTypes(): Promise<TimeEntryType[]> {
 	const response = await fetchWithAuth(`${API_BASE}/time-entries/types`);
 	return handleJsonResponse<TimeEntryType[]>(response);
 }
 
-// Time Entries API (user's own entries)
 export async function fetchMyTimeEntries(): Promise<TimeEntry[]> {
 	const response = await fetchWithAuth(`${API_BASE}/time-entries/me`);
 	return handleJsonResponse<TimeEntry[]>(response);
@@ -165,7 +161,6 @@ export async function deleteTimeEntry(id: string): Promise<void> {
 	await handleJsonResponse<unknown>(response);
 }
 
-// Active Timer API
 export async function getActiveTimer(): Promise<ActiveTimer | null> {
 	const response = await fetchWithAuth(`${API_BASE}/time-entries/me/timer`);
 	return handleJsonResponse<ActiveTimer | null>(response);

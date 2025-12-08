@@ -77,7 +77,6 @@
 	const selectedType = $derived(timeEntryTypes.find((t) => t.id === typeId));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
-	// Calculate minutes from start/end times
 	$effect(() => {
 		if (startDateValue && startTime && endDateValue && endTime) {
 			const startDateStr = dateValueToString(startDateValue);
@@ -131,7 +130,6 @@
 			isOffice = entry.isOffice;
 		} else {
 			resetForm();
-			// Set defaults for new entry
 			const now = new Date();
 			const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 			startDateValue = dateToDateValue(oneHourAgo);

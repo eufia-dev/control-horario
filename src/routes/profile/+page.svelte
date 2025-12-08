@@ -17,7 +17,6 @@
 
 	let user = $state<AuthUser | null>(null);
 
-	// Edit mode state
 	let isEditing = $state(false);
 	let editName = $state('');
 	let editEmail = $state('');
@@ -63,7 +62,6 @@
 			return;
 		}
 
-		// Basic email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(editEmail.trim())) {
 			error = 'El formato del email no es válido';

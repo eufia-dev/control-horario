@@ -29,23 +29,19 @@
 		{ label: 'Únete a una empresa' }
 	];
 
-	// Search state
 	let searchQuery = $state('');
 	let searchResults = $state<CompanySearchResult[]>([]);
 	let isSearching = $state(false);
 	let searchError = $state<string | null>(null);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	// Invite code state
 	let inviteCode = $state('');
 	let codeCompany = $state<CompanySearchResult | null>(null);
 	let isCheckingCode = $state(false);
 	let codeError = $state<string | null>(null);
 
-	// Selected company state
 	let selectedCompany = $state<CompanySearchResult | null>(null);
 
-	// Join request state
 	let userName = $derived($page.url.searchParams.get('userName') ?? '');
 	let isSubmitting = $state(false);
 	let submitError = $state<string | null>(null);
@@ -56,7 +52,6 @@
 		}
 	});
 
-	// Debounced search
 	const handleSearchInput = (value: string) => {
 		searchQuery = value;
 		searchError = null;
@@ -83,7 +78,6 @@
 		}, 300);
 	};
 
-	// Check invite code
 	const handleCheckCode = async () => {
 		if (!inviteCode.trim()) return;
 
@@ -100,13 +94,11 @@
 		}
 	};
 
-	// Select a company
 	const handleSelectCompany = (company: CompanySearchResult) => {
 		selectedCompany = company;
 		submitError = null;
 	};
 
-	// Submit join request
 	const handleSubmitRequest = async () => {
 		if (!selectedCompany || isSubmitting) return;
 
@@ -125,7 +117,6 @@
 				companyId: selectedCompany.id,
 				name: trimmedName
 			});
-			// Redirect to status page
 			await goto('/onboarding/status');
 		} catch (error) {
 			submitError = error instanceof Error ? error.message : 'Error al enviar la solicitud';
@@ -134,7 +125,6 @@
 		}
 	};
 
-	// Clear selection
 	const handleClearSelection = () => {
 		selectedCompany = null;
 		submitError = null;
@@ -146,7 +136,6 @@
 		<OnboardingSteps {steps} currentStep={2} />
 
 		{#if selectedCompany}
-			<!-- Join Request Form -->
 			<Card>
 				<CardHeader>
 					<CardTitle class="text-xl flex items-center gap-2">
@@ -220,7 +209,6 @@
 				</CardContent>
 			</Card>
 		{:else}
-			<!-- Search & Code Input -->
 			<Card>
 				<CardHeader>
 					<CardTitle class="text-xl flex items-center gap-2">
@@ -258,7 +246,6 @@
 						{/if}
 					</Field>
 
-					<!-- Search Results -->
 					{#if searchResults.length > 0}
 						<div class="space-y-2">
 							<p class="text-sm text-muted-foreground">
@@ -299,7 +286,6 @@
 						</span>
 					</div>
 
-					<!-- Invite Code -->
 					<Field>
 						<FieldLabel>
 							<Label for="invite-code">Código de invitación</Label>
@@ -330,7 +316,6 @@
 						{/if}
 					</Field>
 
-					<!-- Code Result -->
 					{#if codeCompany}
 						<div class="space-y-2">
 							<p class="text-sm text-muted-foreground">Empresa encontrada:</p>

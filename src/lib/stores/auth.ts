@@ -16,7 +16,6 @@ export type AuthState = {
 	user: AuthUser | null;
 	isInitializing: boolean;
 	error: string | null;
-	// Onboarding state
 	onboardingStatus: OnboardingStatusType | null;
 	pendingInvitations: PendingInvitation[];
 	pendingRequests: JoinRequest[];
@@ -83,10 +82,8 @@ const createAuthStore = () => {
 
 export const auth = createAuthStore();
 
-// True when we have an app user (onboarding completed)
 export const isAuthenticated = derived(auth, ($auth) => Boolean($auth.user));
 
-// True when there is a Supabase session or onboarding is in progress
 export const isSignedIn = derived(
 	auth,
 	($auth) =>
@@ -97,22 +94,18 @@ export const isSignedIn = derived(
 		)
 );
 
-// Returns true for OWNER and ADMIN roles
 export const isAdmin = derived(auth, ($auth) => {
 	const role = $auth.user?.role;
 	return role === 'OWNER' || role === 'ADMIN';
 });
 
-// Returns the current onboarding status
 export const onboardingStatus = derived(auth, ($auth) => $auth.onboardingStatus);
 
-// Returns true if user needs onboarding
 export const needsOnboarding = derived(
 	auth,
 	($auth) => $auth.onboardingStatus === 'ONBOARDING_REQUIRED'
 );
 
-// Returns true if user has pending approval
 export const hasPendingApproval = derived(
 	auth,
 	($auth) => $auth.onboardingStatus === 'PENDING_APPROVAL'

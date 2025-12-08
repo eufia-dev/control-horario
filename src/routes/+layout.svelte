@@ -27,10 +27,8 @@
 	let unsubIsAdmin: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
-	// Public routes that don't require authentication
 	const publicRoutes = ['/login', '/register', '/reset-password'];
 
-	// Routes that are accessible during onboarding
 	const onboardingRoutes = [
 		'/onboarding',
 		'/onboarding/create-company',
@@ -38,7 +36,6 @@
 		'/onboarding/status'
 	];
 
-	// Routes for invite handling
 	const inviteRoutePrefix = '/invite/';
 	const authCallbackPrefix = '/auth/callback';
 
@@ -64,7 +61,6 @@
 	function runGuards(pathname: string) {
 		if (typeof window === 'undefined') return;
 
-		// Allow access to auth callback routes always, even while initializing
 		if (isAuthCallbackRoute(pathname)) return;
 
 		if (isInitializing) return;
@@ -76,31 +72,23 @@
 			onboardingStatus === 'ONBOARDING_REQUIRED' ||
 			onboardingStatus === 'PENDING_APPROVAL';
 
-		// Allow access to reset password route always
 		if (pathname === '/reset-password') return;
 
-		// Allow access to invite routes always (they handle their own auth check)
 		if (isInviteRoute(pathname)) return;
 
-		// Not authenticated (and not in onboarding states)
 		if (!isSignedIn) {
-			// Allow public routes
 			if (isPublicRoute(pathname)) return;
 
-			// Redirect to login for protected routes
 			goto('/login');
 			return;
 		}
 
-		// If on login/register and already signed-in/onboarding, redirect based on status
 		if (isPublicRoute(pathname)) {
 			goto(onboardingRedirect);
 			return;
 		}
 
-		// Handle onboarding status redirects
 		if (onboardingStatus === 'ONBOARDING_REQUIRED') {
-			// Only allow onboarding routes
 			if (!isOnboardingRoute(pathname) && !isInviteRoute(pathname)) {
 				goto(routeForOnboardingStatus('ONBOARDING_REQUIRED'));
 			}
@@ -108,7 +96,6 @@
 		}
 
 		if (onboardingStatus === 'PENDING_APPROVAL') {
-			// Only allow status page and join page for submitting new requests
 			const allowedPendingRoutes = ['/onboarding/status', '/onboarding/join'];
 			if (!allowedPendingRoutes.some((r) => pathname.startsWith(r)) && !isInviteRoute(pathname)) {
 				goto(routeForOnboardingStatus('PENDING_APPROVAL'));
@@ -116,7 +103,6 @@
 			return;
 		}
 
-		// ACTIVE status - redirect away from onboarding routes
 		if (onboardingStatus === 'ACTIVE' && isOnboardingRoute(pathname)) {
 			goto(routeForOnboardingStatus('ACTIVE'));
 			return;
@@ -148,29 +134,22 @@
 			isUserAdmin = value;
 		});
 
-		// Subscribe to Supabase auth state changes
 		unsubAuthChanges = subscribeToAuthChanges();
 
-		// Initialize cross-tab sync channel for onboarding state
 		initAuthSyncChannel();
 
-		// Re-check onboarding status when tab becomes visible (fallback for cross-tab sync)
 		const handleVisibilityChange = async () => {
 			if (document.visibilityState === 'visible' && 
 				(onboardingStatus === 'ONBOARDING_REQUIRED' || onboardingStatus === 'PENDING_APPROVAL')) {
 				try {
 					await checkAndSetOnboardingStatus();
 				} catch {
-					// Ignore errors - the tab might just be stale
 				}
 			}
 		};
 		document.addEventListener('visibilitychange', handleVisibilityChange);
 
-		// Initialize auth from Supabase session
-		initAuth().finally(() => {
-			// auth store itself will set isInitializing to false
-		});
+		initAuth().finally(() => {});
 
 		afterNavigate((navigation) => {
 			if (typeof window === 'undefined') return;
@@ -208,7 +187,6 @@
 	const avatarColor = $derived(user?.id ? stringToColor(user.id) : '#6b7280');
 	const initials = $derived(user?.name ? getInitials(user.name) : '');
 
-	// Determine if we should show the header
 	const showHeader = $derived(onboardingStatus === 'ACTIVE' || (!isInitializing && !isAuthed));
 </script>
 
@@ -224,7 +202,6 @@
 					{/if}
 				</a>
 
-				<!-- Desktop navigation -->
 				{#if isAuthed && isUserAdmin}
 					<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
 						<Button href="/" variant="ghost" size="sm" class="gap-1.5">
@@ -281,7 +258,6 @@
 				</div>
 			{/if}
 
-			<!-- Mobile menu dropdown -->
 			{#if isAuthed && isUserAdmin && mobileMenuOpen}
 				<div
 					class="fixed inset-0 top-[57px] md:hidden bg-background z-50 flex flex-col"

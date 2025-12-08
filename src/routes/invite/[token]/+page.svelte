@@ -17,11 +17,11 @@ import { Button } from '$lib/components/ui/button';
 import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
 
-	let token = $derived($page.params.token ?? '');
-	let isLoading = $state(true);
-	let isAccepting = $state(false);
-	let error = $state<string | null>(null);
-	let needsAuth = $state(false);
+let token = $derived($page.params.token ?? '');
+let isLoading = $state(true);
+let isAccepting = $state(false);
+let error = $state<string | null>(null);
+let needsAuth = $state(false);
 let needsName = $state(false);
 let userName = $state($page.url.searchParams.get('userName') ?? '');
 
@@ -34,18 +34,15 @@ const buildRedirectPath = () => {
 	return params.toString() ? `${base}?${params.toString()}` : base;
 };
 
-	onMount(async () => {
-		// Check if user has an active session
-		const hasSession = await hasActiveSession();
+onMount(async () => {
+	const hasSession = await hasActiveSession();
 
-		if (!hasSession) {
-			// No session - redirect to register with redirect back here
-			needsAuth = true;
-			isLoading = false;
-			return;
-		}
+	if (!hasSession) {
+		needsAuth = true;
+		isLoading = false;
+		return;
+	}
 
-	// Prefill name from store if available
 	if (!userName.trim() && $auth.user?.name) {
 		userName = $auth.user.name;
 	}
@@ -56,13 +53,12 @@ const buildRedirectPath = () => {
 		return;
 	}
 
-		// User is authenticated, try to accept invitation
-		await handleAcceptInvitation();
-	});
+	await handleAcceptInvitation();
+});
 
-	const handleAcceptInvitation = async () => {
-		isAccepting = true;
-		error = null;
+const handleAcceptInvitation = async () => {
+	isAccepting = true;
+	error = null;
 
 	const trimmedName = userName.trim();
 	if (!trimmedName) {
@@ -75,22 +71,22 @@ const buildRedirectPath = () => {
 
 	needsName = false;
 
-		try {
+	try {
 		const result = await acceptInvitation(token, trimmedName);
 
-			if (result.status === 'ACTIVE' && result.user) {
-				auth.setUser(result.user);
-				await goto('/');
-			} else {
-				error = 'La invitación no pudo ser procesada';
-			}
-		} catch (e) {
-			error = e instanceof Error ? e.message : 'Error al aceptar la invitación';
-		} finally {
-			isAccepting = false;
-			isLoading = false;
+		if (result.status === 'ACTIVE' && result.user) {
+			auth.setUser(result.user);
+			await goto('/');
+		} else {
+			error = 'La invitación no pudo ser procesada';
 		}
-	};
+	} catch (e) {
+		error = e instanceof Error ? e.message : 'Error al aceptar la invitación';
+	} finally {
+		isAccepting = false;
+		isLoading = false;
+	}
+};
 
 	const handleGoToRegister = () => {
 		goto(`/register?redirect=${encodeURIComponent(buildRedirectPath())}`);

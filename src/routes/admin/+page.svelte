@@ -38,57 +38,46 @@
 	import InvitationDeleteDialog from '$lib/components/invitation-delete-dialog.svelte';
 	import JoinRequestDialog from '$lib/components/join-request-dialog.svelte';
 
-	// Projects state
 	let projects = $state<Project[]>([]);
 	let companies = $state<Company[]>([]);
 	let loadingProjects = $state(true);
 	let projectsError = $state<string | null>(null);
 
-	// Users state
 	let users = $state<User[]>([]);
 	let loadingUsers = $state(true);
 	let usersError = $state<string | null>(null);
 
-	// Externals state
 	let externals = $state<External[]>([]);
 	let loadingExternals = $state(true);
 	let externalsError = $state<string | null>(null);
 
-	// Invitations state
 	let invitations = $state<Invitation[]>([]);
 	let loadingInvitations = $state(true);
 	let invitationsError = $state<string | null>(null);
 
-	// Join Requests state
 	let joinRequests = $state<AdminJoinRequest[]>([]);
 	let loadingJoinRequests = $state(true);
 	let joinRequestsError = $state<string | null>(null);
 
-	// Project modal state
 	let projectFormModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 	let selectedProject = $state<Project | null>(null);
 
-	// User modal state
 	let userFormModalOpen = $state(false);
 	let selectedUser = $state<User | null>(null);
 
-	// External modal state
 	let externalFormModalOpen = $state(false);
 	let externalDeleteDialogOpen = $state(false);
 	let selectedExternal = $state<External | null>(null);
 
-	// Invitation modal state
 	let invitationFormModalOpen = $state(false);
 	let invitationDeleteDialogOpen = $state(false);
 	let selectedInvitation = $state<Invitation | null>(null);
 
-	// Join request modal state
 	let joinRequestDialogOpen = $state(false);
 	let selectedJoinRequest = $state<AdminJoinRequest | null>(null);
 	let joinRequestAction = $state<'approve' | 'reject'>('approve');
 
-	// Subscribe to isAdmin store
 	let isAdmin = $state(false);
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -99,7 +88,6 @@
 
 	const hasSingleCompany = $derived(companies.length === 1);
 
-	// Helper to get role badge variant and label
 	function getRoleBadge(role: string): {
 		variant: 'default' | 'secondary' | 'outline';
 		label: string;
@@ -178,7 +166,6 @@
 	}
 
 	onMount(() => {
-		// Admin guard: redirect non-admins to home
 		const role = $auth.user?.role;
 		if (role !== 'OWNER' && role !== 'ADMIN') {
 			goto('/');
@@ -192,7 +179,6 @@
 		loadJoinRequests();
 	});
 
-	// Reactive guard for when auth state changes
 	$effect(() => {
 		const role = $auth.user?.role;
 		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
@@ -215,7 +201,6 @@
 		}).format(value);
 	}
 
-	// Project handlers
 	function handleCreateProject() {
 		selectedProject = null;
 		projectFormModalOpen = true;
@@ -239,7 +224,6 @@
 		loadProjects();
 	}
 
-	// User handlers
 	function handleEditUser(user: User) {
 		selectedUser = user;
 		userFormModalOpen = true;
@@ -253,7 +237,6 @@
 		loadUsers();
 	}
 
-	// External handlers
 	function handleCreateExternal() {
 		selectedExternal = null;
 		externalFormModalOpen = true;
@@ -277,7 +260,6 @@
 		loadExternals();
 	}
 
-	// Invitation handlers
 	function handleCreateInvitation() {
 		invitationFormModalOpen = true;
 	}
@@ -300,7 +282,6 @@
 		navigator.clipboard.writeText(url);
 	}
 
-	// Join request handlers
 	function handleApproveJoinRequest(request: AdminJoinRequest) {
 		selectedJoinRequest = request;
 		joinRequestAction = 'approve';
@@ -321,7 +302,6 @@
 		loadJoinRequests();
 	}
 
-	// Helper functions for invitations
 	function getInvitationStatus(invitation: Invitation): {
 		variant: 'default' | 'secondary' | 'destructive' | 'outline';
 		label: string;
@@ -335,7 +315,6 @@
 		return { variant: 'default', label: 'Pendiente' };
 	}
 
-	// Derived values for pending counts
 	const pendingJoinRequestsCount = $derived(
 		joinRequests.filter((r) => r.status === 'PENDING').length
 	);
@@ -346,7 +325,6 @@
 
 {#if isAdmin}
 	<div class="grow flex flex-col gap-6 p-6">
-		<!-- Projects Card -->
 		<Card class="w-full max-w-5xl mx-auto">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Proyectos</CardTitle>
@@ -481,7 +459,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Users Card -->
 		<Card class="w-full max-w-5xl mx-auto">
 			<CardHeader>
 				<CardTitle class="text-2xl font-semibold tracking-tight">Usuarios</CardTitle>
@@ -595,7 +572,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Externals Card -->
 		<Card class="w-full max-w-5xl mx-auto">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
@@ -709,7 +685,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Invitations Card -->
 		<Card class="w-full max-w-5xl mx-auto">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<div class="flex items-center gap-2">
@@ -843,7 +818,6 @@
 			</CardContent>
 		</Card>
 
-		<!-- Join Requests Card -->
 		<Card class="w-full max-w-5xl mx-auto">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0">
 				<div class="flex items-center gap-2">
@@ -985,7 +959,6 @@
 		</Card>
 	</div>
 
-	<!-- Project Modals -->
 	<ProjectFormModal
 		bind:open={projectFormModalOpen}
 		project={selectedProject}
@@ -1000,7 +973,6 @@
 		onSuccess={handleProjectSuccess}
 	/>
 
-	<!-- User Modal -->
 	<UserFormModal
 		bind:open={userFormModalOpen}
 		user={selectedUser}
@@ -1008,7 +980,6 @@
 		onSuccess={handleUserSuccess}
 	/>
 
-	<!-- External Modals -->
 	<ExternalFormModal
 		bind:open={externalFormModalOpen}
 		external={selectedExternal}
@@ -1023,7 +994,6 @@
 		onSuccess={handleExternalSuccess}
 	/>
 
-	<!-- Invitation Modals -->
 	<InvitationFormModal
 		bind:open={invitationFormModalOpen}
 		onClose={handleInvitationModalClose}
@@ -1037,7 +1007,6 @@
 		onSuccess={handleInvitationSuccess}
 	/>
 
-	<!-- Join Request Dialog -->
 	<JoinRequestDialog
 		bind:open={joinRequestDialogOpen}
 		request={selectedJoinRequest}
