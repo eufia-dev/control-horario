@@ -21,6 +21,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
+	// Hydrate auth state early so Supabase can write cookies before the response locks
+	await event.locals.safeGetSession();
+
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
 			return name === 'content-range' || name === 'x-supabase-api-version';

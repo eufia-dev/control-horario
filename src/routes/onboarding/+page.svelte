@@ -5,7 +5,7 @@ import { auth } from '$lib/stores/auth';
 import {
 	acceptInvitation,
 	createCompany,
-	getCompanyByCode,
+	// getCompanyByCode,
 	requestJoin,
 	searchCompanies,
 	type CompanySearchResult
@@ -34,23 +34,21 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 
 	let stage = $state(0);
 	let carouselApi = $state<CarouselAPI | undefined>(undefined);
 
-	// create company form
 	let companyName = $state('');
 	let cif = $state('');
 	let createError = $state<string | null>(null);
 	let isSubmittingCreate = $state(false);
 
-	// join company form
 	let searchQuery = $state('');
 	let searchResults = $state<CompanySearchResult[]>([]);
 	let isSearching = $state(false);
 	let searchError = $state<string | null>(null);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	let inviteCode = $state('');
-	let codeCompany = $state<CompanySearchResult | null>(null);
-	let isCheckingCode = $state(false);
-	let codeError = $state<string | null>(null);
+	// let inviteCode = $state('');
+	// let codeCompany = $state<CompanySearchResult | null>(null);
+	// let isCheckingCode = $state(false);
+	// let codeError = $state<string | null>(null);
 
 	let selectedCompany = $state<CompanySearchResult | null>(null);
 	let joinError = $state<string | null>(null);
@@ -135,33 +133,28 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 
 		}, 300);
 	};
 
-	const handleCheckCode = async () => {
-		if (!inviteCode.trim()) return;
+	// const handleCheckCode = async () => {
+	// 	if (!inviteCode.trim()) return;
 
-		isCheckingCode = true;
-		codeError = null;
-		codeCompany = null;
+	// 	isCheckingCode = true;
+	// 	codeError = null;
+	// 	codeCompany = null;
 
-		try {
-			codeCompany = await getCompanyByCode(inviteCode.trim());
-			if (codeCompany) {
-				selectedCompany = codeCompany;
-				joinError = null;
-			}
-		} catch (error) {
-			codeError = error instanceof Error ? error.message : 'Código no válido';
-		} finally {
-			isCheckingCode = false;
-		}
-	};
+	// 	try {
+	// 		codeCompany = await getCompanyByCode(inviteCode.trim());
+	// 		if (codeCompany) {
+	// 			selectedCompany = codeCompany;
+	// 			joinError = null;
+	// 		}
+	// 	} catch (error) {
+	// 		codeError = error instanceof Error ? error.message : 'Código no válido';
+	// 	} finally {
+	// 		isCheckingCode = false;
+	// 	}
+	// };
 
 	const handleSelectCompany = (company: CompanySearchResult) => {
 		selectedCompany = company;
-		joinError = null;
-	};
-
-	const handleClearSelection = () => {
-		selectedCompany = null;
 		joinError = null;
 	};
 
@@ -394,6 +387,26 @@ const handleContinue = () => {
 									<div class="space-y-4" in:fade={{ duration: 150 }}>
 										<RadioGroup.Root bind:value={selectedPath} class="grid gap-3">
 											<div>
+												<RadioGroup.Item value="join" id="join" class="peer sr-only" />
+												<Label
+													for="join"
+													class="flex items-center gap-3 rounded-lg border border-border bg-background p-3.5 hover:bg-accent/50 cursor-pointer transition-all
+														peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
+												>
+													<div
+														class="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground shrink-0"
+													>
+														<span class="material-symbols-rounded text-xl!">group_add</span>
+													</div>
+													<div class="flex flex-col">
+														<span class="font-medium text-sm">Unirse a una empresa</span>
+														<span class="text-xs text-muted-foreground">
+															Busca por nombre o código de invitación
+														</span>
+													</div>
+												</Label>
+											</div>
+											<div>
 												<RadioGroup.Item value="create" id="create" class="peer sr-only" />
 												<Label
 													for="create"
@@ -409,27 +422,6 @@ const handleContinue = () => {
 														<span class="font-medium text-sm">Crear una nueva empresa</span>
 														<span class="text-xs text-muted-foreground">
 															Configura tu empresa y gestiona tu equipo
-														</span>
-													</div>
-												</Label>
-											</div>
-
-											<div>
-												<RadioGroup.Item value="join" id="join" class="peer sr-only" />
-												<Label
-													for="join"
-													class="flex items-center gap-3 rounded-lg border border-border bg-background p-3.5 hover:bg-accent/50 cursor-pointer transition-all
-														peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
-												>
-													<div
-														class="flex items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground shrink-0"
-													>
-														<span class="material-symbols-rounded text-xl!">group_add</span>
-													</div>
-													<div class="flex flex-col">
-														<span class="font-medium text-sm">Unirse a otra empresa</span>
-														<span class="text-xs text-muted-foreground">
-															Busca por nombre o código de invitación
 														</span>
 													</div>
 												</Label>
@@ -537,18 +529,20 @@ const handleContinue = () => {
 										<FieldError class="text-sm">{searchError}</FieldError>
 									{/if}
 									{#if searchResults.length > 0}
-										<div class="space-y-2 rounded-lg border border-border p-2">
+										<div class="space-y-2">
 											{#each searchResults as company}
-												<button
+												<Button
+													variant={selectedCompany?.id === company.id ? 'default' : 'outline'}
+													class={`w-full items-center justify-between`}
 													type="button"
-													class="w-full text-left rounded-md px-3 py-2 hover:bg-accent/70 transition border border-transparent hover:border-border"
 													onclick={() => handleSelectCompany(company)}
+													aria-pressed={selectedCompany?.id === company.id}
 												>
-													<p class="font-medium">{company.name}</p>
-													<p class="text-xs text-muted-foreground">
-														{company.inviteCode ? `Código: ${company.inviteCode}` : 'Sin código'}
-													</p>
-												</button>
+													<p class="font-medium text-left">{company.name}</p>
+													{#if selectedCompany?.id === company.id}
+														<span class="material-symbols-rounded ml-3">check_circle</span>
+													{/if}
+												</Button>
 											{/each}
 										</div>
 									{:else if isSearching}
@@ -556,7 +550,7 @@ const handleContinue = () => {
 									{/if}
 								</div>
 
-								<div class="space-y-3">
+								<!-- <div class="space-y-3">
 									<Field>
 										<FieldLabel>
 											<Label for="invite-code">Código de invitación</Label>
@@ -589,24 +583,7 @@ const handleContinue = () => {
 											</p>
 										</div>
 									{/if}
-								</div>
-
-								{#if selectedCompany}
-									<div class="rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-center justify-between gap-3">
-										<div>
-											<p class="font-semibold">{selectedCompany.name}</p>
-											<p class="text-xs text-muted-foreground">
-												{selectedCompany.inviteCode
-													? `Código: ${selectedCompany.inviteCode}`
-													: 'Sin código'}
-											</p>
-										</div>
-										<Button size="sm" variant="ghost" onclick={handleClearSelection}>
-											<span class="material-symbols-rounded mr-1 text-base">close</span>
-											Quitar
-										</Button>
-									</div>
-								{/if}
+								</div> -->
 
 								{#if joinError}
 									<FieldError class="text-sm">{joinError}</FieldError>
