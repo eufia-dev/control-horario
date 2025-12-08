@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { updatePassword, processAuthCallback, cleanupAuthUrl } from '$lib/auth';
+	import { updatePassword, processAuthCallback, cleanupAuthUrl, resendConfirmationEmail } from '$lib/auth';
 	import { auth } from '$lib/stores/auth';
 	import {
 		Card,
@@ -12,6 +11,7 @@
 		CardContent,
 		CardFooter
 	} from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
@@ -30,11 +30,13 @@
 	let passwordError = $state<string | null>(null);
 	let passwordUpdated = $state(false);
 
-	const log = (...args: unknown[]) => console.debug('[callback]', ...args);
+	// Resend confirmation email state
+	let resendEmail = $state('');
+	let isResending = $state(false);
+	let resendSuccess = $state(false);
+	let resendError = $state<string | null>(null);
 
 	onMount(async () => {
-		log('start');
-
 		const result = await processAuthCallback();
 		cleanupAuthUrl();
 
@@ -85,6 +87,24 @@
 			isSubmitting = false;
 		}
 	};
+
+	const handleResendConfirmation = async () => {
+		if (isResending || !resendEmail) return;
+
+		resendError = null;
+		resendSuccess = false;
+		isResending = true;
+
+		try {
+			await resendConfirmationEmail(resendEmail);
+			resendSuccess = true;
+		} catch (error) {
+			resendError =
+				error instanceof Error ? error.message : 'No se ha podido reenviar el correo de confirmación';
+		} finally {
+			isResending = false;
+		}
+	};
 </script>
 
 <div class="grow flex items-center justify-center bg-background px-4">
@@ -99,8 +119,57 @@
 				<CardTitle class="text-2xl font-semibold tracking-tight text-destructive">Error</CardTitle>
 				<CardDescription>{errorMessage}</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<Button href="/login" class="w-full">Volver al inicio de sesión</Button>
+			<CardContent class="space-y-6">
+				{#if resendSuccess}
+					<div
+						class="flex items-center gap-3 p-4 bg-success/10 text-success rounded-lg border border-success/20"
+					>
+						<span class="material-symbols-rounded text-2xl!">mark_email_read</span>
+						<p class="text-sm">
+							Te hemos enviado un nuevo correo de confirmación. Revisa tu bandeja de entrada.
+						</p>
+					</div>
+				{:else}
+					<div class="space-y-4">
+						<p class="text-sm text-muted-foreground">
+							Si tu enlace de confirmación ha expirado, puedes solicitar uno nuevo introduciendo tu correo electrónico:
+						</p>
+						<form
+							class="space-y-4"
+							onsubmit={(e) => {
+								e.preventDefault();
+								handleResendConfirmation();
+							}}
+						>
+							<Field>
+								<FieldLabel>
+									<Label for="resendEmail">Correo electrónico</Label>
+								</FieldLabel>
+								<Input
+									id="resendEmail"
+									type="email"
+									placeholder="tu@ejemplo.com"
+									bind:value={resendEmail}
+									required
+									autocomplete="email"
+								/>
+							</Field>
+							{#if resendError}
+								<FieldError class="text-sm text-destructive">{resendError}</FieldError>
+							{/if}
+							<Button type="submit" class="w-full" disabled={isResending || !resendEmail}>
+								{#if isResending}
+									<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+									Enviando...
+								{:else}
+									<span class="material-symbols-rounded text-lg! mr-2">send</span>
+									Reenviar correo de confirmación
+								{/if}
+							</Button>
+						</form>
+					</div>
+				{/if}
+				<Button href="/login" variant="outline" class="w-full">Volver al inicio de sesión</Button>
 			</CardContent>
 		</Card>
 	{:else if isPasswordReset}

@@ -5,7 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
+	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import * as Select from '$lib/components/ui/select';
 
 	type Props = {
@@ -33,10 +33,11 @@
 		errorMessage = null;
 	};
 
-	const handleClose = () => {
-		resetForm();
-		onClose?.();
-	};
+const handleClose = () => {
+	// Let the dialog close itself; reset and callbacks happen in onOpenChange
+	if (!open) return;
+	open = false;
+};
 
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
@@ -81,7 +82,15 @@
 	});
 </script>
 
-<Dialog.Root bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
+<Dialog.Root
+	bind:open
+	onOpenChange={(isOpen) => {
+		if (!isOpen) {
+			resetForm();
+			onClose?.();
+		}
+	}}
+>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
@@ -127,9 +136,6 @@
 						{/each}
 					</Select.Content>
 				</Select.Root>
-				<FieldDescription class="text-xs text-muted-foreground">
-					El rol que tendrá el usuario cuando acepte la invitación
-				</FieldDescription>
 			</Field>
 
 			{#if errorMessage}

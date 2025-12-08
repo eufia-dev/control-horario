@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { createCompany } from '$lib/api/onboarding';
 	import { auth } from '$lib/stores/auth';
 	import {
@@ -16,13 +18,23 @@
 	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
 	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
 
-	const steps = [{ label: 'Elige una opción', completed: true }, { label: 'Crea tu empresa' }];
+	const steps = [
+		{ label: 'Tu perfil', completed: true },
+		{ label: 'Elige una opción', completed: true },
+		{ label: 'Crea tu empresa' }
+	];
 
 	let companyName = $state('');
 	let cif = $state('');
-	let userName = $state('');
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
+	let userName = $derived($page.url.searchParams.get('userName') ?? '');
+
+	onMount(() => {
+		if (!userName.trim()) {
+			goto('/onboarding');
+		}
+	});
 
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
@@ -34,7 +46,9 @@
 			return;
 		}
 
-		if (!userName.trim()) {
+		const trimmedUserName = userName.trim();
+
+		if (!trimmedUserName) {
 			errorMessage = 'Tu nombre es obligatorio';
 			return;
 		}
@@ -45,7 +59,7 @@
 			const result = await createCompany({
 				companyName: companyName.trim(),
 				cif: cif.trim() || undefined,
-				userName: userName.trim()
+				userName: trimmedUserName
 			});
 
 			if (result.status === 'ACTIVE' && result.user) {
@@ -64,7 +78,7 @@
 
 <div class="grow flex items-center justify-center bg-background px-4 py-8">
 	<div class="w-full max-w-lg">
-		<OnboardingSteps {steps} currentStep={1} />
+		<OnboardingSteps {steps} currentStep={2} />
 
 		<Card>
 			<CardHeader>
@@ -107,28 +121,21 @@
 						</FieldDescription>
 					</Field>
 
-					<Field>
-						<FieldLabel>
-							<Label for="user-name">Tu nombre *</Label>
-						</FieldLabel>
-						<Input
-							id="user-name"
-							type="text"
-							placeholder="Juan García"
-							bind:value={userName}
-							required
-						/>
-						<FieldDescription class="text-xs text-muted-foreground">
-							Nombre que aparecerá en tu perfil
-						</FieldDescription>
-					</Field>
-
 					{#if errorMessage}
 						<FieldError class="text-sm text-destructive">{errorMessage}</FieldError>
 					{/if}
 
 					<CardFooter class="flex justify-between px-0 pt-4">
-						<Button variant="ghost" onclick={() => goto('/onboarding')} type="button">
+						<Button
+							variant="ghost"
+							onclick={() =>
+								goto(
+									userName.trim()
+										? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
+										: '/onboarding'
+								)}
+							type="button"
+						>
 							<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
 							Volver
 						</Button>

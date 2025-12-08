@@ -1,0 +1,38 @@
+# Cursor Rules for control-horario
+
+Scope: light guidance to follow existing conventions (not strict blockers). Prefer `pnpm`.
+
+Stack & tooling
+- SvelteKit 2 + Svelte 5 runes; Vite; adapter-vercel deployment.
+- Supabase auth; backend URL from `PUBLIC_API_URL`.
+- Tailwind + shadcn-svelte (see `components.json`, baseColor stone).
+- Commands: `pnpm dev`, `pnpm build`, `pnpm preview`, `pnpm check`, `pnpm lint`, `pnpm format`; run `check` + `lint` before merge.
+
+Structure
+- Use `$lib` alias; keep API modules under `src/lib/api`, stores under `src/lib/stores`, UI primitives in `src/lib/components/ui`, pages in `src/routes`.
+- API functions stay typed (DTOs) and follow fetch/create/update/delete exports; reuse `handleJsonResponse` + `fetchWithAuth`.
+
+UI & state
+- Prefer runes (`$state`, `$derived`, `$effect`) in components.
+- Reuse shadcn-svelte primitives; keep Spanish UI copy; favor Tailwind utilities.
+- Forms: local state + inline validation; disable while submitting; show friendly errors near inputs.
+
+Auth & onboarding
+- Use Supabase helpers via `fetchWithAuth`; do not bypass `checkAndSetOnboardingStatus`/`routeForOnboardingStatus` flows.
+- Keep auth store (`src/lib/stores/auth.ts`) as source of truth; preserve BroadcastChannel sync for onboarding completion.
+
+Data fetching
+- Always go through `fetchWithAuth`; set `Content-Type` when sending JSON; parse with `handleJsonResponse`; keep user-facing errors clear and in Spanish.
+- Avoid direct `fetch` with raw tokens; respect `PUBLIC_API_URL`.
+
+shadcn-svelte usage
+- Prefer existing components in `src/lib/components/ui` before custom-building.
+- If a needed shadcn component is missing, install the official shadcn-svelte version (`pnpm dlx shadcn-svelte@latest add <component>`) using `components.json` aliases/base color. Ask/confirm with the user when unsure; otherwise proceed if already agreed.
+- Keep shared styles in `src/app.css` consistent; avoid duplicating primitives.
+
+Testing & quality
+- Run `pnpm check && pnpm lint` when changing logic/UI; use Prettier 3 + ESLint defaults.
+
+Environment & security
+- Never commit secrets; rely on env vars; avoid logging tokens or auth headers.
+

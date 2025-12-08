@@ -83,7 +83,19 @@ const createAuthStore = () => {
 
 export const auth = createAuthStore();
 
+// True when we have an app user (onboarding completed)
 export const isAuthenticated = derived(auth, ($auth) => Boolean($auth.user));
+
+// True when there is a Supabase session or onboarding is in progress
+export const isSignedIn = derived(
+	auth,
+	($auth) =>
+		Boolean(
+			$auth.user ||
+				$auth.onboardingStatus === 'ONBOARDING_REQUIRED' ||
+				$auth.onboardingStatus === 'PENDING_APPROVAL'
+		)
+);
 
 // Returns true for OWNER and ADMIN roles
 export const isAdmin = derived(auth, ($auth) => {

@@ -3,8 +3,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { auth, isAuthenticated, isAdmin, type AuthUser } from '$lib/stores/auth';
-	import { initAuth, logout, subscribeToAuthChanges, routeForOnboardingStatus } from '$lib/auth';
+	import { auth, isAuthenticated, isSignedIn, isAdmin, type AuthUser } from '$lib/stores/auth';
+	import { initAuth, logout, subscribeToAuthChanges, routeForOnboardingStatus, initAuthSyncChannel, checkAndSetOnboardingStatus } from '$lib/auth';
 	import { slide } from 'svelte/transition';
 
 	import { Button } from '$lib/components/ui/button';
@@ -15,6 +15,7 @@
 
 	let isInitializing = $state(true);
 	let isAuthed = $state(false);
+	let signedIn = $state(false);
 	let isUserAdmin = $state(false);
 	let user = $state<AuthUser | null>(null);
 	let onboardingStatus = $state<OnboardingStatusType | null>(null);
@@ -22,6 +23,7 @@
 
 	let unsubAuth: (() => void) | undefined;
 	let unsubIsAuthed: (() => void) | undefined;
+	let unsubIsSignedIn: (() => void) | undefined;
 	let unsubIsAdmin: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
@@ -123,9 +125,7 @@
 
 	onMount(() => {
 		unsubAuth = auth.subscribe((state) => {
-			console.debug('auth state changed', state);
 			isInitializing = state.isInitializing;
-			console.debug('isInitializing', isInitializing);
 			user = state.user;
 			onboardingStatus = state.onboardingStatus;
 			if (typeof window !== 'undefined') {
@@ -140,12 +140,32 @@
 			}
 		});
 
+		unsubIsSignedIn = isSignedIn.subscribe((value) => {
+			signedIn = value;
+		});
+
 		unsubIsAdmin = isAdmin.subscribe((value) => {
 			isUserAdmin = value;
 		});
 
 		// Subscribe to Supabase auth state changes
 		unsubAuthChanges = subscribeToAuthChanges();
+
+		// Initialize cross-tab sync channel for onboarding state
+		initAuthSyncChannel();
+
+		// Re-check onboarding status when tab becomes visible (fallback for cross-tab sync)
+		const handleVisibilityChange = async () => {
+			if (document.visibilityState === 'visible' && 
+				(onboardingStatus === 'ONBOARDING_REQUIRED' || onboardingStatus === 'PENDING_APPROVAL')) {
+				try {
+					await checkAndSetOnboardingStatus();
+				} catch {
+					// Ignore errors - the tab might just be stale
+				}
+			}
+		};
+		document.addEventListener('visibilitychange', handleVisibilityChange);
 
 		// Initialize auth from Supabase session
 		initAuth().finally(() => {
@@ -165,14 +185,17 @@
 		return () => {
 			unsubAuth?.();
 			unsubIsAuthed?.();
+			unsubIsSignedIn?.();
 			unsubIsAdmin?.();
 			unsubAuthChanges?.data.subscription.unsubscribe();
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
 	});
 
 	onDestroy(() => {
 		unsubAuth?.();
 		unsubIsAuthed?.();
+	unsubIsSignedIn?.();
 		unsubIsAdmin?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
 	});
@@ -220,28 +243,29 @@
 				{/if}
 			</div>
 
-			{#if isAuthed && user}
+			{#if signedIn}
 				<div class="flex items-center gap-2">
-					<a
-						href="/profile"
-						class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
-							hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
-						style="background-color: {avatarColor}"
-						title={user.name}
-					>
-						{initials}
-					</a>
+					{#if user}
+						<a
+							href="/profile"
+							class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
+								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
+							style="background-color: {avatarColor}"
+							title={user.name}
+						>
+							{initials}
+						</a>
+					{/if}
 					<Button
 						type="button"
 						onclick={handleLogout}
 						variant="ghost"
 						size="sm"
-						class="hidden sm:flex"
+						class={user ? 'hidden md:flex' : 'flex'}
 					>
 						<span class="material-symbols-rounded text-lg!">logout</span>
 					</Button>
-					<!-- Mobile menu button (admin only) -->
-					{#if isUserAdmin}
+					{#if isUserAdmin && user}
 						<Button
 							type="button"
 							onclick={() => (mobileMenuOpen = !mobileMenuOpen)}

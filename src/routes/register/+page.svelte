@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { register } from '$lib/auth';
+	import { register, resendConfirmationEmail } from '$lib/auth';
 	import {
 		Card,
 		CardHeader,
@@ -29,6 +29,11 @@
 	// Email confirmation state
 	let emailConfirmationRequired = $state(false);
 	let registeredEmail = $state('');
+
+	// Resend confirmation state
+	let isResending = $state(false);
+	let resendSuccess = $state(false);
+	let resendError = $state<string | null>(null);
 
 	// Get redirect URL from query params (used when coming from invite link)
 	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
@@ -90,6 +95,24 @@
 			isSubmitting = false;
 		}
 	};
+
+	const handleResendConfirmation = async () => {
+		if (isResending || !registeredEmail) return;
+
+		resendError = null;
+		resendSuccess = false;
+		isResending = true;
+
+		try {
+			await resendConfirmationEmail(registeredEmail);
+			resendSuccess = true;
+		} catch (error) {
+			resendError =
+				error instanceof Error ? error.message : 'No se ha podido reenviar el correo de confirmación';
+		} finally {
+			isResending = false;
+		}
+	};
 </script>
 
 <div class="grow flex items-center justify-center bg-background px-4">
@@ -115,11 +138,45 @@
 						Haz clic en el enlace del correo para verificar tu cuenta y continuar con el registro.
 					</p>
 					<p class="text-sm text-muted-foreground">
-						¿No has recibido el correo? Revisa tu carpeta de spam.
+						¿No has recibido el correo? Revisa tu carpeta de spam o solicita uno nuevo.
 					</p>
+
+					{#if resendSuccess}
+						<div
+							class="flex items-center gap-3 p-4 bg-primary/10 text-primary rounded-lg border border-primary/20"
+						>
+							<span class="material-symbols-rounded text-2xl!">check_circle</span>
+							<p class="text-sm">
+								Te hemos enviado un nuevo correo de confirmación.
+							</p>
+						</div>
+					{/if}
+
+					{#if resendError}
+						<div
+							class="flex items-center gap-3 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
+						>
+							<span class="material-symbols-rounded text-2xl!">error</span>
+							<p class="text-sm">{resendError}</p>
+						</div>
+					{/if}
 				</div>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-4">
+				<Button
+					variant="default"
+					class="w-full"
+					disabled={isResending}
+					onclick={handleResendConfirmation}
+				>
+					{#if isResending}
+						<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+						Enviando...
+					{:else}
+						<span class="material-symbols-rounded text-lg! mr-2">send</span>
+						Reenviar correo de confirmación
+					{/if}
+				</Button>
 				<a href="/login" class="w-full">
 					<Button variant="outline" class="w-full">Volver a iniciar sesión</Button>
 				</a>

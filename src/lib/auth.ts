@@ -36,11 +36,10 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
  * Get the current access token from Supabase session
  */
 async function getAccessToken(): Promise<string | null> {
-	console.debug('[auth] getAccessToken start');
 	const {
 		data: { session }
 	} = await supabase.auth.getSession();
-	console.debug('[auth] getAccessToken session', session);
+
 	return session?.access_token ?? null;
 }
 
@@ -50,17 +49,20 @@ async function getAccessToken(): Promise<string | null> {
  * @param tokenOverride - Optional token to use (useful right after login/signup when session might not be stored yet)
  */
 export async function checkAndSetOnboardingStatus(
-	tokenOverride?: string
+	tokenOverride?: string,
+	options?: { broadcastActive?: boolean }
 ): Promise<OnboardingStatusType> {
+	const { broadcastActive = true } = options ?? {};
+	const previous = get(auth);
+	const wasActive = Boolean(previous.user) || previous.onboardingStatus === 'ACTIVE';
+
 	const result = await apiCheckOnboarding(tokenOverride);
-	console.debug('[auth] checkAndSetOnboardingStatus result', result.status, {
-		hasUser: Boolean(result.user),
-		hasPendingInvitations: Boolean(result.pendingInvitations?.length),
-		hasRequests: Boolean(result.requests?.length)
-	});
 
 	if (result.status === 'ACTIVE' && result.user) {
 		auth.setUser(result.user);
+		if (broadcastActive && !wasActive) {
+			broadcastOnboardingComplete();
+		}
 		return 'ACTIVE';
 	} else if (result.status === 'ONBOARDING_REQUIRED') {
 		auth.setOnboardingStatus('ONBOARDING_REQUIRED', result.pendingInvitations ?? [], []);
@@ -100,7 +102,8 @@ export async function register(email: string, password: string): Promise<AuthSta
 		email,
 		password,
 		options: {
-			emailRedirectTo: `${window.location.origin}/auth/callback`
+			// Preserve flow type so callback can differentiate signup confirmation
+			emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`
 		}
 	});
 
@@ -165,23 +168,17 @@ export async function initAuth(): Promise<void> {
 
 	auth.setInitializing(true);
 	auth.setError(null);
-	console.debug('[auth] initAuth start');
 
 	try {
-		console.debug('[auth] getting token');
 		const accessToken = await getAccessToken();
-		console.debug('[auth] initAuth accessToken', Boolean(accessToken));
 
 		if (accessToken) {
-			// Check onboarding status instead of directly fetching profile
 			await checkAndSetOnboardingStatus();
 		}
 	} catch {
-		// If fetching profile fails, user is not authenticated
 		auth.reset();
 	} finally {
 		auth.setInitializing(false);
-		console.debug('[auth] initAuth done (setInitializing(false))');
 	}
 }
 
@@ -190,7 +187,27 @@ export async function initAuth(): Promise<void> {
  */
 export async function sendPasswordResetEmail(email: string): Promise<void> {
 	const { error } = await supabase.auth.resetPasswordForEmail(email, {
-		redirectTo: `${window.location.origin}/auth/callback`
+		// Preserve recovery flow marker so callback renders the password reset UI
+		redirectTo: `${window.location.origin}/auth/callback?type=recovery`
+	});
+
+	if (error) {
+		throw new Error(error.message);
+	}
+}
+
+/**
+ * Resend confirmation email for a user who registered but hasn't confirmed yet.
+ * This uses the signup type to resend the email verification link.
+ */
+export async function resendConfirmationEmail(email: string): Promise<void> {
+	const { error } = await supabase.auth.resend({
+		type: 'signup',
+		email,
+		options: {
+			// Preserve flow type for signup confirmation resend
+			emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`
+		}
 	});
 
 	if (error) {
@@ -374,27 +391,24 @@ export async function processAuthCallback(
 	const code = searchParams.get('code');
 
 	try {
-		// PKCE / magic link confirmation
 		if (code) {
-			console.debug('[auth] processAuthCallback code', code);
-			// If the session is already set (e.g., Supabase auto-parsed the URL), skip a second exchange
 			let {
 				data: { session }
 			} = await supabase.auth.getSession();
 
 			if (!session) {
 				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-				console.debug('[auth] processAuthCallback exchange result', {
-					error,
-					hasSession: Boolean(data.session)
-				});
 				if (error) {
-					throw new Error('El enlace de confirmación no es válido o ha expirado.');
+					throw new Error('El enlace no es válido o ha expirado.');
 				}
 				session = data.session ?? null;
 			}
 
-			// Use the fresh session token to avoid races with getSession()
+			if (type === 'recovery') {
+				auth.setInitializing(false);
+				return { mode: 'passwordReset' };
+			}
+
 			const token = session?.access_token ?? (await getAccessToken());
 
 			const status = await checkAndSetOnboardingStatus(token ?? undefined);
@@ -459,7 +473,6 @@ export async function processAuthCallback(
  */
 export function subscribeToAuthChanges() {
 	return supabase.auth.onAuthStateChange(async (event, session) => {
-		console.debug('[auth] subscribeToAuthChanges event', event, session);
 		if (event === 'SIGNED_OUT') {
 			auth.reset();
 		} else if (event === 'SIGNED_IN' && session) {
@@ -496,4 +509,39 @@ export async function hasActiveSession(): Promise<boolean> {
 		data: { session }
 	} = await supabase.auth.getSession();
 	return !!session;
+}
+
+// Cross-tab sync for onboarding state changes
+const AUTH_SYNC_CHANNEL = 'auth-sync';
+let authChannel: BroadcastChannel | null = null;
+
+/**
+ * Initialize the BroadcastChannel for cross-tab auth state sync.
+ * When another tab completes onboarding, this tab will re-check its status.
+ */
+export function initAuthSyncChannel() {
+	if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+	if (authChannel) return;
+
+	authChannel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+	authChannel.onmessage = async (event) => {
+		if (event.data?.type === 'ONBOARDING_COMPLETED') {
+			const state = get(auth);
+			if (state.user || state.onboardingStatus === 'ACTIVE') return;
+
+			try {
+				await checkAndSetOnboardingStatus(undefined, { broadcastActive: false });
+			} catch (err) {
+				console.error('[auth] Failed to sync onboarding status from other tab', err);
+			}
+		}
+	};
+}
+
+/**
+ * Broadcast to other tabs that onboarding has been completed.
+ * Called when a user becomes ACTIVE (joins a company or creates one).
+ */
+export function broadcastOnboardingComplete() {
+	authChannel?.postMessage({ type: 'ONBOARDING_COMPLETED' });
 }

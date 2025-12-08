@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import {
 		searchCompanies,
 		getCompanyByCode,
@@ -17,11 +19,15 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
+	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { Separator } from '$lib/components/ui/separator';
 	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
 
-	const steps = [{ label: 'Elige una opción', completed: true }, { label: 'Únete a una empresa' }];
+	const steps = [
+		{ label: 'Tu perfil', completed: true },
+		{ label: 'Elige una opción', completed: true },
+		{ label: 'Únete a una empresa' }
+	];
 
 	// Search state
 	let searchQuery = $state('');
@@ -40,9 +46,15 @@
 	let selectedCompany = $state<CompanySearchResult | null>(null);
 
 	// Join request state
-	let userName = $state('');
+	let userName = $derived($page.url.searchParams.get('userName') ?? '');
 	let isSubmitting = $state(false);
 	let submitError = $state<string | null>(null);
+
+	onMount(() => {
+		if (!userName.trim()) {
+			goto('/onboarding');
+		}
+	});
 
 	// Debounced search
 	const handleSearchInput = (value: string) => {
@@ -98,7 +110,9 @@
 	const handleSubmitRequest = async () => {
 		if (!selectedCompany || isSubmitting) return;
 
-		if (!userName.trim()) {
+		const trimmedName = userName.trim();
+
+		if (!trimmedName) {
 			submitError = 'Tu nombre es obligatorio';
 			return;
 		}
@@ -109,7 +123,7 @@
 		try {
 			await requestJoin({
 				companyId: selectedCompany.id,
-				name: userName.trim()
+				name: trimmedName
 			});
 			// Redirect to status page
 			await goto('/onboarding/status');
@@ -123,14 +137,13 @@
 	// Clear selection
 	const handleClearSelection = () => {
 		selectedCompany = null;
-		userName = '';
 		submitError = null;
 	};
 </script>
 
 <div class="grow flex items-center justify-center bg-background px-4 py-8">
 	<div class="w-full max-w-lg">
-		<OnboardingSteps {steps} currentStep={1} />
+		<OnboardingSteps {steps} currentStep={2} />
 
 		{#if selectedCompany}
 			<!-- Join Request Form -->
@@ -166,21 +179,15 @@
 							</div>
 						</div>
 
-						<Field>
-							<FieldLabel>
-								<Label for="user-name">Tu nombre *</Label>
-							</FieldLabel>
-							<Input
-								id="user-name"
-								type="text"
-								placeholder="Juan García"
-								bind:value={userName}
-								required
-							/>
-							<FieldDescription class="text-xs text-muted-foreground">
-								Este nombre será visible para el administrador de la empresa
-							</FieldDescription>
-						</Field>
+						<div class="p-4 rounded-lg bg-muted/70 border border-dashed border-border">
+							<p class="text-sm text-muted-foreground">
+								Usaremos el nombre que indicaste en el paso anterior:
+							</p>
+							<p class="font-medium mt-1">{userName}</p>
+							<p class="text-xs text-muted-foreground mt-1">
+								Este nombre será visible para el administrador de la empresa.
+							</p>
+						</div>
 
 						{#if submitError}
 							<FieldError class="text-sm text-destructive">{submitError}</FieldError>
@@ -346,7 +353,15 @@
 					{/if}
 
 					<CardFooter class="flex justify-start px-0 pt-4">
-						<Button variant="ghost" onclick={() => goto('/onboarding')}>
+						<Button
+							variant="ghost"
+							onclick={() =>
+								goto(
+									userName.trim()
+										? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
+										: '/onboarding'
+								)}
+						>
 							<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
 							Volver
 						</Button>

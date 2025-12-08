@@ -115,10 +115,15 @@ export async function createCompany(data: CreateCompanyDto): Promise<OnboardingC
 /**
  * Accept an invitation using its token
  */
-export async function acceptInvitation(token: string): Promise<OnboardingCheckResponse> {
+export async function acceptInvitation(token: string, userName: string): Promise<OnboardingCheckResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/accept-invitation/${token}`, {
-		method: 'POST'
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ userName })
 	});
+
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 

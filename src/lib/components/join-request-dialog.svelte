@@ -9,7 +9,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Field, FieldLabel, FieldDescription } from '$lib/components/ui/field';
+	import { Field, FieldLabel } from '$lib/components/ui/field';
 	import * as Select from '$lib/components/ui/select';
 	import { Textarea } from '$lib/components/ui/textarea';
 
@@ -118,9 +118,6 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-					<FieldDescription class="text-xs text-muted-foreground">
-						El rol que tendrá el usuario en la empresa
-					</FieldDescription>
 				</Field>
 			{:else}
 				<Field>
