@@ -4,7 +4,7 @@ import { fetchWithAuth } from '$lib/auth';
 const API_BASE = PUBLIC_API_URL;
 
 export type TimeEntryType = {
-	id: string;
+	value: string;
 	name: string;
 };
 
@@ -34,7 +34,7 @@ export type TimeEntry = {
 		name: string;
 	};
 	timeEntryType?: {
-		id: string;
+		value: string;
 		name: string;
 	};
 };
@@ -63,7 +63,7 @@ export type ActiveTimer = {
 		name: string;
 	};
 	timeEntryType?: {
-		id: string;
+		value: string;
 		name: string;
 	};
 };

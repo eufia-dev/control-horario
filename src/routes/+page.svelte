@@ -98,9 +98,9 @@
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
-	const selectedType = $derived(timeEntryTypes.find((t) => t.id === selectedTypeId));
+	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedTypeId));
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
-	const switchType = $derived(timeEntryTypes.find((t) => t.id === switchTypeId));
+	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchTypeId));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	const canStartTimer = $derived(
@@ -136,9 +136,9 @@
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (!selectedTypeId) {
 				if (trabajoType) {
-					selectedTypeId = trabajoType.id;
+					selectedTypeId = trabajoType.value;
 				} else if (timeEntryTypes.length > 0) {
-					selectedTypeId = timeEntryTypes[0].id;
+					selectedTypeId = timeEntryTypes[0].value;
 				}
 			}
 		} catch (e) {
@@ -463,8 +463,8 @@
 											{/if}
 										</SelectTrigger>
 										<SelectContent>
-											{#each timeEntryTypes as type (type.id)}
-												<SelectItem value={type.id} label={type.name} />
+											{#each timeEntryTypes as type (type.value)}
+												<SelectItem value={type.value} label={type.name} />
 											{/each}
 										</SelectContent>
 									</Select>
@@ -559,8 +559,8 @@
 									{/if}
 								</SelectTrigger>
 								<SelectContent>
-									{#each timeEntryTypes as type (type.id)}
-										<SelectItem value={type.id} label={type.name} />
+									{#each timeEntryTypes as type (type.value)}
+										<SelectItem value={type.value} label={type.name} />
 									{/each}
 								</SelectContent>
 							</Select>

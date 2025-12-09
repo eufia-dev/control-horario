@@ -74,7 +74,7 @@
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear registro');
 
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
-	const selectedType = $derived(timeEntryTypes.find((t) => t.id === typeId));
+const selectedType = $derived(timeEntryTypes.find((t) => t.value === typeId));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	$effect(() => {
@@ -144,9 +144,9 @@
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
-				typeId = trabajoType.id;
+				typeId = trabajoType.value;
 			} else if (timeEntryTypes.length > 0) {
-				typeId = timeEntryTypes[0].id;
+				typeId = timeEntryTypes[0].value;
 			}
 		}
 	}
@@ -283,8 +283,8 @@
 							{/if}
 						</SelectTrigger>
 						<SelectContent>
-							{#each timeEntryTypes as type (type.id)}
-								<SelectItem value={type.id} label={type.name} />
+							{#each timeEntryTypes as type (type.value)}
+								<SelectItem value={type.value} label={type.name} />
 							{/each}
 						</SelectContent>
 					</Select>
