@@ -47,8 +47,14 @@ export type AdminJoinRequest = {
 	reviewedById?: string;
 };
 
+export type JoinRequestOptions = {
+	relationTypes: InvitationOption[];
+	roles: InvitationOption[];
+};
+
 export type ApproveJoinRequestDto = {
 	role?: UserRole;
+	relationType?: RelationType;
 };
 
 export type RejectJoinRequestDto = {
@@ -117,6 +123,11 @@ export async function deleteInvitation(id: string): Promise<void> {
 export async function fetchJoinRequests(): Promise<AdminJoinRequest[]> {
 	const response = await fetchWithAuth(`${API_BASE}/join-requests`);
 	return handleJsonResponse<AdminJoinRequest[]>(response);
+}
+
+export async function fetchJoinRequestOptions(): Promise<JoinRequestOptions> {
+	const response = await fetchWithAuth(`${API_BASE}/join-requests/options`);
+	return handleJsonResponse<JoinRequestOptions>(response);
 }
 
 export async function approveJoinRequest(

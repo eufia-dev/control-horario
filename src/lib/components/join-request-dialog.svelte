@@ -2,16 +2,19 @@
 	import {
 		approveJoinRequest,
 		rejectJoinRequest,
-		type AdminJoinRequest
+		fetchJoinRequestOptions,
+		type AdminJoinRequest,
+		type JoinRequestOptions,
+		type RelationType
 	} from '$lib/api/invitations';
 	import type { UserRole } from '$lib/stores/auth';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel } from '$lib/components/ui/field';
 	import * as Select from '$lib/components/ui/select';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	type Props = {
 		open: boolean;
@@ -24,20 +27,30 @@
 	let { open = $bindable(), request, action, onClose, onSuccess }: Props = $props();
 
 	let role = $state<UserRole>('WORKER');
+	let relationType = $state<RelationType>('EMPLOYEE');
 	let reason = $state('');
 	let isSubmitting = $state(false);
+	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
-
-	const roleOptions: { value: UserRole; label: string }[] = [
-		{ value: 'WORKER', label: 'Trabajador' },
-		{ value: 'ADMIN', label: 'Administrador' },
-		{ value: 'AUDITOR', label: 'Auditor' }
-	];
+	let options = $state<JoinRequestOptions | null>(null);
 
 	const resetForm = () => {
 		role = 'WORKER';
+		relationType = 'EMPLOYEE';
 		reason = '';
 		errorMessage = null;
+	};
+
+	const loadOptions = async () => {
+		if (options) return;
+		isLoadingOptions = true;
+		try {
+			options = await fetchJoinRequestOptions();
+		} catch (error) {
+			errorMessage = error instanceof Error ? error.message : 'Error al cargar opciones';
+		} finally {
+			isLoadingOptions = false;
+		}
 	};
 
 	const handleClose = () => {
@@ -53,7 +66,7 @@
 
 		try {
 			if (action === 'approve') {
-				await approveJoinRequest(request.id, { role });
+				await approveJoinRequest(request.id, { role, relationType });
 			} else {
 				await rejectJoinRequest(request.id, { reason: reason.trim() || undefined });
 			}
@@ -68,9 +81,11 @@
 		}
 	};
 
-	// Reset form when modal opens
 	$effect(() => {
-		if (open) {
+		if (open && action === 'approve') {
+			resetForm();
+			loadOptions();
+		} else if (open) {
 			resetForm();
 		}
 	});
@@ -108,16 +123,41 @@
 					<FieldLabel>
 						<Label for="approve-role">Rol asignado</Label>
 					</FieldLabel>
-					<Select.Root type="single" bind:value={role}>
-						<Select.Trigger id="approve-role" class="w-full">
-							{roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'}
-						</Select.Trigger>
-						<Select.Content>
-							{#each roleOptions as option (option.value)}
-								<Select.Item value={option.value}>{option.label}</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					{#if isLoadingOptions}
+						<Skeleton class="h-10 w-full" />
+					{:else}
+						<Select.Root type="single" bind:value={role}>
+							<Select.Trigger id="approve-role" class="w-full">
+								{options?.roles.find((r) => r.value === role)?.name ?? 'Seleccionar rol'}
+							</Select.Trigger>
+							<Select.Content>
+								{#each options?.roles ?? [] as option (option.value)}
+									<Select.Item value={option.value}>{option.name}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/if}
+				</Field>
+
+				<Field>
+					<FieldLabel>
+						<Label for="approve-relation-type">Tipo de relación</Label>
+					</FieldLabel>
+					{#if isLoadingOptions}
+						<Skeleton class="h-10 w-full" />
+					{:else}
+						<Select.Root type="single" bind:value={relationType}>
+							<Select.Trigger id="approve-relation-type" class="w-full">
+								{options?.relationTypes.find((r) => r.value === relationType)?.name ??
+									'Seleccionar tipo'}
+							</Select.Trigger>
+							<Select.Content>
+								{#each options?.relationTypes ?? [] as option (option.value)}
+									<Select.Item value={option.value}>{option.name}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/if}
 				</Field>
 			{:else}
 				<Field>
@@ -142,7 +182,7 @@
 			<AlertDialog.Cancel onclick={handleClose}>Cancelar</AlertDialog.Cancel>
 			<Button
 				onclick={handleSubmit}
-				disabled={isSubmitting}
+				disabled={isSubmitting || (isApprove && isLoadingOptions)}
 				variant={isApprove ? 'default' : 'destructive'}
 			>
 				{#if isSubmitting}
