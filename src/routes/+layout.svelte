@@ -4,7 +4,14 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { auth, isAuthenticated, isSignedIn, isAdmin, type AuthUser } from '$lib/stores/auth';
-	import { initAuth, logout, subscribeToAuthChanges, routeForOnboardingStatus, initAuthSyncChannel, checkAndSetOnboardingStatus } from '$lib/auth';
+	import {
+		initAuth,
+		logout,
+		subscribeToAuthChanges,
+		routeForOnboardingStatus,
+		initAuthSyncChannel,
+		checkAndSetOnboardingStatus
+	} from '$lib/auth';
 	import { slide } from 'svelte/transition';
 
 	import { Button } from '$lib/components/ui/button';
@@ -139,12 +146,13 @@
 		initAuthSyncChannel();
 
 		const handleVisibilityChange = async () => {
-			if (document.visibilityState === 'visible' && 
-				(onboardingStatus === 'ONBOARDING_REQUIRED' || onboardingStatus === 'PENDING_APPROVAL')) {
+			if (
+				document.visibilityState === 'visible' &&
+				(onboardingStatus === 'ONBOARDING_REQUIRED' || onboardingStatus === 'PENDING_APPROVAL')
+			) {
 				try {
 					await checkAndSetOnboardingStatus();
-				} catch {
-				}
+				} catch {}
 			}
 		};
 		document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -174,7 +182,7 @@
 	onDestroy(() => {
 		unsubAuth?.();
 		unsubIsAuthed?.();
-	unsubIsSignedIn?.();
+		unsubIsSignedIn?.();
 		unsubIsAdmin?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
 	});

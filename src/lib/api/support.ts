@@ -57,4 +57,3 @@ export async function submitContactMessage(data: ContactMessageDto): Promise<voi
 	});
 	await handleJsonResponse<void>(response);
 }
-

@@ -100,7 +100,9 @@
 			resendSuccess = true;
 		} catch (error) {
 			resendError =
-				error instanceof Error ? error.message : 'No se ha podido reenviar el correo de confirmación';
+				error instanceof Error
+					? error.message
+					: 'No se ha podido reenviar el correo de confirmación';
 		} finally {
 			isResending = false;
 		}
@@ -138,9 +140,7 @@
 							class="flex items-center gap-3 p-4 bg-primary/10 text-primary rounded-lg border border-primary/20"
 						>
 							<span class="material-symbols-rounded text-2xl!">check_circle</span>
-							<p class="text-sm">
-								Te hemos enviado un nuevo correo de confirmación.
-							</p>
+							<p class="text-sm">Te hemos enviado un nuevo correo de confirmación.</p>
 						</div>
 					{/if}
 
@@ -162,7 +162,9 @@
 					onclick={handleResendConfirmation}
 				>
 					{#if isResending}
-						<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+						<span class="material-symbols-rounded animate-spin text-lg! mr-2"
+							>progress_activity</span
+						>
 						Enviando...
 					{:else}
 						<span class="material-symbols-rounded text-lg! mr-2">send</span>

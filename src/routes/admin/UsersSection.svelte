@@ -242,4 +242,3 @@
 />
 
 <InvitationFormModal bind:open={invitationFormModalOpen} />
-

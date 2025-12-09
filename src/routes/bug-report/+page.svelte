@@ -4,7 +4,13 @@
 	import { page } from '$app/stores';
 	import { submitBugReport } from '$lib/api/support';
 	import { isAdmin as isAdminStore } from '$lib/stores/auth';
-	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardContent
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -46,9 +52,7 @@
 	];
 
 	// Filter routes based on admin status
-	const availableRoutes = $derived(
-		allRoutes.filter((route) => !route.adminOnly || isUserAdmin)
-	);
+	const availableRoutes = $derived(allRoutes.filter((route) => !route.adminOnly || isUserAdmin));
 
 	$effect(() => {
 		const unsubscribe = isAdminStore.subscribe((value) => {
@@ -170,13 +174,19 @@
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleSubmit();
+					}}
+					class="space-y-6"
+				>
 					<div class="grid gap-2">
 						<Label for="page">Página o vista donde ocurrió</Label>
 						<Select type="single" bind:value={pageUrl} disabled={submitting}>
 							<SelectTrigger id="page" class="w-full">
 								{#if pageUrl}
-									{availableRoutes.find(r => r.value === pageUrl)?.label ?? pageUrl}
+									{availableRoutes.find((r) => r.value === pageUrl)?.label ?? pageUrl}
 								{:else}
 									<span class="text-muted-foreground">Selecciona una vista</span>
 								{/if}
@@ -205,7 +215,7 @@
 						<Select type="single" bind:value={category} disabled={submitting}>
 							<SelectTrigger id="category" class="w-full">
 								{#if category}
-									{categoryOptions.find(o => o.value === category)?.label ?? category}
+									{categoryOptions.find((o) => o.value === category)?.label ?? category}
 								{:else}
 									<span class="text-muted-foreground">Selecciona una categoría</span>
 								{/if}
@@ -223,7 +233,7 @@
 						<Select type="single" bind:value={severity} disabled={submitting}>
 							<SelectTrigger id="severity" class="w-full">
 								{#if severity}
-									{severityOptions.find(o => o.value === severity)?.label ?? severity}
+									{severityOptions.find((o) => o.value === severity)?.label ?? severity}
 								{:else}
 									<span class="text-muted-foreground">Selecciona la severidad</span>
 								{/if}
@@ -266,7 +276,9 @@
 					{/if}
 
 					{#if success}
-						<div class="text-sm text-green-600 dark:text-green-400 text-center p-3 bg-green-50 dark:bg-green-950 rounded-md">
+						<div
+							class="text-sm text-green-600 dark:text-green-400 text-center p-3 bg-green-50 dark:bg-green-950 rounded-md"
+						>
 							¡Reporte enviado correctamente! Gracias por tu ayuda.
 						</div>
 					{/if}
@@ -277,7 +289,8 @@
 						</Button>
 						<Button type="submit" disabled={submitting}>
 							{#if submitting}
-								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span
+								>
 							{:else}
 								<span class="material-symbols-rounded text-lg!">bug_report</span>
 							{/if}
@@ -289,4 +302,3 @@
 		</Card>
 	</div>
 </div>
-

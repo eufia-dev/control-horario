@@ -150,7 +150,8 @@
 										<Badge variant="destructive">Inactivo</Badge>
 									{/if}
 								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell>
+								<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell
+								>
 								<TableCell>
 									<div class="flex items-center gap-1">
 										<Button
@@ -195,4 +196,3 @@
 	onClose={handleExternalModalClose}
 	onSuccess={handleExternalSuccess}
 />
-

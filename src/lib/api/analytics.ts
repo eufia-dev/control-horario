@@ -82,7 +82,6 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 	return text ? (JSON.parse(text) as T) : ({} as T);
 }
 
-
 export async function fetchProjectsSummary(): Promise<ProjectsSummaryResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/analytics/projects-summary`);
 	return handleJsonResponse<ProjectsSummaryResponse>(response);

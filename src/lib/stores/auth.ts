@@ -84,14 +84,12 @@ export const auth = createAuthStore();
 
 export const isAuthenticated = derived(auth, ($auth) => Boolean($auth.user));
 
-export const isSignedIn = derived(
-	auth,
-	($auth) =>
-		Boolean(
-			$auth.user ||
-				$auth.onboardingStatus === 'ONBOARDING_REQUIRED' ||
-				$auth.onboardingStatus === 'PENDING_APPROVAL'
-		)
+export const isSignedIn = derived(auth, ($auth) =>
+	Boolean(
+		$auth.user ||
+			$auth.onboardingStatus === 'ONBOARDING_REQUIRED' ||
+			$auth.onboardingStatus === 'PENDING_APPROVAL'
+	)
 );
 
 export const isAdmin = derived(auth, ($auth) => {

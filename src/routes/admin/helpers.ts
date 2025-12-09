@@ -44,4 +44,3 @@ export function formatCurrency(value: number): string {
 		currency: 'EUR'
 	}).format(value);
 }
-

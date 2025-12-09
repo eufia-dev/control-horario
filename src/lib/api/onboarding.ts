@@ -103,7 +103,10 @@ export async function createCompany(data: CreateCompanyDto): Promise<OnboardingC
 	return handleJsonResponse<OnboardingCheckResponse>(response);
 }
 
-export async function acceptInvitation(token: string, userName: string): Promise<OnboardingCheckResponse> {
+export async function acceptInvitation(
+	token: string,
+	userName: string
+): Promise<OnboardingCheckResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/onboarding/accept-invitation/${token}`, {
 		method: 'POST',
 		headers: {

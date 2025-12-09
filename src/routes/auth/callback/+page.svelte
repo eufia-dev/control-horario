@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { updatePassword, processAuthCallback, cleanupAuthUrl, resendConfirmationEmail } from '$lib/auth';
+	import {
+		updatePassword,
+		processAuthCallback,
+		cleanupAuthUrl,
+		resendConfirmationEmail
+	} from '$lib/auth';
 	import { auth } from '$lib/stores/auth';
 	import {
 		Card,
@@ -98,7 +103,9 @@
 			resendSuccess = true;
 		} catch (error) {
 			resendError =
-				error instanceof Error ? error.message : 'No se ha podido reenviar el correo de confirmación';
+				error instanceof Error
+					? error.message
+					: 'No se ha podido reenviar el correo de confirmación';
 		} finally {
 			isResending = false;
 		}
@@ -130,7 +137,8 @@
 				{:else}
 					<div class="space-y-4">
 						<p class="text-sm text-muted-foreground">
-							Si tu enlace de confirmación ha expirado, puedes solicitar uno nuevo introduciendo tu correo electrónico:
+							Si tu enlace de confirmación ha expirado, puedes solicitar uno nuevo introduciendo tu
+							correo electrónico:
 						</p>
 						<form
 							class="space-y-4"
@@ -157,7 +165,9 @@
 							{/if}
 							<Button type="submit" class="w-full" disabled={isResending || !resendEmail}>
 								{#if isResending}
-									<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+									<span class="material-symbols-rounded animate-spin text-lg! mr-2"
+										>progress_activity</span
+									>
 									Enviando...
 								{:else}
 									<span class="material-symbols-rounded text-lg! mr-2">send</span>

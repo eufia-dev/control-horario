@@ -74,7 +74,7 @@
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear registro');
 
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
-const selectedType = $derived(timeEntryTypes.find((t) => t.value === typeId));
+	const selectedType = $derived(timeEntryTypes.find((t) => t.value === typeId));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	$effect(() => {

@@ -181,8 +181,12 @@
 								<TableCell>
 									<Badge variant={status.variant}>{status.label}</Badge>
 								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(invitation.createdAt)}</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(invitation.expiresAt)}</TableCell>
+								<TableCell class="text-muted-foreground"
+									>{formatDate(invitation.createdAt)}</TableCell
+								>
+								<TableCell class="text-muted-foreground"
+									>{formatDate(invitation.expiresAt)}</TableCell
+								>
 								<TableCell>
 									<div class="flex items-center gap-1">
 										{#if !invitation.usedAt && new Date(invitation.expiresAt) >= new Date()}
@@ -235,4 +239,3 @@
 	onClose={handleInvitationModalClose}
 	onSuccess={handleInvitationSuccess}
 />
-

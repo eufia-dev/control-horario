@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { submitContactMessage } from '$lib/api/support';
-	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardContent
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -68,7 +74,13 @@
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleSubmit();
+					}}
+					class="space-y-6"
+				>
 					<div class="grid gap-2">
 						<Label for="subject">Asunto</Label>
 						<Input
@@ -99,7 +111,9 @@
 					{/if}
 
 					{#if success}
-						<div class="text-sm text-green-600 dark:text-green-400 text-center p-3 bg-green-50 dark:bg-green-950 rounded-md">
+						<div
+							class="text-sm text-green-600 dark:text-green-400 text-center p-3 bg-green-50 dark:bg-green-950 rounded-md"
+						>
 							¡Mensaje enviado correctamente! Te responderemos pronto a tu correo electrónico.
 						</div>
 					{/if}
@@ -110,7 +124,8 @@
 						</Button>
 						<Button type="submit" disabled={submitting}>
 							{#if submitting}
-								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span
+								>
 							{:else}
 								<span class="material-symbols-rounded text-lg!">send</span>
 							{/if}
@@ -122,4 +137,3 @@
 		</Card>
 	</div>
 </div>
-

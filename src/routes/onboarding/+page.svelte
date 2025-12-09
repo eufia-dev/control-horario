@@ -1,27 +1,27 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { page } from '$app/stores';
-import { auth } from '$lib/stores/auth';
-import {
-	acceptInvitation,
-	createCompany,
-	// getCompanyByCode,
-	requestJoin,
-	searchCompanies,
-	type CompanySearchResult
-} from '$lib/api/onboarding';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
-import { Button } from '$lib/components/ui/button';
-import * as RadioGroup from '$lib/components/ui/radio-group';
-import { Label } from '$lib/components/ui/label';
-import { Input } from '$lib/components/ui/input';
-import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
-import { Carousel, CarouselContent, CarouselItem } from '$lib/components/ui/carousel';
-import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
-import { fade } from 'svelte/transition';
-import type { CarouselAPI } from '$lib/components/ui/carousel/context';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { auth } from '$lib/stores/auth';
+	import {
+		acceptInvitation,
+		createCompany,
+		// getCompanyByCode,
+		requestJoin,
+		searchCompanies,
+		type CompanySearchResult
+	} from '$lib/api/onboarding';
+	import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import * as RadioGroup from '$lib/components/ui/radio-group';
+	import { Label } from '$lib/components/ui/label';
+	import { Input } from '$lib/components/ui/input';
+	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
+	import { Carousel, CarouselContent, CarouselItem } from '$lib/components/ui/carousel';
+	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
+	import { fade } from 'svelte/transition';
+	import type { CarouselAPI } from '$lib/components/ui/carousel/context';
 
-const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 'Completa' }];
+	const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 'Completa' }];
 
 	let selectedPath = $state<'create' | 'join' | ''>('');
 	let pendingInvitations = $state<typeof $auth.pendingInvitations>([]);
@@ -223,38 +223,38 @@ const steps = [{ label: 'Tu perfil' }, { label: 'Elige una opción' }, { label: 
 		}
 	};
 
-const handleContinue = () => {
-	if (stage === 0) {
+	const handleContinue = () => {
+		if (stage === 0) {
+			if (!userName.trim()) {
+				errorMessage = 'Tu nombre es obligatorio para continuar';
+				return;
+			}
+			errorMessage = null;
+			stage = 1;
+			carouselApi?.scrollTo(1);
+			return;
+		}
+
+		if (stage === 1) {
+			if (!selectedPath) {
+				errorMessage = 'Selecciona una opción para continuar';
+				return;
+			}
+			errorMessage = null;
+			stage = 2;
+			carouselApi?.scrollTo(2);
+			return;
+		}
+
 		if (!userName.trim()) {
 			errorMessage = 'Tu nombre es obligatorio para continuar';
+			stage = 0;
+			carouselApi?.scrollTo(0);
 			return;
 		}
+
 		errorMessage = null;
-		stage = 1;
-		carouselApi?.scrollTo(1);
-		return;
-	}
-
-	if (stage === 1) {
-		if (!selectedPath) {
-			errorMessage = 'Selecciona una opción para continuar';
-			return;
-		}
-		errorMessage = null;
-		stage = 2;
-		carouselApi?.scrollTo(2);
-		return;
-	}
-
-	if (!userName.trim()) {
-		errorMessage = 'Tu nombre es obligatorio para continuar';
-		stage = 0;
-		carouselApi?.scrollTo(0);
-		return;
-	}
-
-	errorMessage = null;
-};
+	};
 </script>
 
 <div class="grow flex items-center justify-center bg-background px-4 py-8">
@@ -308,7 +308,9 @@ const handleContinue = () => {
 						<CardContent class="space-y-6">
 							{#if pendingInvitations.length === 0}
 								<div class="text-center py-4">
-									<span class="material-symbols-rounded text-4xl text-muted-foreground/50 mb-2">mail</span>
+									<span class="material-symbols-rounded text-4xl text-muted-foreground/50 mb-2"
+										>mail</span
+									>
 									<p class="text-sm text-muted-foreground">
 										No encontramos invitaciones pendientes en tu cuenta.
 									</p>
@@ -320,11 +322,15 @@ const handleContinue = () => {
 											class="relative rounded-xl border-2 border-primary/20 bg-primary/3 p-5 transition-all hover:border-primary/40"
 										>
 											<div class="flex items-center gap-4">
-												<div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary shrink-0">
+												<div
+													class="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary shrink-0"
+												>
 													<span class="material-symbols-rounded text-2xl!">domain</span>
 												</div>
 												<div class="flex-1 min-w-0">
-													<h3 class="text-lg font-semibold text-foreground truncate">{invitation.companyName}</h3>
+													<h3 class="text-lg font-semibold text-foreground truncate">
+														{invitation.companyName}
+													</h3>
 													<p class="text-sm text-muted-foreground">
 														Te invitaron a unirte a esta empresa
 													</p>
@@ -336,7 +342,9 @@ const handleContinue = () => {
 													class="shrink-0"
 												>
 													{#if isAcceptingInvitation && acceptingInvitationId === invitation.id}
-														<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+														<span class="material-symbols-rounded animate-spin mr-2"
+															>progress_activity</span
+														>
 														Aceptando...
 													{:else}
 														<span class="material-symbols-rounded mr-2">check_circle</span>
@@ -357,7 +365,9 @@ const handleContinue = () => {
 									<div class="w-full border-t border-border"></div>
 								</div>
 								<div class="relative flex justify-center">
-									<span class="bg-card px-3 text-xs text-muted-foreground uppercase tracking-wider">o bien</span>
+									<span class="bg-card px-3 text-xs text-muted-foreground uppercase tracking-wider"
+										>o bien</span
+									>
 								</div>
 							</div>
 
@@ -497,7 +507,8 @@ const handleContinue = () => {
 								</Button>
 								<Button onclick={handleCreateSubmit} disabled={isSubmittingCreate}>
 									{#if isSubmittingCreate}
-										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span
+										>
 										Creando...
 									{:else}
 										Crear empresa
@@ -602,7 +613,8 @@ const handleContinue = () => {
 								</Button>
 								<Button onclick={handleJoinSubmit} disabled={!selectedCompany || isSubmittingJoin}>
 									{#if isSubmittingJoin}
-										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin mr-2">progress_activity</span
+										>
 										Enviando...
 									{:else}
 										Solicitar acceso

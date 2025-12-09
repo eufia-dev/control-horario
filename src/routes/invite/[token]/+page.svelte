@@ -1,92 +1,92 @@
 <script lang="ts">
-import { onMount } from 'svelte';
-import { goto } from '$app/navigation';
-import { page } from '$app/stores';
-import { hasActiveSession } from '$lib/auth';
-import { acceptInvitation } from '$lib/api/onboarding';
-import { auth } from '$lib/stores/auth';
-import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardContent,
-	CardFooter
-} from '$lib/components/ui/card';
-import { Button } from '$lib/components/ui/button';
-import { Input } from '$lib/components/ui/input';
-import { Label } from '$lib/components/ui/label';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { hasActiveSession } from '$lib/auth';
+	import { acceptInvitation } from '$lib/api/onboarding';
+	import { auth } from '$lib/stores/auth';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardContent,
+		CardFooter
+	} from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 
-let token = $derived($page.params.token ?? '');
-let isLoading = $state(true);
-let isAccepting = $state(false);
-let error = $state<string | null>(null);
-let needsAuth = $state(false);
-let needsName = $state(false);
-let userName = $state($page.url.searchParams.get('userName') ?? '');
+	let token = $derived($page.params.token ?? '');
+	let isLoading = $state(true);
+	let isAccepting = $state(false);
+	let error = $state<string | null>(null);
+	let needsAuth = $state(false);
+	let needsName = $state(false);
+	let userName = $state($page.url.searchParams.get('userName') ?? '');
 
-const buildRedirectPath = () => {
-	const base = `/invite/${token}`;
-	const params = new URLSearchParams();
-	if (userName.trim()) {
-		params.set('userName', userName.trim());
-	}
-	return params.toString() ? `${base}?${params.toString()}` : base;
-};
-
-onMount(async () => {
-	const hasSession = await hasActiveSession();
-
-	if (!hasSession) {
-		needsAuth = true;
-		isLoading = false;
-		return;
-	}
-
-	if (!userName.trim() && $auth.user?.name) {
-		userName = $auth.user.name;
-	}
-
-	if (!userName.trim()) {
-		needsName = true;
-		isLoading = false;
-		return;
-	}
-
-	await handleAcceptInvitation();
-});
-
-const handleAcceptInvitation = async () => {
-	isAccepting = true;
-	error = null;
-
-	const trimmedName = userName.trim();
-	if (!trimmedName) {
-		error = 'Tu nombre es obligatorio para aceptar la invitación';
-		needsName = true;
-		isAccepting = false;
-		isLoading = false;
-		return;
-	}
-
-	needsName = false;
-
-	try {
-		const result = await acceptInvitation(token, trimmedName);
-
-		if (result.status === 'ACTIVE' && result.user) {
-			auth.setUser(result.user);
-			await goto('/');
-		} else {
-			error = 'La invitación no pudo ser procesada';
+	const buildRedirectPath = () => {
+		const base = `/invite/${token}`;
+		const params = new URLSearchParams();
+		if (userName.trim()) {
+			params.set('userName', userName.trim());
 		}
-	} catch (e) {
-		error = e instanceof Error ? e.message : 'Error al aceptar la invitación';
-	} finally {
-		isAccepting = false;
-		isLoading = false;
-	}
-};
+		return params.toString() ? `${base}?${params.toString()}` : base;
+	};
+
+	onMount(async () => {
+		const hasSession = await hasActiveSession();
+
+		if (!hasSession) {
+			needsAuth = true;
+			isLoading = false;
+			return;
+		}
+
+		if (!userName.trim() && $auth.user?.name) {
+			userName = $auth.user.name;
+		}
+
+		if (!userName.trim()) {
+			needsName = true;
+			isLoading = false;
+			return;
+		}
+
+		await handleAcceptInvitation();
+	});
+
+	const handleAcceptInvitation = async () => {
+		isAccepting = true;
+		error = null;
+
+		const trimmedName = userName.trim();
+		if (!trimmedName) {
+			error = 'Tu nombre es obligatorio para aceptar la invitación';
+			needsName = true;
+			isAccepting = false;
+			isLoading = false;
+			return;
+		}
+
+		needsName = false;
+
+		try {
+			const result = await acceptInvitation(token, trimmedName);
+
+			if (result.status === 'ACTIVE' && result.user) {
+				auth.setUser(result.user);
+				await goto('/');
+			} else {
+				error = 'La invitación no pudo ser procesada';
+			}
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Error al aceptar la invitación';
+		} finally {
+			isAccepting = false;
+			isLoading = false;
+		}
+	};
 
 	const handleGoToRegister = () => {
 		goto(`/register?redirect=${encodeURIComponent(buildRedirectPath())}`);

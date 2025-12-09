@@ -216,4 +216,3 @@
 	onClose={handleJoinRequestDialogClose}
 	onSuccess={handleJoinRequestSuccess}
 />
-
