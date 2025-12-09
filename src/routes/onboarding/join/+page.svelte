@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import type { RouteId } from './$types';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import {
@@ -48,7 +50,7 @@
 
 	onMount(() => {
 		if (!userName.trim()) {
-			goto('/onboarding');
+			goto(resolve('/onboarding'));
 		}
 	});
 
@@ -117,7 +119,7 @@
 				companyId: selectedCompany.id,
 				name: trimmedName
 			});
-			await goto('/onboarding/status');
+			await goto(resolve('/onboarding/status'));
 		} catch (error) {
 			submitError = error instanceof Error ? error.message : 'Error al enviar la solicitud';
 		} finally {
@@ -340,12 +342,12 @@
 					<CardFooter class="flex justify-start px-0 pt-4">
 						<Button
 							variant="ghost"
-							onclick={() =>
-								goto(
-									userName.trim()
-										? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
-										: '/onboarding'
-								)}
+							onclick={() => {
+								const target = userName.trim()
+									? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
+									: '/onboarding';
+								goto(resolve(target as RouteId));
+							}}
 						>
 							<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>
 							Volver

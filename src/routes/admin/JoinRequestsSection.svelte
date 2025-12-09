@@ -93,8 +93,8 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each Array(3) as _}
-						<TableRow>
+					{#each Array.from({ length: 3 }, (_, i) => i) as i (i)}
+						<TableRow data-placeholder-index={i}>
 							<TableCell><Skeleton class="h-4 w-28" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-40" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { hasActiveSession } from '$lib/auth';
 	import { acceptInvitation } from '$lib/api/onboarding';
@@ -27,7 +29,7 @@
 
 	const buildRedirectPath = () => {
 		const base = `/invite/${token}`;
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 		if (userName.trim()) {
 			params.set('userName', userName.trim());
 		}
@@ -76,7 +78,7 @@
 
 			if (result.status === 'ACTIVE' && result.user) {
 				auth.setUser(result.user);
-				await goto('/');
+				await goto(resolve('/'));
 			} else {
 				error = 'La invitación no pudo ser procesada';
 			}
@@ -89,11 +91,15 @@
 	};
 
 	const handleGoToRegister = () => {
-		goto(`/register?redirect=${encodeURIComponent(buildRedirectPath())}`);
+		const base = resolve('/register');
+		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
+		goto(resolve(`${base}?${params.toString()}`));
 	};
 
 	const handleGoToLogin = () => {
-		goto(`/login?redirect=${encodeURIComponent(buildRedirectPath())}`);
+		const base = resolve('/login');
+		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
+		goto(resolve(`${base}?${params.toString()}`));
 	};
 
 	const handleRetry = () => {
@@ -190,7 +196,7 @@
 						Aceptar invitación
 					{/if}
 				</Button>
-				<Button variant="outline" class="w-full" onclick={() => goto('/onboarding')}>
+				<Button variant="outline" class="w-full" onclick={() => goto(resolve('/onboarding'))}>
 					Ir al onboarding
 				</Button>
 			</CardFooter>
@@ -229,7 +235,7 @@
 						Reintentar
 					{/if}
 				</Button>
-				<Button variant="outline" class="w-full" onclick={() => goto('/onboarding')}>
+				<Button variant="outline" class="w-full" onclick={() => goto(resolve('/onboarding'))}>
 					Ir al onboarding
 				</Button>
 			</CardFooter>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { auth } from '$lib/stores/auth';
 	import {
@@ -96,7 +97,7 @@
 
 			if (result.status === 'ACTIVE' && result.user) {
 				auth.setUser(result.user);
-				await goto('/');
+				await goto(resolve('/'));
 			} else {
 				createError = 'Error inesperado al crear la empresa';
 			}
@@ -177,7 +178,7 @@
 				companyId: selectedCompany.id,
 				name: trimmedName
 			});
-			await goto('/onboarding/status');
+			await goto(resolve('/onboarding/status'));
 		} catch (error) {
 			joinError = error instanceof Error ? error.message : 'Error al enviar la solicitud';
 		} finally {
@@ -214,7 +215,7 @@
 
 		try {
 			await acceptInvitation(token, userName.trim());
-			await goto('/');
+			await goto(resolve('/'));
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'Error al aceptar la invitación';
 		} finally {
@@ -541,10 +542,10 @@
 									{/if}
 									{#if searchResults.length > 0}
 										<div class="space-y-2">
-											{#each searchResults as company}
+											{#each searchResults as company (company.id)}
 												<Button
 													variant={selectedCompany?.id === company.id ? 'default' : 'outline'}
-													class={`w-full items-center justify-between`}
+													class="w-full items-center justify-between"
 													type="button"
 													onclick={() => handleSelectCompany(company)}
 													aria-pressed={selectedCompany?.id === company.id}

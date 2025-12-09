@@ -19,11 +19,13 @@
 	)}
 >
 	{#if code}
-		<span class={cn('font-semibold shrink-0', truncate ? 'whitespace-normal' : 'whitespace-normal')}>
+		<span
+			class={cn('font-semibold shrink-0', truncate ? 'whitespace-normal' : 'whitespace-normal')}
+		>
 			{code}
 		</span>
 		<span class="text-muted-foreground">-</span>
 	{/if}
-	<span class={cn(truncate ? 'truncate min-w-0' : 'whitespace-normal wrap-break-word')}>{name}</span>
+	<span class={cn(truncate ? 'truncate min-w-0' : 'whitespace-normal wrap-break-word')}>{name}</span
+	>
 </span>
-

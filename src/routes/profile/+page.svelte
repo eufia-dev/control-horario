@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth, type AuthUser } from '$lib/stores/auth';
 	import { updateProfile } from '$lib/auth';
 	import { stringToColor, getInitials } from '$lib/utils';
@@ -89,7 +90,7 @@
 			variant="ghost"
 			size="sm"
 			aria-label="Volver al inicio"
-			onclick={() => goto('/')}
+			onclick={() => goto(resolve('/'))}
 			class="text-muted-foreground"
 		>
 			<span class="material-symbols-rounded text-xl!">arrow_back</span>
@@ -166,7 +167,7 @@
 							Restablece tu contraseña por correo electrónico
 						</p>
 					</div>
-					<Button href="/reset-password" variant="outline" size="sm">Restablecer</Button>
+					<Button href={resolve('/reset-password')} variant="outline" size="sm">Restablecer</Button>
 				</div>
 			</CardContent>
 		</Card>

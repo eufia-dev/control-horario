@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { register, resendConfirmationEmail } from '$lib/auth';
 	import {
@@ -64,22 +65,22 @@
 			}
 
 			if (redirectUrl) {
-				await goto(redirectUrl);
+				await goto(resolve(redirectUrl));
 				return;
 			}
 
 			switch (status) {
 				case 'ACTIVE':
-					await goto('/');
+					await goto(resolve('/'));
 					break;
 				case 'ONBOARDING_REQUIRED':
-					await goto('/onboarding');
+					await goto(resolve('/onboarding'));
 					break;
 				case 'PENDING_APPROVAL':
-					await goto('/onboarding/status');
+					await goto(resolve('/onboarding/status'));
 					break;
 				default:
-					await goto('/onboarding');
+					await goto(resolve('/onboarding'));
 			}
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'No se ha podido crear la cuenta';
@@ -171,7 +172,7 @@
 						Reenviar correo de confirmación
 					{/if}
 				</Button>
-				<a href="/login" class="w-full">
+				<a href={resolve('/login')} class="w-full">
 					<Button variant="outline" class="w-full">Volver a iniciar sesión</Button>
 				</a>
 			</CardFooter>
@@ -281,7 +282,7 @@
 							{/if}
 						</Button>
 						<a
-							href="/login"
+							href={resolve('/login')}
 							class="text-sm text-muted-foreground hover:text-primary underline underline-offset-4 transition-colors text-center"
 						>
 							¿Ya tienes cuenta? Inicia sesión

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { sendPasswordResetEmail } from '$lib/auth';
 	import {
 		Card,
@@ -49,7 +50,7 @@
 			variant="ghost"
 			size="sm"
 			aria-label="Volver al inicio de sesión"
-			onclick={() => goto('/login')}
+			onclick={() => goto(resolve('/login'))}
 			class="text-muted-foreground"
 		>
 			<span class="material-symbols-rounded text-xl!">arrow_back</span>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { submitContactMessage } from '$lib/api/support';
 	import {
 		Card,
@@ -59,7 +60,7 @@
 			variant="ghost"
 			size="sm"
 			aria-label="Volver al inicio"
-			onclick={() => goto('/')}
+			onclick={() => goto(resolve('/'))}
 			class="text-muted-foreground"
 		>
 			<span class="material-symbols-rounded text-xl!">arrow_back</span>
@@ -119,7 +120,12 @@
 					{/if}
 
 					<div class="flex justify-end gap-2">
-						<Button type="button" variant="outline" onclick={() => goto('/')} disabled={submitting}>
+						<Button
+							type="button"
+							variant="outline"
+							onclick={() => goto(resolve('/'))}
+							disabled={submitting}
+						>
 							Cancelar
 						</Button>
 						<Button type="submit" disabled={submitting}>

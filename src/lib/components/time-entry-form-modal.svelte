@@ -55,13 +55,13 @@
 	});
 
 	let projectId = $state<string | undefined>(undefined);
-let entryType = $state<string | undefined>(undefined);
+	let entryType = $state<string | undefined>(undefined);
 	let startDateValue = $state<DateValue | undefined>(undefined);
 	let startTime = $state('');
 	let endDateValue = $state<DateValue | undefined>(undefined);
 	let endTime = $state('');
 	let minutes = $state(0);
-	let isOffice = $state(true);
+	let isInOffice = $state(true);
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
 
@@ -75,7 +75,7 @@ let entryType = $state<string | undefined>(undefined);
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear registro');
 
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
-const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType));
+	const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	$effect(() => {
@@ -109,26 +109,26 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 
 	function resetForm() {
 		projectId = undefined;
-	entryType = undefined;
+		entryType = undefined;
 		startDateValue = undefined;
 		startTime = '';
 		endDateValue = undefined;
 		endTime = '';
 		minutes = 0;
-		isOffice = true;
+		isInOffice = true;
 		error = null;
 	}
 
 	function populateForm() {
 		if (entry) {
 			projectId = entry.projectId;
-		entryType = entry.entryType;
+			entryType = entry.entryType;
 			startDateValue = dateToDateValue(new Date(entry.startedAt));
 			startTime = formatTimeForInput(entry.startedAt);
 			endDateValue = dateToDateValue(new Date(entry.endedAt));
 			endTime = formatTimeForInput(entry.endedAt);
 			minutes = entry.minutes;
-			isOffice = entry.isOffice;
+			isInOffice = entry.isInOffice;
 		} else {
 			resetForm();
 			const now = new Date();
@@ -145,9 +145,9 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
-			entryType = trabajoType.value;
+				entryType = trabajoType.value;
 			} else if (timeEntryTypes.length > 0) {
-			entryType = timeEntryTypes[0].value;
+				entryType = timeEntryTypes[0].value;
 			}
 		}
 	}
@@ -173,7 +173,7 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 			return;
 		}
 
-	if (!entryType) {
+		if (!entryType) {
 			error = 'Debes seleccionar un tipo';
 			return;
 		}
@@ -208,7 +208,7 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 					startedAt,
 					endedAt,
 					minutes,
-					isOffice
+					isInOffice
 				};
 				await updateTimeEntry(entry.id, data);
 			} else {
@@ -218,7 +218,7 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 					startedAt,
 					endedAt,
 					minutes,
-					isOffice
+					isInOffice
 				};
 				await createTimeEntry(data);
 			}
@@ -270,7 +270,7 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 						<SelectContent>
 							{#each activeProjects as project (project.id)}
 								<SelectItem value={project.id} label={formatProjectLabel(project)}>
-									<ProjectLabel project={project} className="flex-1 min-w-0" />
+									<ProjectLabel {project} className="flex-1 min-w-0" />
 								</SelectItem>
 							{/each}
 						</SelectContent>
@@ -364,9 +364,9 @@ const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType))
 
 			<div class="flex items-center justify-between flex-wrap gap-4 pt-2">
 				<div class="flex items-center gap-3">
-					<Switch id="isOfficeModal" bind:checked={isOffice} disabled={submitting} />
-					<Label for="isOfficeModal" class="cursor-pointer">
-						{isOffice ? 'Oficina' : 'Remoto'}
+					<Switch id="IsInOfficeModal" bind:checked={isInOffice} disabled={submitting} />
+					<Label for="IsInOfficeModal" class="cursor-pointer">
+						{isInOffice ? 'Oficina' : 'Remoto'}
 					</Label>
 				</div>
 				<div class="text-sm text-muted-foreground">

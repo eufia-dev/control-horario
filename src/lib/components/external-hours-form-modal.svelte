@@ -244,7 +244,7 @@
 						<SelectContent>
 							{#each activeProjects as project (project.id)}
 								<SelectItem value={project.id} label={formatProjectLabel(project)}>
-									<ProjectLabel project={project} className="flex-1 min-w-0" />
+									<ProjectLabel {project} className="flex-1 min-w-0" />
 								</SelectItem>
 							{/each}
 						</SelectContent>

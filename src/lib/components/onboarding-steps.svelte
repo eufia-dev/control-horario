@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-
 	type Step = {
 		label: string;
 		completed?: boolean;
@@ -10,7 +8,7 @@
 </script>
 
 <div class="flex items-center justify-center gap-2 mb-8">
-	{#each steps as step, index}
+	{#each steps as step, index (index)}
 		<div class="flex items-center gap-2">
 			<div class="flex items-center gap-2">
 				<div

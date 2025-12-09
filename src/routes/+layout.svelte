@@ -2,6 +2,7 @@
 	import '../app.css';
 	import { onMount, onDestroy } from 'svelte';
 	import { afterNavigate, goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { auth, isAuthenticated, isSignedIn, isAdmin, type AuthUser } from '$lib/stores/auth';
 	import {
@@ -17,6 +18,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import type { OnboardingStatusType } from '$lib/api/onboarding';
+	import type { RouteId } from './$types';
 
 	let { children } = $props();
 
@@ -72,7 +74,7 @@
 
 		if (isInitializing) return;
 
-		const onboardingRedirect = routeForOnboardingStatus(onboardingStatus);
+		const onboardingRedirect = routeForOnboardingStatus(onboardingStatus) as RouteId;
 		const isSignedIn =
 			isAuthed ||
 			Boolean(user) ||
@@ -86,18 +88,18 @@
 		if (!isSignedIn) {
 			if (isPublicRoute(pathname)) return;
 
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 
 		if (isPublicRoute(pathname)) {
-			goto(onboardingRedirect);
+			goto(resolve(onboardingRedirect));
 			return;
 		}
 
 		if (onboardingStatus === 'ONBOARDING_REQUIRED') {
 			if (!isOnboardingRoute(pathname) && !isInviteRoute(pathname)) {
-				goto(routeForOnboardingStatus('ONBOARDING_REQUIRED'));
+				goto(resolve(routeForOnboardingStatus('ONBOARDING_REQUIRED') as RouteId));
 			}
 			return;
 		}
@@ -105,13 +107,13 @@
 		if (onboardingStatus === 'PENDING_APPROVAL') {
 			const allowedPendingRoutes = ['/onboarding/status', '/onboarding/join'];
 			if (!allowedPendingRoutes.some((r) => pathname.startsWith(r)) && !isInviteRoute(pathname)) {
-				goto(routeForOnboardingStatus('PENDING_APPROVAL'));
+				goto(resolve(routeForOnboardingStatus('PENDING_APPROVAL') as RouteId));
 			}
 			return;
 		}
 
 		if (onboardingStatus === 'ACTIVE' && isOnboardingRoute(pathname)) {
-			goto(routeForOnboardingStatus('ACTIVE'));
+			goto(resolve(routeForOnboardingStatus('ACTIVE') as RouteId));
 			return;
 		}
 	}
@@ -152,7 +154,9 @@
 			) {
 				try {
 					await checkAndSetOnboardingStatus();
-				} catch {}
+				} catch {
+					// ignore background status refresh errors
+				}
 			}
 		};
 		document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -189,7 +193,7 @@
 
 	const handleLogout = async () => {
 		await logout();
-		await goto('/login');
+		await goto(resolve('/login'));
 	};
 
 	const avatarColor = $derived(user?.id ? stringToColor(user.id) : '#6b7280');
@@ -202,7 +206,7 @@
 	{#if showHeader}
 		<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
 			<div class="flex items-center gap-4">
-				<a href="/" class="flex items-center gap-2">
+				<a href={resolve('/')} class="flex items-center gap-2">
 					<span>Control horario</span>
 					{#if isAuthed && user?.companyName}
 						<span class="hidden sm:inline">-</span>
@@ -212,15 +216,15 @@
 
 				{#if isAuthed && isUserAdmin}
 					<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
-						<Button href="/" variant="ghost" size="sm" class="gap-1.5">
+						<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
 							<span class="material-symbols-rounded text-lg!">schedule</span>
 							<span>Fichajes</span>
 						</Button>
-						<Button href="/admin" variant="ghost" size="sm" class="gap-1.5">
+						<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
 							<span class="material-symbols-rounded text-lg!">settings</span>
 							<span>Configuración</span>
 						</Button>
-						<Button href="/analytics" variant="ghost" size="sm" class="gap-1.5">
+						<Button href={resolve('/analytics')} variant="ghost" size="sm" class="gap-1.5">
 							<span class="material-symbols-rounded text-lg!">analytics</span>
 							<span>Analíticas</span>
 						</Button>
@@ -232,11 +236,11 @@
 				<div class="flex items-center gap-2">
 					{#if isAuthed}
 						<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
-							<Button href="/bug-report" variant="ghost" size="sm" class="gap-1.5">
+							<Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
 								<span class="material-symbols-rounded text-lg!">bug_report</span>
 								<span>Reportar error</span>
 							</Button>
-							<Button href="/contact" variant="ghost" size="sm" class="gap-1.5">
+							<Button href={resolve('/contact')} variant="ghost" size="sm" class="gap-1.5">
 								<span class="material-symbols-rounded text-lg!">mail</span>
 								<span>Contacto</span>
 							</Button>
@@ -244,7 +248,7 @@
 					{/if}
 					{#if user}
 						<a
-							href="/profile"
+							href={resolve('/profile')}
 							class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
 								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
 							style="background-color: {avatarColor}"
@@ -293,7 +297,7 @@
 						{/if}
 						{#if isUserAdmin}
 							<Button
-								href="/"
+								href={resolve('/')}
 								variant="ghost"
 								size="lg"
 								class="justify-start gap-4 h-14 text-lg"
@@ -303,7 +307,7 @@
 								<span>Fichajes</span>
 							</Button>
 							<Button
-								href="/admin"
+								href={resolve('/admin')}
 								variant="ghost"
 								size="lg"
 								class="justify-start gap-4 h-14 text-lg"
@@ -313,7 +317,7 @@
 								<span>Configuración</span>
 							</Button>
 							<Button
-								href="/analytics"
+								href={resolve('/analytics')}
 								variant="ghost"
 								size="lg"
 								class="justify-start gap-4 h-14 text-lg"
@@ -324,7 +328,7 @@
 							</Button>
 						{/if}
 						<Button
-							href="/bug-report"
+							href={resolve('/bug-report')}
 							variant="ghost"
 							size="lg"
 							class="justify-start gap-4 h-14 text-lg"
@@ -334,7 +338,7 @@
 							<span>Reportar error</span>
 						</Button>
 						<Button
-							href="/contact"
+							href={resolve('/contact')}
 							variant="ghost"
 							size="lg"
 							class="justify-start gap-4 h-14 text-lg"

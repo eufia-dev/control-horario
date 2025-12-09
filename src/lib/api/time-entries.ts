@@ -17,7 +17,7 @@ export type TimeEntry = {
 	startedAt: string;
 	endedAt: string;
 	minutes: number;
-	isOffice: boolean;
+	isInOffice: boolean;
 	createdAt: string;
 	user?: {
 		id: string;
@@ -47,7 +47,7 @@ export type ActiveTimer = {
 	companyId: string;
 	entryType: string;
 	startedAt: string;
-	isOffice: boolean;
+	isInOffice: boolean;
 	createdAt: string;
 	user?: {
 		id: string;
@@ -76,7 +76,7 @@ export type CreateTimeEntryDto = {
 	startedAt: string;
 	endedAt: string;
 	minutes: number;
-	isOffice?: boolean;
+	isInOffice?: boolean;
 };
 
 export type UpdateTimeEntryDto = {
@@ -85,19 +85,19 @@ export type UpdateTimeEntryDto = {
 	startedAt?: string;
 	endedAt?: string;
 	minutes?: number;
-	isOffice?: boolean;
+	isInOffice?: boolean;
 };
 
 export type StartTimerDto = {
 	projectId: string;
 	entryType: string;
-	isOffice?: boolean;
+	isInOffice?: boolean;
 };
 
 export type SwitchTimerDto = {
 	projectId: string;
 	entryType: string;
-	isOffice?: boolean;
+	isInOffice?: boolean;
 };
 
 export type SwitchTimerResponse = {

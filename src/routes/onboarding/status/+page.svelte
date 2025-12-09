@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth';
+	import { resolve } from '$app/paths';
 	import { logout, checkAndSetOnboardingStatus } from '$lib/auth';
 	import { getMyRequests, cancelJoinRequest, type JoinRequest } from '$lib/api/onboarding';
 	import {
@@ -57,7 +57,7 @@
 		try {
 			const status = await checkAndSetOnboardingStatus();
 			if (status === 'ACTIVE') {
-				await goto('/');
+				await goto(resolve('/'));
 			} else {
 				await loadRequests();
 			}
@@ -68,11 +68,11 @@
 
 	const handleLogout = async () => {
 		await logout();
-		await goto('/login');
+		await goto(resolve('/login'));
 	};
 
 	const handleNewRequest = () => {
-		goto('/onboarding/join');
+		goto(resolve('/onboarding/join'));
 	};
 
 	const getStatusBadge = (status: string) => {
@@ -124,8 +124,8 @@
 			<CardContent class="space-y-6">
 				{#if isLoading}
 					<div class="space-y-3">
-						{#each Array(2) as _}
-							<div class="p-4 rounded-lg border border-border">
+						{#each Array.from({ length: 2 }, (_, i) => i) as i (i)}
+							<div class="p-4 rounded-lg border border-border" data-placeholder-index={i}>
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-3">
 										<Skeleton class="w-10 h-10 rounded-full" />

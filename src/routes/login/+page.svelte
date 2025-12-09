@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { login, sendPasswordResetEmail } from '$lib/auth';
 	import {
@@ -48,22 +49,22 @@
 			const status = await login(email, password);
 
 			if (redirectUrl) {
-				await goto(redirectUrl);
+				await goto(resolve(redirectUrl));
 				return;
 			}
 
 			switch (status) {
 				case 'ACTIVE':
-					await goto('/');
+					await goto(resolve('/'));
 					break;
 				case 'ONBOARDING_REQUIRED':
-					await goto('/onboarding');
+					await goto(resolve('/onboarding'));
 					break;
 				case 'PENDING_APPROVAL':
-					await goto('/onboarding/status');
+					await goto(resolve('/onboarding/status'));
 					break;
 				default:
-					await goto('/');
+					await goto(resolve('/'));
 			}
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'No se ha podido iniciar sesión';
@@ -264,7 +265,9 @@
 						</div>
 
 						<a
-							href="/register{redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}"
+							href={resolve(
+								`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`
+							)}
 							class="w-full"
 						>
 							<Button variant="outline" class="w-full gap-2" type="button">

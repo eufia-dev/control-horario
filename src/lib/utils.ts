@@ -45,5 +45,5 @@ export function getInitials(name: string): string {
 export function formatProjectLabel(project?: Project | null, fallback = 'Proyecto'): string {
 	if (!project) return fallback;
 	const code = project.code?.trim();
-	return code ? `${code} - ${project.name}` : project.name ?? fallback;
+	return code ? `${code} - ${project.name}` : (project.name ?? fallback);
 }

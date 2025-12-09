@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import {
 		updatePassword,
 		processAuthCallback,
@@ -53,7 +54,7 @@
 		if (result.mode === 'signin' && result.nextRoute) {
 			auth.setInitializing(false);
 			isLoading = false;
-			await goto(result.nextRoute, { replaceState: true });
+			await goto(resolve(result.nextRoute), { replaceState: true });
 			return;
 		}
 
@@ -177,7 +178,9 @@
 						</form>
 					</div>
 				{/if}
-				<Button href="/login" variant="outline" class="w-full">Volver al inicio de sesión</Button>
+				<Button href={resolve('/login')} variant="outline" class="w-full"
+					>Volver al inicio de sesión</Button
+				>
 			</CardContent>
 		</Card>
 	{:else if isPasswordReset}
@@ -203,7 +206,7 @@
 							<span class="material-symbols-rounded text-2xl!">check_circle</span>
 							<p class="text-sm">Ya puedes iniciar sesión con tu nueva contraseña.</p>
 						</div>
-						<Button href="/login" class="w-full">Iniciar sesión</Button>
+						<Button href={resolve('/login')} class="w-full">Iniciar sesión</Button>
 					</div>
 				{:else}
 					<form

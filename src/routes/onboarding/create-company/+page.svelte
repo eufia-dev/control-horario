@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import type { RouteId } from './$types';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { createCompany } from '$lib/api/onboarding';
@@ -32,7 +34,7 @@
 
 	onMount(() => {
 		if (!userName.trim()) {
-			goto('/onboarding');
+			goto(resolve('/onboarding'));
 		}
 	});
 
@@ -64,7 +66,7 @@
 
 			if (result.status === 'ACTIVE' && result.user) {
 				auth.setUser(result.user);
-				await goto('/');
+				await goto(resolve('/'));
 			} else {
 				errorMessage = 'Error inesperado al crear la empresa';
 			}
@@ -128,12 +130,12 @@
 					<CardFooter class="flex justify-between px-0 pt-4">
 						<Button
 							variant="ghost"
-							onclick={() =>
-								goto(
-									userName.trim()
-										? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
-										: '/onboarding'
-								)}
+							onclick={() => {
+								const target = userName.trim()
+									? `/onboarding?userName=${encodeURIComponent(userName.trim())}`
+									: '/onboarding';
+								goto(resolve(target as RouteId));
+							}}
 							type="button"
 						>
 							<span class="material-symbols-rounded text-lg! mr-2">arrow_back</span>

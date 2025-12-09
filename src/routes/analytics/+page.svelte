@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { auth } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import {
@@ -14,13 +15,6 @@
 		type WorkerSummary
 	} from '$lib/api/analytics';
 
-	let isAdmin = $state(false);
-	$effect(() => {
-		const unsub = isAdminStore.subscribe((value) => {
-			isAdmin = value;
-		});
-		return unsub;
-	});
 	const currentUserId = $derived($auth.user?.id ?? null);
 
 	let projects = $state<ProjectSummary[]>([]);
@@ -68,7 +62,7 @@
 	onMount(() => {
 		const role = $auth.user?.role;
 		if (role !== 'OWNER' && role !== 'ADMIN') {
-			goto('/');
+			goto(resolve('/'));
 			return;
 		}
 
@@ -79,7 +73,7 @@
 	$effect(() => {
 		const role = $auth.user?.role;
 		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
-			goto('/');
+			goto(resolve('/'));
 		}
 	});
 </script>

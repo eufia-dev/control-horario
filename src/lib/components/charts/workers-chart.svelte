@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChartContainer, ChartTooltip, type ChartConfig } from '$lib/components/ui/chart';
+	import { ChartContainer, type ChartConfig } from '$lib/components/ui/chart';
 	import { Chart, Svg, Axis, Bars, Bar, Grid, Tooltip } from 'layerchart';
 	import { scaleBand, scaleLinear } from 'd3-scale';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
@@ -157,8 +157,8 @@
 		<CardContent>
 			{#if loading}
 				<div class="h-[300px] flex items-end justify-around gap-2 pt-8">
-					{#each Array(6) as _}
-						<div class="flex flex-col items-center gap-2 flex-1">
+					{#each Array.from({ length: 6 }, (_, i) => i) as i (i)}
+						<div class="flex flex-col items-center gap-2 flex-1" data-placeholder-index={i}>
 							<Skeleton class="w-full" style="height: {50 + Math.random() * 150}px" />
 							<Skeleton class="h-3 w-10" />
 						</div>
@@ -314,8 +314,8 @@
 				</div>
 			{:else if loadingBreakdown}
 				<div class="h-[300px] flex items-end justify-around gap-2 pt-8">
-					{#each Array(4) as _}
-						<div class="flex flex-col items-center gap-2 flex-1">
+					{#each Array.from({ length: 4 }, (_, i) => i) as i (i)}
+						<div class="flex flex-col items-center gap-2 flex-1" data-placeholder-index={i}>
 							<Skeleton class="w-full" style="height: {50 + Math.random() * 150}px" />
 							<Skeleton class="h-3 w-10" />
 						</div>

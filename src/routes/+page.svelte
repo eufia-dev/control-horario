@@ -75,15 +75,15 @@
 	let externalHoursError = $state<string | null>(null);
 
 	let selectedProjectId = $state<string | undefined>(undefined);
-let selectedEntryType = $state<string | undefined>(undefined);
-	let isOffice = $state(true);
+	let selectedEntryType = $state<string | undefined>(undefined);
+	let isInOffice = $state(true);
 	let startingTimer = $state(false);
 	let stoppingTimer = $state(false);
 
 	let showSwitchForm = $state(false);
 	let switchProjectId = $state<string | undefined>(undefined);
-let switchEntryType = $state<string | undefined>(undefined);
-	let switchIsOffice = $state(true);
+	let switchEntryType = $state<string | undefined>(undefined);
+	let switchIsInOffice = $state(true);
 	let switchingTimer = $state(false);
 
 	let formModalOpen = $state(false);
@@ -100,26 +100,26 @@ let switchEntryType = $state<string | undefined>(undefined);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
-const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
+	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
-const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
+	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	const canStartTimer = $derived(
-	selectedProjectId && selectedEntryType && !startingTimer && !activeTimer
+		selectedProjectId && selectedEntryType && !startingTimer && !activeTimer
 	);
 
-const timeEntryTypeLookup = $derived(
-	timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
-		acc[type.value] = type;
-		return acc;
-	}, {})
-);
+	const timeEntryTypeLookup = $derived(
+		timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
+			acc[type.value] = type;
+			return acc;
+		}, {})
+	);
 
-function getEntryTypeName(value?: string, fallback?: string) {
-	if (!value) return fallback ?? '-';
-	return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
-}
+	function getEntryTypeName(value?: string, fallback?: string) {
+		if (!value) return fallback ?? '-';
+		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
+	}
 
 	const enrichedExternalHours = $derived(
 		externalHours.map((h) => ({
@@ -148,11 +148,11 @@ function getEntryTypeName(value?: string, fallback?: string) {
 			timeEntryTypes = await fetchTimeEntryTypes();
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
-		if (!selectedEntryType) {
+			if (!selectedEntryType) {
 				if (trabajoType) {
-				selectedEntryType = trabajoType.value;
+					selectedEntryType = trabajoType.value;
 				} else if (timeEntryTypes.length > 0) {
-				selectedEntryType = timeEntryTypes[0].value;
+					selectedEntryType = timeEntryTypes[0].value;
 				}
 			}
 		} catch (e) {
@@ -269,14 +269,14 @@ function getEntryTypeName(value?: string, fallback?: string) {
 	}
 
 	async function handleStartTimer() {
-	if (!selectedProjectId || !selectedEntryType) return;
+		if (!selectedProjectId || !selectedEntryType) return;
 
 		startingTimer = true;
 		try {
 			activeTimer = await startTimer({
 				projectId: selectedProjectId,
-			entryType: selectedEntryType,
-				isOffice
+				entryType: selectedEntryType,
+				isInOffice
 			});
 			startElapsedTimer();
 		} catch (e) {
@@ -302,8 +302,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 
 	function handleShowSwitchForm() {
 		if (activeTimer) {
-		switchEntryType = activeTimer.entryType;
-			switchIsOffice = activeTimer.isOffice;
+			switchEntryType = activeTimer.entryType;
+			switchIsInOffice = activeTimer.isInOffice;
 		}
 		switchProjectId = undefined;
 		showSwitchForm = true;
@@ -312,18 +312,18 @@ function getEntryTypeName(value?: string, fallback?: string) {
 	function handleCancelSwitch() {
 		showSwitchForm = false;
 		switchProjectId = undefined;
-	switchEntryType = undefined;
+		switchEntryType = undefined;
 	}
 
 	async function handleSwitchTimer() {
-	if (!switchProjectId || !switchEntryType) return;
+		if (!switchProjectId || !switchEntryType) return;
 
 		switchingTimer = true;
 		try {
 			const result = await switchTimer({
 				projectId: switchProjectId,
-			entryType: switchEntryType,
-				isOffice: switchIsOffice
+				entryType: switchEntryType,
+				isInOffice: switchIsInOffice
 			});
 			activeTimer = result.activeTimer;
 			startElapsedTimer();
@@ -439,8 +439,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 										activeTimer.timeEntryType?.name ?? activeTimer.entryTypeName ?? 'Tipo'
 									)}
 								</Badge>
-								<Badge variant={activeTimer.isOffice ? 'default' : 'outline'}>
-									{activeTimer.isOffice ? 'Oficina' : 'Remoto'}
+								<Badge variant={activeTimer.isInOffice ? 'default' : 'outline'}>
+									{activeTimer.isInOffice ? 'Oficina' : 'Remoto'}
 								</Badge>
 							</div>
 						</div>
@@ -469,7 +469,7 @@ function getEntryTypeName(value?: string, fallback?: string) {
 										<SelectContent>
 											{#each activeProjects as project (project.id)}
 												<SelectItem value={project.id} label={formatProjectLabel(project)}>
-													<ProjectLabel project={project} className="flex-1 min-w-0" />
+													<ProjectLabel {project} className="flex-1 min-w-0" />
 												</SelectItem>
 											{/each}
 										</SelectContent>
@@ -495,12 +495,12 @@ function getEntryTypeName(value?: string, fallback?: string) {
 							</div>
 							<div class="flex items-center gap-3">
 								<Switch
-									id="switchIsOffice"
-									bind:checked={switchIsOffice}
+									id="switchIsInOffice"
+									bind:checked={switchIsInOffice}
 									disabled={switchingTimer}
 								/>
-								<Label for="switchIsOffice" class="cursor-pointer">
-									{switchIsOffice ? 'Oficina' : 'Remoto'}
+								<Label for="switchIsInOffice" class="cursor-pointer">
+									{switchIsInOffice ? 'Oficina' : 'Remoto'}
 								</Label>
 							</div>
 							<div class="flex gap-2 justify-end">
@@ -569,7 +569,7 @@ function getEntryTypeName(value?: string, fallback?: string) {
 								<SelectContent>
 									{#each activeProjects as project (project.id)}
 										<SelectItem value={project.id} label={formatProjectLabel(project)}>
-											<ProjectLabel project={project} className="flex-1 min-w-0" />
+											<ProjectLabel {project} className="flex-1 min-w-0" />
 										</SelectItem>
 									{/each}
 								</SelectContent>
@@ -595,9 +595,9 @@ function getEntryTypeName(value?: string, fallback?: string) {
 					</div>
 					<div class="flex items-center justify-between flex-wrap gap-4">
 						<div class="flex items-center gap-3">
-							<Switch id="isOffice" bind:checked={isOffice} disabled={startingTimer} />
-							<Label for="isOffice" class="cursor-pointer">
-								{isOffice ? 'Oficina' : 'Remoto'}
+							<Switch id="isInOffice" bind:checked={isInOffice} disabled={startingTimer} />
+							<Label for="isInOffice" class="cursor-pointer">
+								{isInOffice ? 'Oficina' : 'Remoto'}
 							</Label>
 						</div>
 						<Button onclick={handleStartTimer} disabled={!canStartTimer}>
@@ -669,8 +669,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{#each Array(5) as _}
-										<TableRow>
+									{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+										<TableRow data-placeholder-index={i}>
 											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
@@ -746,8 +746,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 													{formatDuration(entry.minutes)}
 												</TableCell>
 												<TableCell>
-													<Badge variant={entry.isOffice ? 'default' : 'outline'}>
-														{entry.isOffice ? 'Oficina' : 'Remoto'}
+													<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
+														{entry.isInOffice ? 'Oficina' : 'Remoto'}
 													</Badge>
 												</TableCell>
 												<TableCell>
@@ -793,8 +793,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{#each Array(5) as _}
-										<TableRow>
+									{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+										<TableRow data-placeholder-index={i}>
 											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
@@ -906,8 +906,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each Array(5) as _}
-								<TableRow>
+							{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+								<TableRow data-placeholder-index={i}>
 									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 									<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
@@ -983,8 +983,8 @@ function getEntryTypeName(value?: string, fallback?: string) {
 											{formatDuration(entry.minutes)}
 										</TableCell>
 										<TableCell>
-											<Badge variant={entry.isOffice ? 'default' : 'outline'}>
-												{entry.isOffice ? 'Oficina' : 'Remoto'}
+											<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
+												{entry.isInOffice ? 'Oficina' : 'Remoto'}
 											</Badge>
 										</TableCell>
 										<TableCell>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 	import ProjectsSection from './ProjectsSection.svelte';
 	import UsersSection from './UsersSection.svelte';
@@ -19,7 +20,7 @@
 	onMount(() => {
 		const role = $auth.user?.role;
 		if (role !== 'OWNER' && role !== 'ADMIN') {
-			goto('/');
+			goto(resolve('/'));
 			return;
 		}
 	});
@@ -27,7 +28,7 @@
 	$effect(() => {
 		const role = $auth.user?.role;
 		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
-			goto('/');
+			goto(resolve('/'));
 		}
 	});
 </script>
