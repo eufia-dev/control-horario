@@ -226,7 +226,7 @@
 						<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
 							<Button href="/bug-report" variant="ghost" size="sm" class="gap-1.5">
 								<span class="material-symbols-rounded text-lg!">bug_report</span>
-								<span>Reportar bug</span>
+								<span>Reportar error</span>
 							</Button>
 							<Button href="/contact" variant="ghost" size="sm" class="gap-1.5">
 								<span class="material-symbols-rounded text-lg!">mail</span>
@@ -323,7 +323,7 @@
 							onclick={() => (mobileMenuOpen = false)}
 						>
 							<span class="material-symbols-rounded text-2xl!">bug_report</span>
-							<span>Reportar bug</span>
+							<span>Reportar error</span>
 						</Button>
 						<Button
 							href="/contact"

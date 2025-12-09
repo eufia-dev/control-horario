@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { createInvitation } from '$lib/api/invitations';
+	import {
+		createInvitation,
+		fetchInvitationOptions,
+		type RelationType,
+		type InvitationOptions
+	} from '$lib/api/invitations';
 	import type { UserRole } from '$lib/stores/auth';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
@@ -7,6 +12,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import * as Select from '$lib/components/ui/select';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	type Props = {
 		open: boolean;
@@ -18,26 +24,35 @@
 
 	let email = $state('');
 	let role = $state<UserRole>('WORKER');
+	let relationType = $state<RelationType>('EMPLOYEE');
 	let isSubmitting = $state(false);
+	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
-
-	const roleOptions: { value: UserRole; label: string }[] = [
-		{ value: 'WORKER', label: 'Trabajador' },
-		{ value: 'ADMIN', label: 'Administrador' },
-		{ value: 'AUDITOR', label: 'Auditor' }
-	];
+	let options = $state<InvitationOptions | null>(null);
 
 	const resetForm = () => {
 		email = '';
 		role = 'WORKER';
+		relationType = 'EMPLOYEE';
 		errorMessage = null;
 	};
 
-const handleClose = () => {
-	// Let the dialog close itself; reset and callbacks happen in onOpenChange
-	if (!open) return;
-	open = false;
-};
+	const loadOptions = async () => {
+		if (options) return;
+		isLoadingOptions = true;
+		try {
+			options = await fetchInvitationOptions();
+		} catch (error) {
+			errorMessage = error instanceof Error ? error.message : 'Error al cargar opciones';
+		} finally {
+			isLoadingOptions = false;
+		}
+	};
+
+	const handleClose = () => {
+		if (!open) return;
+		open = false;
+	};
 
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
@@ -49,7 +64,6 @@ const handleClose = () => {
 			return;
 		}
 
-		// Basic email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email.trim())) {
 			errorMessage = 'Introduce un correo electrónico válido';
@@ -61,7 +75,8 @@ const handleClose = () => {
 		try {
 			await createInvitation({
 				email: email.trim(),
-				role
+				role,
+				relationType
 			});
 
 			resetForm();
@@ -74,10 +89,10 @@ const handleClose = () => {
 		}
 	};
 
-	// Reset form when modal opens
 	$effect(() => {
 		if (open) {
 			resetForm();
+			loadOptions();
 		}
 	});
 </script>
@@ -119,6 +134,7 @@ const handleClose = () => {
 					placeholder="usuario@ejemplo.com"
 					bind:value={email}
 					required
+					disabled={isLoadingOptions}
 				/>
 			</Field>
 
@@ -126,16 +142,41 @@ const handleClose = () => {
 				<FieldLabel>
 					<Label for="invitation-role">Rol</Label>
 				</FieldLabel>
-				<Select.Root type="single" bind:value={role}>
-					<Select.Trigger id="invitation-role" class="w-full">
-						{roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'}
-					</Select.Trigger>
-					<Select.Content>
-						{#each roleOptions as option (option.value)}
-							<Select.Item value={option.value}>{option.label}</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				{#if isLoadingOptions}
+					<Skeleton class="h-10 w-full" />
+				{:else}
+					<Select.Root type="single" bind:value={role}>
+						<Select.Trigger id="invitation-role" class="w-full">
+							{options?.roles.find((r) => r.value === role)?.name ?? 'Seleccionar rol'}
+						</Select.Trigger>
+						<Select.Content>
+							{#each options?.roles ?? [] as option (option.value)}
+								<Select.Item value={option.value}>{option.name}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				{/if}
+			</Field>
+
+			<Field>
+				<FieldLabel>
+					<Label for="invitation-relation-type">Tipo de relación</Label>
+				</FieldLabel>
+				{#if isLoadingOptions}
+					<Skeleton class="h-10 w-full" />
+				{:else}
+					<Select.Root type="single" bind:value={relationType}>
+						<Select.Trigger id="invitation-relation-type" class="w-full">
+							{options?.relationTypes.find((r) => r.value === relationType)?.name ??
+								'Seleccionar tipo'}
+						</Select.Trigger>
+						<Select.Content>
+							{#each options?.relationTypes ?? [] as option (option.value)}
+								<Select.Item value={option.value}>{option.name}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				{/if}
 			</Field>
 
 			{#if errorMessage}
@@ -144,7 +185,7 @@ const handleClose = () => {
 
 			<Dialog.Footer>
 				<Button variant="outline" type="button" onclick={handleClose}>Cancelar</Button>
-				<Button type="submit" disabled={isSubmitting}>
+				<Button type="submit" disabled={isSubmitting || isLoadingOptions}>
 					{#if isSubmitting}
 						Enviando...
 					{:else}

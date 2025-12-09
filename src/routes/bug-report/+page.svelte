@@ -164,7 +164,7 @@
 
 		<Card class="w-full">
 			<CardHeader>
-				<CardTitle>Reportar un bug</CardTitle>
+				<CardTitle>Reportar un error</CardTitle>
 				<CardDescription>
 					Ayúdanos a mejorar la aplicación reportando los problemas que encuentres
 				</CardDescription>

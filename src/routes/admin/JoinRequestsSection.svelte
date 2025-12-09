@@ -1,0 +1,219 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '$lib/components/ui/table';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import {
+		Tooltip,
+		TooltipContent,
+		TooltipProvider,
+		TooltipTrigger
+	} from '$lib/components/ui/tooltip';
+	import JoinRequestDialog from '$lib/components/join-request-dialog.svelte';
+	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
+	import { formatDate } from './helpers';
+
+	let joinRequests = $state<AdminJoinRequest[]>([]);
+	let loadingJoinRequests = $state(true);
+	let joinRequestsError = $state<string | null>(null);
+
+	let joinRequestDialogOpen = $state(false);
+	let selectedJoinRequest = $state<AdminJoinRequest | null>(null);
+	let joinRequestAction = $state<'approve' | 'reject'>('approve');
+
+	const pendingJoinRequestsCount = $derived(
+		joinRequests.filter((r) => r.status === 'PENDING').length
+	);
+
+	async function loadJoinRequests() {
+		loadingJoinRequests = true;
+		joinRequestsError = null;
+		try {
+			joinRequests = await fetchJoinRequests();
+		} catch (e) {
+			joinRequestsError = e instanceof Error ? e.message : 'Error desconocido';
+		} finally {
+			loadingJoinRequests = false;
+		}
+	}
+
+	onMount(() => {
+		loadJoinRequests();
+	});
+
+	function handleApproveJoinRequest(request: AdminJoinRequest) {
+		selectedJoinRequest = request;
+		joinRequestAction = 'approve';
+		joinRequestDialogOpen = true;
+	}
+
+	function handleRejectJoinRequest(request: AdminJoinRequest) {
+		selectedJoinRequest = request;
+		joinRequestAction = 'reject';
+		joinRequestDialogOpen = true;
+	}
+
+	function handleJoinRequestDialogClose() {
+		selectedJoinRequest = null;
+	}
+
+	function handleJoinRequestSuccess() {
+		loadJoinRequests();
+	}
+</script>
+
+<Card class="w-full max-w-5xl mx-auto">
+	<CardHeader class="flex flex-row items-center justify-between space-y-0">
+		<div class="flex items-center gap-2">
+			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de acceso</CardTitle>
+			{#if pendingJoinRequestsCount > 0}
+				<Badge variant="default">{pendingJoinRequestsCount} pendientes</Badge>
+			{/if}
+		</div>
+	</CardHeader>
+	<CardContent>
+		{#if loadingJoinRequests}
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Nombre</TableHead>
+						<TableHead>Email</TableHead>
+						<TableHead>Estado</TableHead>
+						<TableHead>Solicitado</TableHead>
+						<TableHead class="w-[120px]">Acciones</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each Array(3) as _}
+						<TableRow>
+							<TableCell><Skeleton class="h-4 w-28" /></TableCell>
+							<TableCell><Skeleton class="h-4 w-40" /></TableCell>
+							<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+							<TableCell><Skeleton class="h-8 w-20" /></TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
+			</Table>
+		{:else if joinRequestsError}
+			<div class="flex items-center justify-center py-8 text-destructive">
+				<span class="material-symbols-rounded mr-2">error</span>
+				{joinRequestsError}
+			</div>
+		{:else if joinRequests.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">person_search</span>
+				<p>No hay solicitudes de acceso</p>
+			</div>
+		{:else}
+			<TooltipProvider>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Nombre</TableHead>
+							<TableHead>Email</TableHead>
+							<TableHead>Estado</TableHead>
+							<TableHead>Solicitado</TableHead>
+							<TableHead class="w-[120px]">Acciones</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{#each joinRequests as request (request.id)}
+							{@const isPending = request.status === 'PENDING'}
+							<TableRow>
+								<TableCell class="font-medium">
+									<Tooltip>
+										<TooltipTrigger class="max-w-[150px] truncate">
+											{request.name}
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>{request.name}</p>
+										</TooltipContent>
+									</Tooltip>
+								</TableCell>
+								<TableCell>
+									<Tooltip>
+										<TooltipTrigger class="max-w-[200px] truncate">
+											{request.email}
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>{request.email}</p>
+										</TooltipContent>
+									</Tooltip>
+								</TableCell>
+								<TableCell>
+									{#if request.status === 'PENDING'}
+										<Badge variant="secondary">Pendiente</Badge>
+									{:else if request.status === 'APPROVED'}
+										<Badge variant="success">Aprobado</Badge>
+									{:else}
+										<Badge variant="destructive">Rechazado</Badge>
+									{/if}
+								</TableCell>
+								<TableCell class="text-muted-foreground">{formatDate(request.createdAt)}</TableCell>
+								<TableCell>
+									{#if isPending}
+										<div class="flex items-center gap-1">
+											<Tooltip>
+												<TooltipTrigger>
+													<Button
+														variant="ghost"
+														size="sm"
+														class="h-8 w-8 p-0 text-success hover:text-success hover:bg-success/10"
+														onclick={() => handleApproveJoinRequest(request)}
+													>
+														<span class="material-symbols-rounded text-xl!">check</span>
+														<span class="sr-only">Aprobar</span>
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Aprobar solicitud</p>
+												</TooltipContent>
+											</Tooltip>
+											<Tooltip>
+												<TooltipTrigger>
+													<Button
+														variant="ghost"
+														size="sm"
+														class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+														onclick={() => handleRejectJoinRequest(request)}
+													>
+														<span class="material-symbols-rounded text-xl!">close</span>
+														<span class="sr-only">Rechazar</span>
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Rechazar solicitud</p>
+												</TooltipContent>
+											</Tooltip>
+										</div>
+									{:else}
+										<span class="text-sm text-muted-foreground">-</span>
+									{/if}
+								</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
+			</TooltipProvider>
+		{/if}
+	</CardContent>
+</Card>
+
+<JoinRequestDialog
+	bind:open={joinRequestDialogOpen}
+	request={selectedJoinRequest}
+	action={joinRequestAction}
+	onClose={handleJoinRequestDialogClose}
+	onSuccess={handleJoinRequestSuccess}
+/>
+

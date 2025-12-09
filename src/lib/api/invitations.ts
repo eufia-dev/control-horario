@@ -5,11 +5,24 @@ import type { JoinRequestStatus } from './onboarding';
 
 const API_BASE = PUBLIC_API_URL;
 
+export type RelationType = 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+
+export type InvitationOption = {
+	value: string;
+	name: string;
+};
+
+export type InvitationOptions = {
+	relationTypes: InvitationOption[];
+	roles: InvitationOption[];
+};
+
 export type Invitation = {
 	id: string;
 	companyId: string;
 	email: string;
 	role: UserRole;
+	relationType: RelationType;
 	token: string;
 	expiresAt: string;
 	usedAt?: string;
@@ -19,6 +32,7 @@ export type Invitation = {
 export type CreateInvitationDto = {
 	email: string;
 	role: UserRole;
+	relationType: RelationType;
 };
 
 export type AdminJoinRequest = {
@@ -63,6 +77,11 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 export async function fetchInvitations(): Promise<Invitation[]> {
 	const response = await fetchWithAuth(`${API_BASE}/invitations`);
 	return handleJsonResponse<Invitation[]>(response);
+}
+
+export async function fetchInvitationOptions(): Promise<InvitationOptions> {
+	const response = await fetchWithAuth(`${API_BASE}/invitations/options`);
+	return handleJsonResponse<InvitationOptions>(response);
 }
 
 export async function createInvitation(data: CreateInvitationDto): Promise<Invitation> {
