@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import {
 		Dialog,
 		DialogContent,
@@ -12,13 +11,10 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		createProject,
 		updateProject,
-		fetchCompanies,
 		type Project,
-		type Company,
 		type CreateProjectDto,
 		type UpdateProjectDto
 	} from '$lib/api/projects';
@@ -34,10 +30,7 @@
 
 	let name = $state('');
 	let code = $state('');
-	let companyId = $state<string | undefined>(undefined);
 	let isActive = $state(true);
-	let companies = $state<Company[]>([]);
-	let loadingCompanies = $state(true);
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
 
@@ -50,24 +43,9 @@
 	);
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear proyecto');
 
-	const selectedCompany = $derived(companies.find((c) => c.id === companyId));
-	const hasSingleCompany = $derived(companies.length === 1);
-
-	async function loadCompanies() {
-		loadingCompanies = true;
-		try {
-			companies = await fetchCompanies();
-		} catch (e) {
-			console.error('Error loading companies:', e);
-		} finally {
-			loadingCompanies = false;
-		}
-	}
-
 	function resetForm() {
 		name = '';
 		code = '';
-		companyId = undefined;
 		isActive = true;
 		error = null;
 	}
@@ -77,25 +55,13 @@
 			name = project.name;
 			code = project.code;
 			isActive = project.isActive;
-			const company = companies.find((c) => c.name === project.companyName);
-			companyId = company?.id;
 		} else {
 			resetForm();
-			// Auto-select first company when creating new project
-			if (companies.length > 0) {
-				companyId = companies[0].id;
-			}
 		}
 	}
 
 	$effect(() => {
 		if (open) {
-			loadCompanies();
-		}
-	});
-
-	$effect(() => {
-		if (open && companies.length > 0) {
 			populateForm();
 		}
 	});
@@ -120,11 +86,6 @@
 			return;
 		}
 
-		if (!companyId) {
-			error = 'Debes seleccionar una empresa';
-			return;
-		}
-
 		submitting = true;
 
 		try {
@@ -132,15 +93,13 @@
 				const data: UpdateProjectDto = {
 					name: name.trim(),
 					code: code.trim(),
-					companyId,
 					isActive
 				};
 				await updateProject(project.id, data);
 			} else {
 				const data: CreateProjectDto = {
 					name: name.trim(),
-					code: code.trim(),
-					companyId
+					code: code.trim()
 				};
 				await createProject(data);
 			}
@@ -181,28 +140,6 @@
 					disabled={submitting}
 				/>
 			</div>
-
-			{#if !hasSingleCompany}
-				<div class="grid gap-2">
-					<Label>Empresa</Label>
-					<Select type="single" bind:value={companyId} disabled={submitting || loadingCompanies}>
-						<SelectTrigger class="w-full">
-							{#if loadingCompanies}
-								<span class="text-muted-foreground">Cargando empresas...</span>
-							{:else if selectedCompany}
-								{selectedCompany.name}
-							{:else}
-								<span class="text-muted-foreground">Seleccionar empresa</span>
-							{/if}
-						</SelectTrigger>
-						<SelectContent>
-							{#each companies as company (company.id)}
-								<SelectItem value={company.id} label={company.name} />
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-			{/if}
 
 			{#if isEditMode}
 				<div class="flex items-center gap-3">

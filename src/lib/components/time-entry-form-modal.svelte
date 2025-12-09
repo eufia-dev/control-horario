@@ -20,7 +20,7 @@
 		getLocalTimeZone,
 		CalendarDate
 	} from '@internationalized/date';
-	import { cn } from '$lib/utils';
+	import { cn, formatProjectLabel } from '$lib/utils';
 	import {
 		createTimeEntry,
 		updateTimeEntry,
@@ -30,6 +30,7 @@
 		type UpdateTimeEntryDto
 	} from '$lib/api/time-entries';
 	import type { Project } from '$lib/api/projects';
+	import ProjectLabel from '$lib/components/project-label.svelte';
 
 	type Props = {
 		open: boolean;
@@ -54,7 +55,7 @@
 	});
 
 	let projectId = $state<string | undefined>(undefined);
-	let typeId = $state<string | undefined>(undefined);
+let entryType = $state<string | undefined>(undefined);
 	let startDateValue = $state<DateValue | undefined>(undefined);
 	let startTime = $state('');
 	let endDateValue = $state<DateValue | undefined>(undefined);
@@ -74,7 +75,7 @@
 	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear registro');
 
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
-	const selectedType = $derived(timeEntryTypes.find((t) => t.value === typeId));
+const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	$effect(() => {
@@ -108,7 +109,7 @@
 
 	function resetForm() {
 		projectId = undefined;
-		typeId = undefined;
+	entryType = undefined;
 		startDateValue = undefined;
 		startTime = '';
 		endDateValue = undefined;
@@ -121,7 +122,7 @@
 	function populateForm() {
 		if (entry) {
 			projectId = entry.projectId;
-			typeId = entry.typeId;
+		entryType = entry.entryType;
 			startDateValue = dateToDateValue(new Date(entry.startedAt));
 			startTime = formatTimeForInput(entry.startedAt);
 			endDateValue = dateToDateValue(new Date(entry.endedAt));
@@ -144,9 +145,9 @@
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
-				typeId = trabajoType.value;
+			entryType = trabajoType.value;
 			} else if (timeEntryTypes.length > 0) {
-				typeId = timeEntryTypes[0].value;
+			entryType = timeEntryTypes[0].value;
 			}
 		}
 	}
@@ -172,7 +173,7 @@
 			return;
 		}
 
-		if (!typeId) {
+	if (!entryType) {
 			error = 'Debes seleccionar un tipo';
 			return;
 		}
@@ -203,7 +204,7 @@
 			if (isEditMode && entry) {
 				const data: UpdateTimeEntryDto = {
 					projectId,
-					typeId,
+					entryType,
 					startedAt,
 					endedAt,
 					minutes,
@@ -213,7 +214,7 @@
 			} else {
 				const data: CreateTimeEntryDto = {
 					projectId,
-					typeId,
+					entryType,
 					startedAt,
 					endedAt,
 					minutes,
@@ -257,16 +258,20 @@
 				<div class="grid gap-2">
 					<Label>Proyecto</Label>
 					<Select type="single" bind:value={projectId} disabled={submitting}>
-						<SelectTrigger class="w-full">
-							{#if selectedProject}
-								{selectedProject.name}
-							{:else}
-								<span class="text-muted-foreground">Seleccionar proyecto</span>
-							{/if}
+						<SelectTrigger class="w-full min-w-0">
+							<div class="flex min-w-0 items-center">
+								{#if selectedProject}
+									<ProjectLabel project={selectedProject} truncate />
+								{:else}
+									<span class="text-muted-foreground">Seleccionar proyecto</span>
+								{/if}
+							</div>
 						</SelectTrigger>
 						<SelectContent>
 							{#each activeProjects as project (project.id)}
-								<SelectItem value={project.id} label={project.name} />
+								<SelectItem value={project.id} label={formatProjectLabel(project)}>
+									<ProjectLabel project={project} className="flex-1 min-w-0" />
+								</SelectItem>
 							{/each}
 						</SelectContent>
 					</Select>
@@ -274,7 +279,7 @@
 
 				<div class="grid gap-2">
 					<Label>Tipo</Label>
-					<Select type="single" bind:value={typeId} disabled={submitting}>
+					<Select type="single" bind:value={entryType} disabled={submitting}>
 						<SelectTrigger class="w-full">
 							{#if selectedType}
 								{selectedType.name}

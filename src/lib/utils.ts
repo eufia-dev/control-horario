@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { Project } from './api/projects';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -39,4 +40,10 @@ export function getInitials(name: string): string {
 	if (parts.length === 0) return '';
 	if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
 	return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+export function formatProjectLabel(project?: Project | null, fallback = 'Proyecto'): string {
+	if (!project) return fallback;
+	const code = project.code?.trim();
+	return code ? `${code} - ${project.name}` : project.name ?? fallback;
 }

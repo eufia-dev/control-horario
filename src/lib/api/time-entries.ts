@@ -13,7 +13,7 @@ export type TimeEntry = {
 	userId: string;
 	projectId: string;
 	companyId: string;
-	typeId: string;
+	entryType: string;
 	startedAt: string;
 	endedAt: string;
 	minutes: number;
@@ -37,6 +37,7 @@ export type TimeEntry = {
 		value: string;
 		name: string;
 	};
+	entryTypeName?: string;
 };
 
 export type ActiveTimer = {
@@ -44,7 +45,7 @@ export type ActiveTimer = {
 	userId: string;
 	projectId: string;
 	companyId: string;
-	typeId: string;
+	entryType: string;
 	startedAt: string;
 	isOffice: boolean;
 	createdAt: string;
@@ -66,11 +67,12 @@ export type ActiveTimer = {
 		value: string;
 		name: string;
 	};
+	entryTypeName?: string;
 };
 
 export type CreateTimeEntryDto = {
 	projectId: string;
-	typeId: string;
+	entryType: string;
 	startedAt: string;
 	endedAt: string;
 	minutes: number;
@@ -79,7 +81,7 @@ export type CreateTimeEntryDto = {
 
 export type UpdateTimeEntryDto = {
 	projectId?: string;
-	typeId?: string;
+	entryType?: string;
 	startedAt?: string;
 	endedAt?: string;
 	minutes?: number;
@@ -88,13 +90,13 @@ export type UpdateTimeEntryDto = {
 
 export type StartTimerDto = {
 	projectId: string;
-	typeId: string;
+	entryType: string;
 	isOffice?: boolean;
 };
 
 export type SwitchTimerDto = {
 	projectId: string;
-	typeId: string;
+	entryType: string;
 	isOffice?: boolean;
 };
 

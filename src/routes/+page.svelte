@@ -44,7 +44,9 @@
 		type External,
 		type ExternalHours
 	} from '$lib/api/externals';
-	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { isAdmin as isAdminStore } from '$lib/stores/auth';
+	import ProjectLabel from '$lib/components/project-label.svelte';
+	import { formatProjectLabel } from '$lib/utils';
 
 	let isAdmin = $state(false);
 	$effect(() => {
@@ -73,14 +75,14 @@
 	let externalHoursError = $state<string | null>(null);
 
 	let selectedProjectId = $state<string | undefined>(undefined);
-	let selectedTypeId = $state<string | undefined>(undefined);
+let selectedEntryType = $state<string | undefined>(undefined);
 	let isOffice = $state(true);
 	let startingTimer = $state(false);
 	let stoppingTimer = $state(false);
 
 	let showSwitchForm = $state(false);
 	let switchProjectId = $state<string | undefined>(undefined);
-	let switchTypeId = $state<string | undefined>(undefined);
+let switchEntryType = $state<string | undefined>(undefined);
 	let switchIsOffice = $state(true);
 	let switchingTimer = $state(false);
 
@@ -98,14 +100,26 @@
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
-	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedTypeId));
+const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
-	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchTypeId));
+const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 
 	const canStartTimer = $derived(
-		selectedProjectId && selectedTypeId && !startingTimer && !activeTimer
+	selectedProjectId && selectedEntryType && !startingTimer && !activeTimer
 	);
+
+const timeEntryTypeLookup = $derived(
+	timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
+		acc[type.value] = type;
+		return acc;
+	}, {})
+);
+
+function getEntryTypeName(value?: string, fallback?: string) {
+	if (!value) return fallback ?? '-';
+	return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
+}
 
 	const enrichedExternalHours = $derived(
 		externalHours.map((h) => ({
@@ -134,11 +148,11 @@
 			timeEntryTypes = await fetchTimeEntryTypes();
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
-			if (!selectedTypeId) {
+		if (!selectedEntryType) {
 				if (trabajoType) {
-					selectedTypeId = trabajoType.value;
+				selectedEntryType = trabajoType.value;
 				} else if (timeEntryTypes.length > 0) {
-					selectedTypeId = timeEntryTypes[0].value;
+				selectedEntryType = timeEntryTypes[0].value;
 				}
 			}
 		} catch (e) {
@@ -255,13 +269,13 @@
 	}
 
 	async function handleStartTimer() {
-		if (!selectedProjectId || !selectedTypeId) return;
+	if (!selectedProjectId || !selectedEntryType) return;
 
 		startingTimer = true;
 		try {
 			activeTimer = await startTimer({
 				projectId: selectedProjectId,
-				typeId: selectedTypeId,
+			entryType: selectedEntryType,
 				isOffice
 			});
 			startElapsedTimer();
@@ -288,7 +302,7 @@
 
 	function handleShowSwitchForm() {
 		if (activeTimer) {
-			switchTypeId = activeTimer.typeId;
+		switchEntryType = activeTimer.entryType;
 			switchIsOffice = activeTimer.isOffice;
 		}
 		switchProjectId = undefined;
@@ -298,17 +312,17 @@
 	function handleCancelSwitch() {
 		showSwitchForm = false;
 		switchProjectId = undefined;
-		switchTypeId = undefined;
+	switchEntryType = undefined;
 	}
 
 	async function handleSwitchTimer() {
-		if (!switchProjectId || !switchTypeId) return;
+	if (!switchProjectId || !switchEntryType) return;
 
 		switchingTimer = true;
 		try {
 			const result = await switchTimer({
 				projectId: switchProjectId,
-				typeId: switchTypeId,
+			entryType: switchEntryType,
 				isOffice: switchIsOffice
 			});
 			activeTimer = result.activeTimer;
@@ -419,7 +433,12 @@
 						<div class="flex flex-col gap-1 text-right">
 							<div class="text-lg font-semibold">{activeTimer.project?.name ?? 'Proyecto'}</div>
 							<div class="flex items-center gap-2 justify-end">
-								<Badge variant="secondary">{activeTimer.timeEntryType?.name ?? 'Tipo'}</Badge>
+								<Badge variant="secondary">
+									{getEntryTypeName(
+										activeTimer.entryType,
+										activeTimer.timeEntryType?.name ?? activeTimer.entryTypeName ?? 'Tipo'
+									)}
+								</Badge>
 								<Badge variant={activeTimer.isOffice ? 'default' : 'outline'}>
 									{activeTimer.isOffice ? 'Oficina' : 'Remoto'}
 								</Badge>
@@ -438,23 +457,27 @@
 								<div class="grid gap-2">
 									<Label>Proyecto</Label>
 									<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
-										<SelectTrigger class="w-full">
-											{#if switchProject}
-												{switchProject.name}
-											{:else}
-												<span class="text-muted-foreground">Seleccionar proyecto</span>
-											{/if}
+										<SelectTrigger class="w-full min-w-0">
+											<div class="flex min-w-0 items-center">
+												{#if switchProject}
+													<ProjectLabel project={switchProject} truncate />
+												{:else}
+													<span class="text-muted-foreground">Seleccionar proyecto</span>
+												{/if}
+											</div>
 										</SelectTrigger>
 										<SelectContent>
 											{#each activeProjects as project (project.id)}
-												<SelectItem value={project.id} label={project.name} />
+												<SelectItem value={project.id} label={formatProjectLabel(project)}>
+													<ProjectLabel project={project} className="flex-1 min-w-0" />
+												</SelectItem>
 											{/each}
 										</SelectContent>
 									</Select>
 								</div>
 								<div class="grid gap-2">
 									<Label>Tipo</Label>
-									<Select type="single" bind:value={switchTypeId} disabled={switchingTimer}>
+									<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
 										<SelectTrigger class="w-full">
 											{#if switchType}
 												{switchType.name}
@@ -486,7 +509,7 @@
 								</Button>
 								<Button
 									onclick={handleSwitchTimer}
-									disabled={!switchProjectId || !switchTypeId || switchingTimer}
+									disabled={!switchProjectId || !switchEntryType || switchingTimer}
 								>
 									{#if switchingTimer}
 										<span class="material-symbols-rounded animate-spin text-base"
@@ -534,23 +557,27 @@
 						<div class="grid gap-2">
 							<Label>Proyecto</Label>
 							<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
-								<SelectTrigger class="w-full">
-									{#if selectedProject}
-										{selectedProject.name}
-									{:else}
-										<span class="text-muted-foreground">Seleccionar proyecto</span>
-									{/if}
+								<SelectTrigger class="w-full min-w-0">
+									<div class="flex min-w-0 items-center">
+										{#if selectedProject}
+											<ProjectLabel project={selectedProject} truncate />
+										{:else}
+											<span class="text-muted-foreground">Seleccionar proyecto</span>
+										{/if}
+									</div>
 								</SelectTrigger>
 								<SelectContent>
 									{#each activeProjects as project (project.id)}
-										<SelectItem value={project.id} label={project.name} />
+										<SelectItem value={project.id} label={formatProjectLabel(project)}>
+											<ProjectLabel project={project} className="flex-1 min-w-0" />
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>
 						</div>
 						<div class="grid gap-2">
 							<Label>Tipo</Label>
-							<Select type="single" bind:value={selectedTypeId} disabled={startingTimer}>
+							<Select type="single" bind:value={selectedEntryType} disabled={startingTimer}>
 								<SelectTrigger class="w-full">
 									{#if selectedType}
 										{selectedType.name}
@@ -702,7 +729,12 @@
 													</Tooltip>
 												</TableCell>
 												<TableCell>
-													<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
+													<Badge variant="secondary">
+														{getEntryTypeName(
+															entry.entryType,
+															entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+														)}
+													</Badge>
 												</TableCell>
 												<TableCell class="text-muted-foreground">
 													{formatTime(entry.startedAt)}
@@ -934,7 +966,12 @@
 											</Tooltip>
 										</TableCell>
 										<TableCell>
-											<Badge variant="secondary">{entry.timeEntryType?.name ?? '-'}</Badge>
+											<Badge variant="secondary">
+												{getEntryTypeName(
+													entry.entryType,
+													entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+												)}
+											</Badge>
 										</TableCell>
 										<TableCell class="text-muted-foreground">
 											{formatTime(entry.startedAt)}

@@ -19,7 +19,7 @@
 		getLocalTimeZone,
 		CalendarDate
 	} from '@internationalized/date';
-	import { cn } from '$lib/utils';
+	import { cn, formatProjectLabel } from '$lib/utils';
 	import {
 		createExternalHours,
 		updateExternalHours,
@@ -29,6 +29,7 @@
 		type UpdateExternalHoursDto
 	} from '$lib/api/externals';
 	import type { Project } from '$lib/api/projects';
+	import ProjectLabel from '$lib/components/project-label.svelte';
 
 	type Props = {
 		open: boolean;
@@ -231,16 +232,20 @@
 				<div class="grid gap-2">
 					<Label>Proyecto</Label>
 					<Select type="single" bind:value={projectId} disabled={submitting}>
-						<SelectTrigger class="w-full">
-							{#if selectedProject}
-								{selectedProject.name}
-							{:else}
-								<span class="text-muted-foreground">Seleccionar proyecto</span>
-							{/if}
+						<SelectTrigger class="w-full min-w-0">
+							<div class="flex min-w-0 items-center">
+								{#if selectedProject}
+									<ProjectLabel project={selectedProject} truncate />
+								{:else}
+									<span class="text-muted-foreground">Seleccionar proyecto</span>
+								{/if}
+							</div>
 						</SelectTrigger>
 						<SelectContent>
 							{#each activeProjects as project (project.id)}
-								<SelectItem value={project.id} label={project.name} />
+								<SelectItem value={project.id} label={formatProjectLabel(project)}>
+									<ProjectLabel project={project} className="flex-1 min-w-0" />
+								</SelectItem>
 							{/each}
 						</SelectContent>
 					</Select>

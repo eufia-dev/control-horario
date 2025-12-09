@@ -12,21 +12,14 @@ export type Project = {
 	companyName: string;
 };
 
-export type Company = {
-	id: string;
-	name: string;
-};
-
 export type CreateProjectDto = {
 	name: string;
 	code: string;
-	companyId: string;
 };
 
 export type UpdateProjectDto = {
 	name?: string;
 	code?: string;
-	companyId?: string;
 	isActive?: boolean;
 };
 
@@ -86,9 +79,4 @@ export async function deleteProject(id: string): Promise<void> {
 		method: 'DELETE'
 	});
 	await handleJsonResponse<unknown>(response);
-}
-
-export async function fetchCompanies(): Promise<Company[]> {
-	const response = await fetchWithAuth(`${API_BASE}/companies`);
-	return handleJsonResponse<Company[]>(response);
 }

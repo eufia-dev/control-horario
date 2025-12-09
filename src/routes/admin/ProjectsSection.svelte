@@ -20,11 +20,10 @@
 	} from '$lib/components/ui/tooltip';
 	import ProjectFormModal from '$lib/components/project-form-modal.svelte';
 	import ProjectDeleteDialog from '$lib/components/project-delete-dialog.svelte';
-	import { fetchProjects, fetchCompanies, type Company, type Project } from '$lib/api/projects';
+	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { formatDate } from './helpers';
 
 	let projects = $state<Project[]>([]);
-	let companies = $state<Company[]>([]);
 	let loadingProjects = $state(true);
 	let projectsError = $state<string | null>(null);
 
@@ -32,13 +31,11 @@
 	let deleteDialogOpen = $state(false);
 	let selectedProject = $state<Project | null>(null);
 
-	const hasSingleCompany = $derived(companies.length === 1);
-
 	async function loadProjects() {
 		loadingProjects = true;
 		projectsError = null;
 		try {
-			[projects, companies] = await Promise.all([fetchProjects(), fetchCompanies()]);
+			projects = await fetchProjects();
 		} catch (e) {
 			projectsError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
@@ -89,9 +86,6 @@
 					<TableRow>
 						<TableHead>Código</TableHead>
 						<TableHead>Nombre</TableHead>
-						{#if !hasSingleCompany}
-							<TableHead>Empresa</TableHead>
-						{/if}
 						<TableHead>Estado</TableHead>
 						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
@@ -102,9 +96,6 @@
 						<TableRow>
 							<TableCell><Skeleton class="h-4 w-16" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-							{#if !hasSingleCompany}
-								<TableCell><Skeleton class="h-4 w-24" /></TableCell>
-							{/if}
 							<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 							<TableCell><Skeleton class="h-8 w-20" /></TableCell>
@@ -133,9 +124,6 @@
 						<TableRow>
 							<TableHead>Código</TableHead>
 							<TableHead>Nombre</TableHead>
-							{#if !hasSingleCompany}
-								<TableHead>Empresa</TableHead>
-							{/if}
 							<TableHead>Estado</TableHead>
 							<TableHead>Creado</TableHead>
 							<TableHead class="w-[100px]">Acciones</TableHead>
@@ -164,9 +152,6 @@
 										</TooltipContent>
 									</Tooltip>
 								</TableCell>
-								{#if !hasSingleCompany}
-									<TableCell>{project.companyName}</TableCell>
-								{/if}
 								<TableCell>
 									{#if project.isActive}
 										<Badge variant="success">Activo</Badge>
