@@ -222,6 +222,18 @@
 
 			{#if signedIn}
 				<div class="flex items-center gap-2">
+					{#if isAuthed}
+						<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
+							<Button href="/bug-report" variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">bug_report</span>
+								<span>Reportar bug</span>
+							</Button>
+							<Button href="/contact" variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">mail</span>
+								<span>Contacto</span>
+							</Button>
+						</nav>
+					{/if}
 					{#if user}
 						<a
 							href="/profile"
@@ -242,7 +254,7 @@
 					>
 						<span class="material-symbols-rounded text-lg!">logout</span>
 					</Button>
-					{#if isUserAdmin && user}
+					{#if isAuthed && user}
 						<Button
 							type="button"
 							onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
@@ -258,7 +270,7 @@
 				</div>
 			{/if}
 
-			{#if isAuthed && isUserAdmin && mobileMenuOpen}
+			{#if isAuthed && mobileMenuOpen}
 				<div
 					class="fixed inset-0 top-[57px] md:hidden bg-background z-50 flex flex-col"
 					transition:slide={{ duration: 200 }}
@@ -271,35 +283,57 @@
 								{user.companyName}
 							</div>
 						{/if}
+						{#if isUserAdmin}
+							<Button
+								href="/"
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">schedule</span>
+								<span>Fichajes</span>
+							</Button>
+							<Button
+								href="/admin"
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">settings</span>
+								<span>Configuración</span>
+							</Button>
+							<Button
+								href="/analytics"
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">analytics</span>
+								<span>Analíticas</span>
+							</Button>
+						{/if}
 						<Button
-							href="/"
+							href="/bug-report"
 							variant="ghost"
 							size="lg"
 							class="justify-start gap-4 h-14 text-lg"
 							onclick={() => (mobileMenuOpen = false)}
 						>
-							<span class="material-symbols-rounded text-2xl!">schedule</span>
-							<span>Fichajes</span>
+							<span class="material-symbols-rounded text-2xl!">bug_report</span>
+							<span>Reportar bug</span>
 						</Button>
 						<Button
-							href="/admin"
+							href="/contact"
 							variant="ghost"
 							size="lg"
 							class="justify-start gap-4 h-14 text-lg"
 							onclick={() => (mobileMenuOpen = false)}
 						>
-							<span class="material-symbols-rounded text-2xl!">settings</span>
-							<span>Configuración</span>
-						</Button>
-						<Button
-							href="/analytics"
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">analytics</span>
-							<span>Analíticas</span>
+							<span class="material-symbols-rounded text-2xl!">mail</span>
+							<span>Contacto</span>
 						</Button>
 					</nav>
 					<div class="p-4 border-t border-border mt-auto">
