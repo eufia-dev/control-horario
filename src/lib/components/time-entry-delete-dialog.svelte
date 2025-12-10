@@ -85,8 +85,8 @@
 			<AlertDialogDescription>
 				Estás a punto de eliminar el registro de
 				<strong class="text-foreground">{entry?.project?.name ?? 'proyecto desconocido'}</strong>
-				del <strong class="text-foreground">{entry ? formatDate(entry.startedAt) : ''}</strong>
-				({entry ? formatDuration(entry.minutes) : ''}). Esta acción no se puede deshacer.
+				del <strong class="text-foreground">{entry ? formatDate(entry.startTime) : ''}</strong>
+				({entry ? formatDuration(entry.durationMinutes) : ''}). Esta acción no se puede deshacer.
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 

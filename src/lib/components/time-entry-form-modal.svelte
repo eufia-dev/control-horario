@@ -60,7 +60,7 @@
 	let startTime = $state('');
 	let endDateValue = $state<DateValue | undefined>(undefined);
 	let endTime = $state('');
-	let minutes = $state(0);
+	let durationMinutes = $state(0);
 	let isInOffice = $state(true);
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
@@ -86,7 +86,7 @@
 			const end = new Date(`${endDateStr}T${endTime}`);
 			const diffMs = end.getTime() - start.getTime();
 			if (diffMs > 0) {
-				minutes = Math.round(diffMs / 60000);
+				durationMinutes = Math.round(diffMs / 60000);
 			}
 		}
 	});
@@ -114,7 +114,7 @@
 		startTime = '';
 		endDateValue = undefined;
 		endTime = '';
-		minutes = 0;
+		durationMinutes = 0;
 		isInOffice = true;
 		error = null;
 	}
@@ -123,11 +123,11 @@
 		if (entry) {
 			projectId = entry.projectId;
 			entryType = entry.entryType;
-			startDateValue = dateToDateValue(new Date(entry.startedAt));
-			startTime = formatTimeForInput(entry.startedAt);
-			endDateValue = dateToDateValue(new Date(entry.endedAt));
-			endTime = formatTimeForInput(entry.endedAt);
-			minutes = entry.minutes;
+			startDateValue = dateToDateValue(new Date(entry.startTime));
+			startTime = formatTimeForInput(entry.startTime);
+			endDateValue = dateToDateValue(new Date(entry.endTime));
+			endTime = formatTimeForInput(entry.endTime);
+			durationMinutes = entry.durationMinutes;
 			isInOffice = entry.isInOffice;
 		} else {
 			resetForm();
@@ -137,7 +137,7 @@
 			startTime = formatTimeForInput(oneHourAgo.toISOString());
 			endDateValue = dateToDateValue(now);
 			endTime = formatTimeForInput(now.toISOString());
-			minutes = 60;
+			durationMinutes = 60;
 
 			if (activeProjects.length > 0) {
 				projectId = activeProjects[0].id;
@@ -190,10 +190,10 @@
 
 		const startDateStr = dateValueToString(startDateValue);
 		const endDateStr = dateValueToString(endDateValue);
-		const startedAt = new Date(`${startDateStr}T${startTime}`).toISOString();
-		const endedAt = new Date(`${endDateStr}T${endTime}`).toISOString();
+		const startTimeIso = new Date(`${startDateStr}T${startTime}`).toISOString();
+		const endTimeIso = new Date(`${endDateStr}T${endTime}`).toISOString();
 
-		if (new Date(endedAt) <= new Date(startedAt)) {
+		if (new Date(endTimeIso) <= new Date(startTimeIso)) {
 			error = 'La fecha de fin debe ser posterior a la de inicio';
 			return;
 		}
@@ -205,9 +205,9 @@
 				const data: UpdateTimeEntryDto = {
 					projectId,
 					entryType,
-					startedAt,
-					endedAt,
-					minutes,
+					startTime: startTimeIso,
+					endTime: endTimeIso,
+					durationMinutes,
 					isInOffice
 				};
 				await updateTimeEntry(entry.id, data);
@@ -215,9 +215,9 @@
 				const data: CreateTimeEntryDto = {
 					projectId,
 					entryType,
-					startedAt,
-					endedAt,
-					minutes,
+					startTime: startTimeIso,
+					endTime: endTimeIso,
+					durationMinutes,
 					isInOffice
 				};
 				await createTimeEntry(data);
@@ -357,8 +357,8 @@
 					</Popover.Root>
 				</div>
 				<div class="grid gap-2">
-					<Label for="startTime">Hora inicio</Label>
-					<Input type="time" bind:value={startTime} disabled={submitting} />
+					<Label for="endTime">Hora fin</Label>
+					<Input type="time" bind:value={endTime} disabled={submitting} />
 				</div>
 			</div>
 
@@ -370,7 +370,7 @@
 					</Label>
 				</div>
 				<div class="text-sm text-muted-foreground">
-					Duración: <span class="font-medium text-foreground">{formatDuration(minutes)}</span>
+					Duración: <span class="font-medium text-foreground">{formatDuration(durationMinutes)}</span>
 				</div>
 			</div>
 

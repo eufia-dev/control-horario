@@ -218,11 +218,11 @@
 			clearInterval(timerInterval);
 		}
 		if (activeTimer) {
-			const startTime = new Date(activeTimer.startedAt).getTime();
+			const startTime = new Date(activeTimer.startTime).getTime();
 			elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
 			timerInterval = setInterval(() => {
 				if (activeTimer) {
-					const startTime = new Date(activeTimer.startedAt).getTime();
+					const startTime = new Date(activeTimer.startTime).getTime();
 					elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
 				}
 			}, 1000);
@@ -716,7 +716,7 @@
 										{#each timeEntries as entry (entry.id)}
 											<TableRow>
 												<TableCell class="font-medium">
-													{formatDate(entry.startedAt)}
+													{formatDate(entry.startTime)}
 												</TableCell>
 												<TableCell>
 													<Tooltip>
@@ -737,13 +737,13 @@
 													</Badge>
 												</TableCell>
 												<TableCell class="text-muted-foreground">
-													{formatTime(entry.startedAt)}
+													{formatTime(entry.startTime)}
 												</TableCell>
 												<TableCell class="text-muted-foreground">
-													{formatTime(entry.endedAt)}
+													{formatTime(entry.endTime)}
 												</TableCell>
 												<TableCell class="font-medium">
-													{formatDuration(entry.minutes)}
+													{formatDuration(entry.durationMinutes)}
 												</TableCell>
 												<TableCell>
 													<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
@@ -857,7 +857,7 @@
 													</Tooltip>
 												</TableCell>
 												<TableCell class="font-medium">
-													{formatDuration(entry.minutes)}
+													{formatDuration(entry.durationMinutes)}
 												</TableCell>
 												<TableCell>
 													<div class="flex items-center gap-1">
@@ -953,7 +953,7 @@
 								{#each timeEntries as entry (entry.id)}
 									<TableRow>
 										<TableCell class="font-medium">
-											{formatDate(entry.startedAt)}
+											{formatDate(entry.startTime)}
 										</TableCell>
 										<TableCell>
 											<Tooltip>
@@ -974,13 +974,13 @@
 											</Badge>
 										</TableCell>
 										<TableCell class="text-muted-foreground">
-											{formatTime(entry.startedAt)}
+											{formatTime(entry.startTime)}
 										</TableCell>
 										<TableCell class="text-muted-foreground">
-											{formatTime(entry.endedAt)}
+											{formatTime(entry.endTime)}
 										</TableCell>
 										<TableCell class="font-medium">
-											{formatDuration(entry.minutes)}
+											{formatDuration(entry.durationMinutes)}
 										</TableCell>
 										<TableCell>
 											<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
