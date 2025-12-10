@@ -343,6 +343,11 @@ export type AuthCallbackResult = {
 	error?: string;
 };
 
+function isPkceVerifierMissing(error: { message?: string; error_description?: string }): boolean {
+	const message = `${error?.message ?? ''} ${error?.error_description ?? ''}`.toLowerCase();
+	return message.includes('code verifier') || message.includes('auth code');
+}
+
 /**
  * Remove Supabase hash/query parameters from the URL after handling the callback.
  */
@@ -399,6 +404,12 @@ export async function processAuthCallback(
 			if (!session) {
 				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 				if (error) {
+					if (type === 'signup' && isPkceVerifierMissing(error)) {
+						return {
+							mode: 'signin',
+							nextRoute: '/login?confirmed=1'
+						};
+					}
 					throw new Error('El enlace no es válido o ha expirado.');
 				}
 				session = data.session ?? null;

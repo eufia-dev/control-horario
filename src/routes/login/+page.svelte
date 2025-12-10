@@ -18,6 +18,7 @@
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
 
 	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
+	const emailConfirmed = $derived($page.url.searchParams.get('confirmed') === '1');
 
 	let email = $state('');
 	let password = $state('');
@@ -182,6 +183,14 @@
 				<CardDescription>Introduce tus credenciales para acceder a tu cuenta.</CardDescription>
 			</CardHeader>
 			<CardContent>
+				{#if emailConfirmed}
+					<div
+						class="flex items-center gap-3 p-4 mb-6 bg-success/10 text-success rounded-lg border border-success/20"
+					>
+						<span class="material-symbols-rounded text-2xl!">check_circle</span>
+						<p class="text-sm">Tu correo electrónico ha sido confirmado. Ya puedes iniciar sesión.</p>
+					</div>
+				{/if}
 				<form
 					class="space-y-6"
 					onsubmit={(e) => {
@@ -265,9 +274,8 @@
 						</div>
 
 						<a
-							href={resolve(
-								`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`
-							)}
+							href={`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+
 							class="w-full"
 						>
 							<Button variant="outline" class="w-full gap-2" type="button">
