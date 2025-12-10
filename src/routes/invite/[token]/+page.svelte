@@ -91,15 +91,15 @@
 	};
 
 	const handleGoToRegister = () => {
-		const base = resolve('/register');
+		const base = '/register';
 		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
-		goto(resolve(`${base}?${params.toString()}`));
+		goto(`${base}?${params.toString()}`);
 	};
 
 	const handleGoToLogin = () => {
-		const base = resolve('/login');
+		const base = '/login';
 		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
-		goto(resolve(`${base}?${params.toString()}`));
+		goto(`${base}?${params.toString()}`);
 	};
 
 	const handleRetry = () => {
