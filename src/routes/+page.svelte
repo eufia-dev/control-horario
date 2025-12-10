@@ -108,7 +108,7 @@
 	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
 
 	// Find the latest project from time entries (skip entries without projectId like pauses)
-	const latestProjectId = $derived(() => {
+	const latestProjectId = $derived.by(() => {
 		for (const entry of timeEntries) {
 			if (entry.projectId) {
 				// Check if project is still active
@@ -122,17 +122,22 @@
 	});
 
 	// Get the default project (latest or first active)
-	const defaultProjectId = $derived(() => {
-		const latestId = latestProjectId();
-		if (latestId) return latestId;
+	const defaultProjectId = $derived.by(() => {
+		if (latestProjectId) return latestProjectId;
 		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
 	});
 
 	// Handle project selection when switching entry types for timer form
 	$effect(() => {
-		if (isWorkType && !selectedProjectId && !loadingEntries && !loadingProjects) {
+		if (
+			isWorkType &&
+			!selectedProjectId &&
+			!loadingEntries &&
+			!loadingProjects &&
+			defaultProjectId
+		) {
 			// Switching to work type or initial load: set default project
-			selectedProjectId = defaultProjectId();
+			selectedProjectId = defaultProjectId;
 		} else if (!isWorkType && selectedProjectId) {
 			// Switching away from work type: clear project
 			selectedProjectId = undefined;
@@ -141,9 +146,9 @@
 
 	// Handle project selection when switching entry types for switch form
 	$effect(() => {
-		if (isSwitchWorkType && !switchProjectId && showSwitchForm) {
+		if (isSwitchWorkType && !switchProjectId && showSwitchForm && defaultProjectId) {
 			// Switching to work type: set default project
-			switchProjectId = defaultProjectId();
+			switchProjectId = defaultProjectId;
 		} else if (!isSwitchWorkType && switchProjectId) {
 			// Switching away from work type: clear project
 			switchProjectId = undefined;
@@ -1073,7 +1078,7 @@
 	entry={selectedEntry}
 	{projects}
 	{timeEntryTypes}
-	latestProjectId={latestProjectId()}
+	{latestProjectId}
 	onClose={handleModalClose}
 	onSuccess={handleEntrySuccess}
 />
