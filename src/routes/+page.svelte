@@ -104,9 +104,54 @@
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
 	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
+	const isWorkType = $derived(selectedType?.name === 'Trabajo');
+	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
+
+	// Find the latest project from time entries (skip entries without projectId like pauses)
+	const latestProjectId = $derived(() => {
+		for (const entry of timeEntries) {
+			if (entry.projectId) {
+				// Check if project is still active
+				const project = activeProjects.find((p) => p.id === entry.projectId);
+				if (project) {
+					return entry.projectId;
+				}
+			}
+		}
+		return null;
+	});
+
+	// Get the default project (latest or first active)
+	const defaultProjectId = $derived(() => {
+		const latestId = latestProjectId();
+		if (latestId) return latestId;
+		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
+	});
+
+	// Handle project selection when switching entry types for timer form
+	$effect(() => {
+		if (isWorkType && !selectedProjectId && !loadingEntries && !loadingProjects) {
+			// Switching to work type or initial load: set default project
+			selectedProjectId = defaultProjectId();
+		} else if (!isWorkType && selectedProjectId) {
+			// Switching away from work type: clear project
+			selectedProjectId = undefined;
+		}
+	});
+
+	// Handle project selection when switching entry types for switch form
+	$effect(() => {
+		if (isSwitchWorkType && !switchProjectId && showSwitchForm) {
+			// Switching to work type: set default project
+			switchProjectId = defaultProjectId();
+		} else if (!isSwitchWorkType && switchProjectId) {
+			// Switching away from work type: clear project
+			switchProjectId = undefined;
+		}
+	});
 
 	const canStartTimer = $derived(
-		selectedProjectId && selectedEntryType && !startingTimer && !activeTimer
+		selectedEntryType && (isWorkType ? selectedProjectId : true) && !startingTimer && !activeTimer
 	);
 
 	const timeEntryTypeLookup = $derived(
@@ -132,9 +177,6 @@
 		loadingProjects = true;
 		try {
 			projects = await fetchProjects();
-			if (!selectedProjectId && activeProjects.length > 0) {
-				selectedProjectId = activeProjects[0].id;
-			}
 		} catch (e) {
 			console.error('Error loading projects:', e);
 		} finally {
@@ -269,12 +311,13 @@
 	}
 
 	async function handleStartTimer() {
-		if (!selectedProjectId || !selectedEntryType) return;
+		if (!selectedEntryType) return;
+		if (isWorkType && !selectedProjectId) return;
 
 		startingTimer = true;
 		try {
 			activeTimer = await startTimer({
-				projectId: selectedProjectId,
+				projectId: isWorkType ? selectedProjectId : undefined,
 				entryType: selectedEntryType,
 				isInOffice
 			});
@@ -316,12 +359,13 @@
 	}
 
 	async function handleSwitchTimer() {
-		if (!switchProjectId || !switchEntryType) return;
+		if (!switchEntryType) return;
+		if (isSwitchWorkType && !switchProjectId) return;
 
 		switchingTimer = true;
 		try {
 			const result = await switchTimer({
-				projectId: switchProjectId,
+				projectId: isSwitchWorkType ? switchProjectId : undefined,
 				entryType: switchEntryType,
 				isInOffice: switchIsInOffice
 			});
@@ -455,27 +499,6 @@
 							</div>
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div class="grid gap-2">
-									<Label>Proyecto</Label>
-									<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
-										<SelectTrigger class="w-full min-w-0">
-											<div class="flex min-w-0 items-center">
-												{#if switchProject}
-													<ProjectLabel project={switchProject} truncate />
-												{:else}
-													<span class="text-muted-foreground">Seleccionar proyecto</span>
-												{/if}
-											</div>
-										</SelectTrigger>
-										<SelectContent>
-											{#each activeProjects as project (project.id)}
-												<SelectItem value={project.id} label={formatProjectLabel(project)}>
-													<ProjectLabel {project} className="flex-1 min-w-0" />
-												</SelectItem>
-											{/each}
-										</SelectContent>
-									</Select>
-								</div>
-								<div class="grid gap-2">
 									<Label>Tipo</Label>
 									<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
 										<SelectTrigger class="w-full">
@@ -492,6 +515,29 @@
 										</SelectContent>
 									</Select>
 								</div>
+								{#if isSwitchWorkType}
+									<div class="grid gap-2">
+										<Label>Proyecto</Label>
+										<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
+											<SelectTrigger class="w-full min-w-0">
+												<div class="flex min-w-0 items-center">
+													{#if switchProject}
+														<ProjectLabel project={switchProject} truncate />
+													{:else}
+														<span class="text-muted-foreground">Seleccionar proyecto</span>
+													{/if}
+												</div>
+											</SelectTrigger>
+											<SelectContent>
+												{#each activeProjects as project (project.id)}
+													<SelectItem value={project.id} label={formatProjectLabel(project)}>
+														<ProjectLabel {project} className="flex-1 min-w-0" />
+													</SelectItem>
+												{/each}
+											</SelectContent>
+										</Select>
+									</div>
+								{/if}
 							</div>
 							<div class="flex items-center gap-3">
 								<Switch
@@ -509,7 +555,7 @@
 								</Button>
 								<Button
 									onclick={handleSwitchTimer}
-									disabled={!switchProjectId || !switchEntryType || switchingTimer}
+									disabled={!switchEntryType || (isSwitchWorkType && !switchProjectId) || switchingTimer}
 								>
 									{#if switchingTimer}
 										<span class="material-symbols-rounded animate-spin text-base"
@@ -555,27 +601,6 @@
 				<div class="flex flex-col gap-4">
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div class="grid gap-2">
-							<Label>Proyecto</Label>
-							<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
-								<SelectTrigger class="w-full min-w-0">
-									<div class="flex min-w-0 items-center">
-										{#if selectedProject}
-											<ProjectLabel project={selectedProject} truncate />
-										{:else}
-											<span class="text-muted-foreground">Seleccionar proyecto</span>
-										{/if}
-									</div>
-								</SelectTrigger>
-								<SelectContent>
-									{#each activeProjects as project (project.id)}
-										<SelectItem value={project.id} label={formatProjectLabel(project)}>
-											<ProjectLabel {project} className="flex-1 min-w-0" />
-										</SelectItem>
-									{/each}
-								</SelectContent>
-							</Select>
-						</div>
-						<div class="grid gap-2">
 							<Label>Tipo</Label>
 							<Select type="single" bind:value={selectedEntryType} disabled={startingTimer}>
 								<SelectTrigger class="w-full">
@@ -592,6 +617,29 @@
 								</SelectContent>
 							</Select>
 						</div>
+						{#if isWorkType}
+							<div class="grid gap-2">
+								<Label>Proyecto</Label>
+								<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
+									<SelectTrigger class="w-full min-w-0">
+										<div class="flex min-w-0 items-center">
+											{#if selectedProject}
+												<ProjectLabel project={selectedProject} truncate />
+											{:else}
+												<span class="text-muted-foreground">Seleccionar proyecto</span>
+											{/if}
+										</div>
+									</SelectTrigger>
+									<SelectContent>
+										{#each activeProjects as project (project.id)}
+											<SelectItem value={project.id} label={formatProjectLabel(project)}>
+												<ProjectLabel {project} className="flex-1 min-w-0" />
+											</SelectItem>
+										{/each}
+									</SelectContent>
+								</Select>
+							</div>
+						{/if}
 					</div>
 					<div class="flex items-center justify-between flex-wrap gap-4">
 						<div class="flex items-center gap-3">
@@ -1025,6 +1073,7 @@
 	entry={selectedEntry}
 	{projects}
 	{timeEntryTypes}
+	latestProjectId={latestProjectId()}
 	onClose={handleModalClose}
 	onSuccess={handleEntrySuccess}
 />

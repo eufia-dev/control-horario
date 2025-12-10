@@ -37,6 +37,7 @@
 		entry?: TimeEntry | null;
 		projects: Project[];
 		timeEntryTypes: TimeEntryType[];
+		latestProjectId?: string | null;
 		onClose: () => void;
 		onSuccess: () => void;
 	};
@@ -46,6 +47,7 @@
 		entry = null,
 		projects,
 		timeEntryTypes,
+		latestProjectId = null,
 		onClose,
 		onSuccess
 	}: Props = $props();
@@ -77,6 +79,31 @@
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
 	const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
+	const isWorkType = $derived(selectedType?.name === 'Trabajo');
+
+	// Get the default project (latest from entries or first active)
+	const defaultProjectId = $derived(() => {
+		if (latestProjectId) {
+			// Verify the project is still active
+			const project = activeProjects.find((p) => p.id === latestProjectId);
+			if (project) return latestProjectId;
+		}
+		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
+	});
+
+	// Handle project selection when switching entry types
+	$effect(() => {
+		// Only for new entries (not editing)
+		if (isEditMode) return;
+
+		if (isWorkType && !projectId) {
+			// Switching to work type: restore default project
+			projectId = defaultProjectId();
+		} else if (!isWorkType && projectId) {
+			// Switching away from work type: clear project
+			projectId = undefined;
+		}
+	});
 
 	$effect(() => {
 		if (startDateValue && startTime && endDateValue && endTime) {
@@ -139,16 +166,15 @@
 			endTime = formatTimeForInput(now.toISOString());
 			durationMinutes = 60;
 
-			if (activeProjects.length > 0) {
-				projectId = activeProjects[0].id;
-			}
-
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
 				entryType = trabajoType.value;
 			} else if (timeEntryTypes.length > 0) {
 				entryType = timeEntryTypes[0].value;
 			}
+
+			// Set default project (effect will handle this based on entry type)
+			projectId = defaultProjectId();
 		}
 	}
 
@@ -168,13 +194,13 @@
 		e.preventDefault();
 		error = null;
 
-		if (!projectId) {
-			error = 'Debes seleccionar un proyecto';
+		if (!entryType) {
+			error = 'Debes seleccionar un tipo';
 			return;
 		}
 
-		if (!entryType) {
-			error = 'Debes seleccionar un tipo';
+		if (isWorkType && !projectId) {
+			error = 'Debes seleccionar un proyecto';
 			return;
 		}
 
@@ -203,7 +229,7 @@
 		try {
 			if (isEditMode && entry) {
 				const data: UpdateTimeEntryDto = {
-					projectId,
+					projectId: isWorkType ? projectId : undefined,
 					entryType,
 					startTime: startTimeIso,
 					endTime: endTimeIso,
@@ -213,7 +239,7 @@
 				await updateTimeEntry(entry.id, data);
 			} else {
 				const data: CreateTimeEntryDto = {
-					projectId,
+					projectId: isWorkType ? projectId : undefined,
 					entryType,
 					startTime: startTimeIso,
 					endTime: endTimeIso,
@@ -256,28 +282,6 @@
 		<form onsubmit={handleSubmit} class="grid gap-4 py-4">
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div class="grid gap-2">
-					<Label>Proyecto</Label>
-					<Select type="single" bind:value={projectId} disabled={submitting}>
-						<SelectTrigger class="w-full min-w-0">
-							<div class="flex min-w-0 items-center">
-								{#if selectedProject}
-									<ProjectLabel project={selectedProject} truncate />
-								{:else}
-									<span class="text-muted-foreground">Seleccionar proyecto</span>
-								{/if}
-							</div>
-						</SelectTrigger>
-						<SelectContent>
-							{#each activeProjects as project (project.id)}
-								<SelectItem value={project.id} label={formatProjectLabel(project)}>
-									<ProjectLabel {project} className="flex-1 min-w-0" />
-								</SelectItem>
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div class="grid gap-2">
 					<Label>Tipo</Label>
 					<Select type="single" bind:value={entryType} disabled={submitting}>
 						<SelectTrigger class="w-full">
@@ -294,6 +298,30 @@
 						</SelectContent>
 					</Select>
 				</div>
+
+				{#if isWorkType}
+					<div class="grid gap-2">
+						<Label>Proyecto</Label>
+						<Select type="single" bind:value={projectId} disabled={submitting}>
+							<SelectTrigger class="w-full min-w-0">
+								<div class="flex min-w-0 items-center">
+									{#if selectedProject}
+										<ProjectLabel project={selectedProject} truncate />
+									{:else}
+										<span class="text-muted-foreground">Seleccionar proyecto</span>
+									{/if}
+								</div>
+							</SelectTrigger>
+							<SelectContent>
+								{#each activeProjects as project (project.id)}
+									<SelectItem value={project.id} label={formatProjectLabel(project)}>
+										<ProjectLabel {project} className="flex-1 min-w-0" />
+									</SelectItem>
+								{/each}
+							</SelectContent>
+						</Select>
+					</div>
+				{/if}
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

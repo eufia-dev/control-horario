@@ -71,7 +71,7 @@ export type ActiveTimer = {
 };
 
 export type CreateTimeEntryDto = {
-	projectId: string;
+	projectId?: string;
 	entryType: string;
 	startTime: string;
 	endTime: string;
@@ -89,13 +89,13 @@ export type UpdateTimeEntryDto = {
 };
 
 export type StartTimerDto = {
-	projectId: string;
+	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
 };
 
 export type SwitchTimerDto = {
-	projectId: string;
+	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
 };
