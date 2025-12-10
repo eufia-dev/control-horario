@@ -905,7 +905,7 @@
 													</Tooltip>
 												</TableCell>
 												<TableCell class="font-medium">
-													{formatDuration(entry.durationMinutes)}
+													{formatDuration(entry.minutes)}
 												</TableCell>
 												<TableCell>
 													<div class="flex items-center gap-1">
