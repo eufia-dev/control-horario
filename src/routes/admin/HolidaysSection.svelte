@@ -5,6 +5,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		Tooltip,
 		TooltipContent,
@@ -121,14 +122,20 @@
 			Días Festivos
 		</CardTitle>
 		<div class="flex items-center gap-2">
-			<select
-				class="h-9 px-3 rounded-md border border-input bg-background text-sm"
-				bind:value={selectedYear}
+			<Select
+				type="single"
+				value={selectedYear.toString()}
+				onValueChange={(value) => value && (selectedYear = Number(value))}
 			>
-				{#each [selectedYear - 1, selectedYear, selectedYear + 1] as year (year)}
-					<option value={year}>{year}</option>
-				{/each}
-			</select>
+				<SelectTrigger class="w-[120px]" size="sm">
+					{selectedYear}
+				</SelectTrigger>
+				<SelectContent>
+					{#each [selectedYear - 1, selectedYear, selectedYear + 1] as year (year)}
+						<SelectItem value={year.toString()} label={year.toString()} />
+					{/each}
+				</SelectContent>
+			</Select>
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger>
