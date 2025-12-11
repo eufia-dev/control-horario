@@ -23,7 +23,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { Separator } from '$lib/components/ui/separator';
-	import OnboardingSteps from '$lib/components/onboarding-steps.svelte';
+	import OnboardingSteps from '$lib/components/OnboardingSteps.svelte';
 
 	const steps = [
 		{ label: 'Tu perfil', completed: true },

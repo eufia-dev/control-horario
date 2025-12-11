@@ -18,7 +18,7 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import JoinRequestDialog from '$lib/components/join-request-dialog.svelte';
+	import JoinRequestDialog from './JoinRequestDialog.svelte';
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import { formatDate } from './helpers';
 

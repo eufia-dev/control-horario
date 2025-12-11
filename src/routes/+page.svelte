@@ -22,10 +22,13 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import TimeEntryFormModal from '$lib/components/time-entry-form-modal.svelte';
-	import TimeEntryDeleteDialog from '$lib/components/time-entry-delete-dialog.svelte';
-	import ExternalHoursFormModal from '$lib/components/external-hours-form-modal.svelte';
-	import ExternalHoursDeleteDialog from '$lib/components/external-hours-delete-dialog.svelte';
+	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
+	import TimeEntryDeleteDialog from './TimeEntryDeleteDialog.svelte';
+	import ExternalHoursFormModal from './ExternalHoursFormModal.svelte';
+	import ExternalHoursDeleteDialog from './ExternalHoursDeleteDialog.svelte';
+	import ComplianceWidget from './ComplianceWidget.svelte';
+	import MissingLogsAlert from './MissingLogsAlert.svelte';
+	import PendingAbsencesWidget from './PendingAbsencesWidget.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import {
 		fetchMyTimeEntries,
@@ -44,8 +47,10 @@
 		type External,
 		type ExternalHours
 	} from '$lib/api/externals';
+	import { fetchMyCalendar, type CalendarResponse } from '$lib/api/calendar';
+	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
 	import { isAdmin as isAdminStore } from '$lib/stores/auth';
-	import ProjectLabel from '$lib/components/project-label.svelte';
+	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import { formatProjectLabel } from '$lib/utils';
 
 	let isAdmin = $state(false);
@@ -98,6 +103,14 @@
 
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+	// Calendar and compliance data
+	let calendarData = $state<CalendarResponse | null>(null);
+	let absenceStats = $state<AbsenceStats | null>(null);
+	let loadingCalendar = $state(true);
+	let loadingAbsenceStats = $state(true);
+
+	const missingDays = $derived(calendarData?.days.filter((d) => d.status === 'MISSING_LOGS') ?? []);
 
 	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
 	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
@@ -257,6 +270,34 @@
 			externalHoursError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
 			loadingExternalHours = false;
+		}
+	}
+
+	async function loadCalendarData() {
+		loadingCalendar = true;
+		try {
+			const now = new Date();
+			const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+			const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+			const from = firstDay.toISOString().split('T')[0];
+			const to = lastDay.toISOString().split('T')[0];
+			calendarData = await fetchMyCalendar(from, to);
+		} catch (e) {
+			console.error('Error loading calendar data:', e);
+		} finally {
+			loadingCalendar = false;
+		}
+	}
+
+	async function loadAbsenceStats() {
+		if (!isAdmin) return;
+		loadingAbsenceStats = true;
+		try {
+			absenceStats = await fetchAbsenceStats();
+		} catch (e) {
+			console.error('Error loading absence stats:', e);
+		} finally {
+			loadingAbsenceStats = false;
 		}
 	}
 
@@ -438,6 +479,8 @@
 		loadActiveTimer();
 		loadExternals();
 		loadExternalHours();
+		loadCalendarData();
+		loadAbsenceStats();
 	});
 
 	onDestroy(() => {
@@ -446,6 +489,27 @@
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
+	<!-- Dashboard Widgets -->
+	<div class="w-full max-w-5xl mx-auto space-y-4">
+		<!-- Admin: Pending Absences Alert -->
+		{#if isAdmin}
+			<PendingAbsencesWidget
+				pendingCount={absenceStats?.pending ?? 0}
+				loading={loadingAbsenceStats}
+			/>
+		{/if}
+
+		<!-- Missing Logs Alert -->
+		<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+
+		<!-- Compliance Widget (only if there's data) -->
+		{#if calendarData?.summary && calendarData.summary.workingDays > 0}
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<ComplianceWidget summary={calendarData.summary} loading={loadingCalendar} />
+			</div>
+		{/if}
+	</div>
+
 	<Card class="w-full max-w-5xl mx-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
@@ -560,7 +624,9 @@
 								</Button>
 								<Button
 									onclick={handleSwitchTimer}
-									disabled={!switchEntryType || (isSwitchWorkType && !switchProjectId) || switchingTimer}
+									disabled={!switchEntryType ||
+										(isSwitchWorkType && !switchProjectId) ||
+										switchingTimer}
 								>
 									{#if switchingTimer}
 										<span class="material-symbols-rounded animate-spin text-base"

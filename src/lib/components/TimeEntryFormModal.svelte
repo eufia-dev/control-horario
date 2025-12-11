@@ -30,7 +30,7 @@
 		type UpdateTimeEntryDto
 	} from '$lib/api/time-entries';
 	import type { Project } from '$lib/api/projects';
-	import ProjectLabel from '$lib/components/project-label.svelte';
+	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 
 	type Props = {
 		open: boolean;
@@ -398,7 +398,9 @@
 					</Label>
 				</div>
 				<div class="text-sm text-muted-foreground">
-					Duración: <span class="font-medium text-foreground">{formatDuration(durationMinutes)}</span>
+					Duración: <span class="font-medium text-foreground"
+						>{formatDuration(durationMinutes)}</span
+					>
 				</div>
 			</div>
 

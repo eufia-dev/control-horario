@@ -18,8 +18,8 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import ProjectFormModal from '$lib/components/project-form-modal.svelte';
-	import ProjectDeleteDialog from '$lib/components/project-delete-dialog.svelte';
+	import ProjectFormModal from './ProjectFormModal.svelte';
+	import ProjectDeleteDialog from './ProjectDeleteDialog.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { formatDate } from './helpers';
 

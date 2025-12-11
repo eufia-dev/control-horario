@@ -18,8 +18,8 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import InvitationFormModal from '$lib/components/invitation-form-modal.svelte';
-	import InvitationDeleteDialog from '$lib/components/invitation-delete-dialog.svelte';
+	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
+	import InvitationDeleteDialog from './InvitationDeleteDialog.svelte';
 	import { fetchInvitations, type Invitation } from '$lib/api/invitations';
 	import { formatDate, getRoleBadge, getRelationTypeBadge } from './helpers';
 

@@ -18,9 +18,9 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import UserFormModal from '$lib/components/user-form-modal.svelte';
-	import UserDeleteDialog from '$lib/components/user-delete-dialog.svelte';
-	import InvitationFormModal from '$lib/components/invitation-form-modal.svelte';
+	import UserFormModal from './UserFormModal.svelte';
+	import UserDeleteDialog from './UserDeleteDialog.svelte';
+	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
 	import { fetchUsers, type User } from '$lib/api/users';
 	import { formatCurrency, formatDate, getRoleBadge, getRelationTypeBadge } from './helpers';
 

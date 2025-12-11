@@ -38,12 +38,7 @@
 
 	const publicRoutes = ['/login', '/register', '/reset-password'];
 
-	const onboardingRoutes = [
-		'/onboarding',
-		'/onboarding/create-company',
-		'/onboarding/join',
-		'/onboarding/status'
-	];
+	const onboardingRoutes = ['/onboarding', '/onboarding/join', '/onboarding/status'];
 
 	const inviteRoutePrefix = '/invite/';
 	const authCallbackPrefix = '/auth/callback';
@@ -214,20 +209,30 @@
 					{/if}
 				</a>
 
-				{#if isAuthed && isUserAdmin}
+				{#if isAuthed}
 					<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
 						<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
 							<span class="material-symbols-rounded text-lg!">schedule</span>
 							<span>Fichajes</span>
 						</Button>
-						<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
-							<span class="material-symbols-rounded text-lg!">settings</span>
-							<span>Configuración</span>
+						<Button href={resolve('/calendar')} variant="ghost" size="sm" class="gap-1.5">
+							<span class="material-symbols-rounded text-lg!">calendar_month</span>
+							<span>Calendario</span>
 						</Button>
-						<Button href={resolve('/analytics')} variant="ghost" size="sm" class="gap-1.5">
-							<span class="material-symbols-rounded text-lg!">analytics</span>
-							<span>Analíticas</span>
+						<Button href={resolve('/absences')} variant="ghost" size="sm" class="gap-1.5">
+							<span class="material-symbols-rounded text-lg!">beach_access</span>
+							<span>Ausencias</span>
 						</Button>
+						{#if isUserAdmin}
+							<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">settings</span>
+								<span>Configuración</span>
+							</Button>
+							<Button href={resolve('/analytics')} variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">analytics</span>
+								<span>Analíticas</span>
+							</Button>
+						{/if}
 					</nav>
 				{/if}
 			</div>
@@ -295,17 +300,37 @@
 								{user.companyName}
 							</div>
 						{/if}
+						<Button
+							href={resolve('/')}
+							variant="ghost"
+							size="lg"
+							class="justify-start gap-4 h-14 text-lg"
+							onclick={() => (mobileMenuOpen = false)}
+						>
+							<span class="material-symbols-rounded text-2xl!">schedule</span>
+							<span>Fichajes</span>
+						</Button>
+						<Button
+							href={resolve('/calendar')}
+							variant="ghost"
+							size="lg"
+							class="justify-start gap-4 h-14 text-lg"
+							onclick={() => (mobileMenuOpen = false)}
+						>
+							<span class="material-symbols-rounded text-2xl!">calendar_month</span>
+							<span>Calendario</span>
+						</Button>
+						<Button
+							href={resolve('/absences')}
+							variant="ghost"
+							size="lg"
+							class="justify-start gap-4 h-14 text-lg"
+							onclick={() => (mobileMenuOpen = false)}
+						>
+							<span class="material-symbols-rounded text-2xl!">beach_access</span>
+							<span>Ausencias</span>
+						</Button>
 						{#if isUserAdmin}
-							<Button
-								href={resolve('/')}
-								variant="ghost"
-								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
-							>
-								<span class="material-symbols-rounded text-2xl!">schedule</span>
-								<span>Fichajes</span>
-							</Button>
 							<Button
 								href={resolve('/admin')}
 								variant="ghost"

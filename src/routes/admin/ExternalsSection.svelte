@@ -18,8 +18,8 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import ExternalFormModal from '$lib/components/external-form-modal.svelte';
-	import ExternalDeleteDialog from '$lib/components/external-delete-dialog.svelte';
+	import ExternalFormModal from './ExternalFormModal.svelte';
+	import ExternalDeleteDialog from './ExternalDeleteDialog.svelte';
 	import { fetchExternals, type External } from '$lib/api/externals';
 	import { formatCurrency, formatDate } from './helpers';
 

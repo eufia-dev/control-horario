@@ -53,6 +53,12 @@ export type CreateCompanyDto = {
 	companyName: string;
 	cif?: string;
 	userName: string;
+	// Location fields (all required)
+	regionCode: string;
+	provinceCode: string;
+	municipalityName: string;
+	address: string;
+	postalCode: string;
 };
 
 export type RequestJoinDto = {

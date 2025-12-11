@@ -29,7 +29,7 @@
 		type UpdateExternalHoursDto
 	} from '$lib/api/externals';
 	import type { Project } from '$lib/api/projects';
-	import ProjectLabel from '$lib/components/project-label.svelte';
+	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 
 	type Props = {
 		open: boolean;

@@ -188,7 +188,9 @@
 						class="flex items-center gap-3 p-4 mb-6 bg-success/10 text-success rounded-lg border border-success/20"
 					>
 						<span class="material-symbols-rounded text-2xl!">check_circle</span>
-						<p class="text-sm">Tu correo electrónico ha sido confirmado. Ya puedes iniciar sesión.</p>
+						<p class="text-sm">
+							Tu correo electrónico ha sido confirmado. Ya puedes iniciar sesión.
+						</p>
 					</div>
 				{/if}
 				<form
@@ -275,7 +277,6 @@
 
 						<a
 							href={`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
-
 							class="w-full"
 						>
 							<Button variant="outline" class="w-full gap-2" type="button">
