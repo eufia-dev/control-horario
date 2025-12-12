@@ -6,7 +6,6 @@ const API_BASE = PUBLIC_API_URL;
 // Types
 export type LocationResponse = {
 	id: string;
-	country: string;
 	regionCode: string;
 	provinceCode: string | null;
 	municipalityName: string | null;
