@@ -20,7 +20,7 @@
 	<CardContent class="space-y-4">
 		<Field>
 			<FieldLabel>
-				<Label for="user-name">Nombre *</Label>
+				<Label for="user-name">Nombre completo *</Label>
 			</FieldLabel>
 			<Input
 				id="user-name"

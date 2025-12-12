@@ -214,7 +214,7 @@
 						<Input
 							id="email"
 							type="email"
-							placeholder="tu@ejemplo.com"
+							placeholder="usuario@ejemplo.com"
 							bind:value={email}
 							required
 							autocomplete="email"
@@ -260,7 +260,7 @@
 							<InputGroupInput
 								id="confirm-password"
 								type={showConfirmPassword ? 'text' : 'password'}
-								placeholder="Repite tu contraseña"
+								placeholder="Repite la contraseña"
 								bind:value={confirmPassword}
 								required
 								autocomplete="new-password"

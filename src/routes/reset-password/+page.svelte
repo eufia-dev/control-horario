@@ -111,7 +111,7 @@
 							<Input
 								id="email"
 								type="email"
-								placeholder="tu@ejemplo.com"
+								placeholder="usuario@ejemplo.com"
 								bind:value={email}
 								required
 								autocomplete="email"

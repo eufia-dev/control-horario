@@ -136,7 +136,7 @@
 					para aceptarla.
 				</p>
 				<div class="space-y-2">
-					<Label for="user-name">Tu nombre</Label>
+					<Label for="user-name">Nombre completo</Label>
 					<Input
 						id="user-name"
 						type="text"
@@ -169,7 +169,7 @@
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
-					<Label for="user-name-complete">Tu nombre</Label>
+					<Label for="user-name-complete">Nombre completo</Label>
 					<Input
 						id="user-name-complete"
 						type="text"
@@ -210,7 +210,7 @@
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
-					<Label for="user-name-error">Tu nombre</Label>
+					<Label for="user-name-error">Nombre completo</Label>
 					<Input
 						id="user-name-error"
 						type="text"

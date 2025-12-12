@@ -108,11 +108,11 @@
 					{#if isEditing}
 						<div class="w-full space-y-4">
 							<div class="grid gap-2">
-								<Label for="edit-name">Nombre</Label>
+								<Label for="edit-name">Nombre completo</Label>
 								<Input
 									id="edit-name"
 									bind:value={editName}
-									placeholder="Tu nombre"
+									placeholder="Juan García"
 									disabled={submitting}
 								/>
 							</div>
@@ -122,7 +122,7 @@
 									id="edit-email"
 									type="email"
 									bind:value={editEmail}
-									placeholder="tu@email.com"
+									placeholder="usuario@email.com"
 									disabled={submitting}
 								/>
 							</div>

@@ -26,7 +26,7 @@
 	import OnboardingSteps from '$lib/components/OnboardingSteps.svelte';
 
 	const steps = [
-		{ label: 'Tu perfil', completed: true },
+		{ label: 'Perfil', completed: true },
 		{ label: 'Elige una opción', completed: true },
 		{ label: 'Únete a una empresa' }
 	];
@@ -107,7 +107,7 @@
 		const trimmedName = userName.trim();
 
 		if (!trimmedName) {
-			submitError = 'Tu nombre es obligatorio';
+			submitError = 'El nombre es obligatorio';
 			return;
 		}
 

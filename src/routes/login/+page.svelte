@@ -16,6 +16,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
+	import type { RouteId } from './$types';
 
 	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
 	const emailConfirmed = $derived($page.url.searchParams.get('confirmed') === '1');
@@ -50,7 +51,7 @@
 			const status = await login(email, password);
 
 			if (redirectUrl) {
-				await goto(resolve(redirectUrl));
+				await goto(resolve(redirectUrl as RouteId));
 				return;
 			}
 
@@ -149,7 +150,7 @@
 							<Input
 								id="forgot-email"
 								type="email"
-								placeholder="tu@ejemplo.com"
+								placeholder="usuario@ejemplo.com"
 								bind:value={forgotEmail}
 								required
 								autocomplete="email"
@@ -207,7 +208,7 @@
 						<Input
 							id="email"
 							type="email"
-							placeholder="tu@ejemplo.com"
+							placeholder="usuario@ejemplo.com"
 							bind:value={email}
 							required
 							autocomplete="email"
@@ -222,7 +223,7 @@
 							<InputGroupInput
 								id="password"
 								type={showPassword ? 'text' : 'password'}
-								placeholder="Introduce tu contraseña"
+								placeholder="Introduce la contraseña"
 								bind:value={password}
 								required
 								minlength={6}

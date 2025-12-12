@@ -156,7 +156,7 @@
 
 		<form onsubmit={handleSubmit} class="grid gap-4 py-4">
 			<div class="grid gap-2">
-				<Label for="name">Nombre</Label>
+				<Label for="name">Nombre completo</Label>
 				<Input id="name" bind:value={name} placeholder="Nombre del usuario" disabled={submitting} />
 			</div>
 

@@ -138,7 +138,7 @@
 					<Textarea
 						id="review-notes"
 						bind:value={notes}
-						placeholder="Añade un comentario a tu decisión..."
+						placeholder="Añade un comentario..."
 						disabled={submitting}
 						rows={2}
 					/>

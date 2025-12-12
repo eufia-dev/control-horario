@@ -22,6 +22,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
+	import type { RouteId } from './$types';
 
 	let isLoading = $state(true);
 	let isPasswordReset = $state(false);
@@ -54,7 +55,7 @@
 		if (result.mode === 'signin' && result.nextRoute) {
 			auth.setInitializing(false);
 			isLoading = false;
-			await goto(resolve(result.nextRoute), { replaceState: true });
+			await goto(resolve(result.nextRoute as RouteId), { replaceState: true });
 			return;
 		}
 
@@ -138,7 +139,7 @@
 				{:else}
 					<div class="space-y-4">
 						<p class="text-sm text-muted-foreground">
-							Si tu enlace de confirmación ha expirado, puedes solicitar uno nuevo introduciendo tu
+							Si el enlace de confirmación ha expirado, puedes solicitar uno nuevo introduciendo tu
 							correo electrónico:
 						</p>
 						<form
@@ -155,7 +156,7 @@
 								<Input
 									id="resendEmail"
 									type="email"
-									placeholder="tu@ejemplo.com"
+									placeholder="usuario@ejemplo.com"
 									bind:value={resendEmail}
 									required
 									autocomplete="email"
@@ -191,9 +192,9 @@
 				</CardTitle>
 				<CardDescription>
 					{#if passwordUpdated}
-						Tu contraseña ha sido actualizada correctamente.
+						La contraseña ha sido actualizada correctamente.
 					{:else}
-						Introduce tu nueva contraseña.
+						Introduce la nueva contraseña.
 					{/if}
 				</CardDescription>
 			</CardHeader>
@@ -204,7 +205,7 @@
 							class="flex items-center gap-3 p-4 bg-success/10 text-success rounded-lg border border-success/20"
 						>
 							<span class="material-symbols-rounded text-2xl!">check_circle</span>
-							<p class="text-sm">Ya puedes iniciar sesión con tu nueva contraseña.</p>
+							<p class="text-sm">Ya puedes iniciar sesión con la nueva contraseña.</p>
 						</div>
 						<Button href={resolve('/login')} class="w-full">Iniciar sesión</Button>
 					</div>
