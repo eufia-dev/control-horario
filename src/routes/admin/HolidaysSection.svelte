@@ -5,7 +5,6 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import {
 		Tooltip,
 		TooltipContent,
@@ -122,20 +121,27 @@
 			Días Festivos
 		</CardTitle>
 		<div class="flex items-center gap-2">
-			<Select
-				type="single"
-				value={selectedYear.toString()}
-				onValueChange={(value) => value && (selectedYear = Number(value))}
-			>
-				<SelectTrigger class="w-[120px]" size="sm">
-					{selectedYear}
-				</SelectTrigger>
-				<SelectContent>
-					{#each [selectedYear - 1, selectedYear, selectedYear + 1] as year (year)}
-						<SelectItem value={year.toString()} label={year.toString()} />
-					{/each}
-				</SelectContent>
-			</Select>
+			<div class="flex items-center gap-4">
+				<Button
+					variant="outline"
+					size="sm"
+					aria-label="Año anterior"
+					onclick={() => (selectedYear = selectedYear - 1)}
+					disabled={loading || syncing}
+				>
+					<span class="material-symbols-rounded text-lg!">chevron_left</span>
+				</Button>
+				<div class="text-center text-sm font-medium tabular-nums">{selectedYear}</div>
+				<Button
+					variant="outline"
+					size="sm"
+					aria-label="Año siguiente"
+					onclick={() => (selectedYear = selectedYear + 1)}
+					disabled={loading || syncing}
+				>
+					<span class="material-symbols-rounded text-lg!">chevron_right</span>
+				</Button>
+			</div>
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger>

@@ -27,15 +27,32 @@
 	let loadingProjects = $state(true);
 	let loadingTypes = $state(true);
 
+	function formatLocalDateKey(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
 	function getMonthRange(date: Date): { from: string; to: string } {
 		const year = date.getFullYear();
 		const month = date.getMonth();
 		const firstDay = new Date(year, month, 1);
 		const lastDay = new Date(year, month + 1, 0);
 
+		// Expand to cover the full weeks visible in a typical month grid (Mon..Sun).
+		// JS Date#getDay(): 0=Sun .. 6=Sat. Convert to Monday-based index: 0=Mon .. 6=Sun.
+		const firstDowMon0 = (firstDay.getDay() + 6) % 7;
+		const start = new Date(firstDay);
+		start.setDate(firstDay.getDate() - firstDowMon0);
+
+		const lastDowMon0 = (lastDay.getDay() + 6) % 7;
+		const end = new Date(lastDay);
+		end.setDate(lastDay.getDate() + (6 - lastDowMon0));
+
 		return {
-			from: firstDay.toISOString().split('T')[0],
-			to: lastDay.toISOString().split('T')[0]
+			from: formatLocalDateKey(start),
+			to: formatLocalDateKey(end)
 		};
 	}
 

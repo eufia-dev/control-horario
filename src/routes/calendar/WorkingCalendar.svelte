@@ -27,36 +27,55 @@
 		currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 	);
 
-	// Group days into weeks (starting Monday)
+	function formatLocalDateKey(date: Date): string {
+		const y = date.getFullYear();
+		const m = String(date.getMonth() + 1).padStart(2, '0');
+		const d = String(date.getDate()).padStart(2, '0');
+		return `${y}-${m}-${d}`;
+	}
+
+	function parseDateKey(dateKey: string): Date {
+		const [y, m, d] = dateKey.split('-').map(Number);
+		return new Date(y, (m ?? 1) - 1, d ?? 1);
+	}
+
+	function getVisibleRangeForMonth(month: Date): { start: Date; end: Date } {
+		const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+		const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+		// Monday-based index: 0=Mon .. 6=Sun
+		const firstDowMon0 = (firstDay.getDay() + 6) % 7;
+		const start = new Date(firstDay);
+		start.setDate(firstDay.getDate() - firstDowMon0);
+
+		const lastDowMon0 = (lastDay.getDay() + 6) % 7;
+		const end = new Date(lastDay);
+		end.setDate(lastDay.getDate() + (6 - lastDowMon0));
+
+		return { start, end };
+	}
+
+	// Build grid weeks for the full visible range (Mon..Sun), filling from API days when present.
 	const weeksInMonth = $derived.by(() => {
+		const dayByDate = new Map<string, CalendarDay>();
+		for (const day of days) dayByDate.set(day.date, day);
+
+		const { start, end } = getVisibleRangeForMonth(currentMonth);
+
 		const weeks: (CalendarDay | null)[][] = [];
 		let currentWeek: (CalendarDay | null)[] = [];
 
-		// Get first day of month
-		const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-		// In JS, Sunday = 0, but we want Monday = 0
-		let startDayOfWeek = firstDay.getDay() - 1;
-		if (startDayOfWeek < 0) startDayOfWeek = 6;
+		const cursor = new Date(start);
+		while (cursor <= end) {
+			const key = formatLocalDateKey(cursor);
+			currentWeek.push(dayByDate.get(key) ?? null);
 
-		// Add empty cells for days before the first of the month
-		for (let i = 0; i < startDayOfWeek; i++) {
-			currentWeek.push(null);
-		}
-
-		for (const day of days) {
-			currentWeek.push(day);
 			if (currentWeek.length === 7) {
 				weeks.push(currentWeek);
 				currentWeek = [];
 			}
-		}
 
-		// Fill remaining days of last week
-		while (currentWeek.length > 0 && currentWeek.length < 7) {
-			currentWeek.push(null);
-		}
-		if (currentWeek.length > 0) {
-			weeks.push(currentWeek);
+			cursor.setDate(cursor.getDate() + 1);
 		}
 
 		return weeks;
@@ -76,7 +95,7 @@
 	}
 
 	function getDayNumber(dateString: string): number {
-		return new Date(dateString).getDate();
+		return parseDateKey(dateString).getDate();
 	}
 
 	function getDayLabel(day: CalendarDay): string {
@@ -156,12 +175,16 @@
 					{#each week as day, dayIndex (day ? day.date : `empty-${weekIndex}-${dayIndex}`)}
 						{#if day}
 							{@const styles = getDayStyles(day.status)}
+							{@const dayDate = parseDateKey(day.date)}
+							{@const isOutsideMonth =
+								dayDate.getMonth() !== currentMonth.getMonth() ||
+								dayDate.getFullYear() !== currentMonth.getFullYear()}
 							{@const dayLabel = getDayLabel(day)}
 							<Tooltip>
 								<TooltipTrigger>
 									<button
 										type="button"
-										class="w-full p-2 min-h-[72px] flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass}"
+										class="w-full p-2 min-h-[72px] flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {isOutsideMonth ? 'opacity-60' : ''}"
 										onclick={() => onDayClick(day)}
 									>
 										<span class="text-sm font-medium {styles.textClass}">
