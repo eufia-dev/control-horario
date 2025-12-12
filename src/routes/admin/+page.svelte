@@ -10,6 +10,7 @@
 	import JoinRequestsSection from './JoinRequestsSection.svelte';
 	import LocationSection from './LocationSection.svelte';
 	import HolidaysSection from './HolidaysSection.svelte';
+	import SchedulesSection from './SchedulesSection.svelte';
 
 	let isAdmin = $state(false);
 	$effect(() => {
@@ -39,6 +40,7 @@
 	<div class="grow flex flex-col gap-6 p-6">
 		<LocationSection />
 		<HolidaysSection />
+		<SchedulesSection />
 		<ProjectsSection />
 		<UsersSection />
 		<InvitationsSection />
