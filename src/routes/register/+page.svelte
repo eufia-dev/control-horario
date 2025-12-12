@@ -16,6 +16,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
+	import type { RouteId } from './$types';
 
 	let email = $state('');
 	let password = $state('');
@@ -34,7 +35,21 @@
 	let resendSuccess = $state(false);
 	let resendError = $state<string | null>(null);
 
-	const redirectUrl = $derived($page.url.searchParams.get('redirect'));
+	const redirectUrl = $derived($page.url.searchParams.get('redirect')) as RouteId | null;
+
+	const validatePassword = (pwd: string): string | null => {
+		if (
+			pwd.length < 8 ||
+			!/[A-Z]/.test(pwd) ||
+			!/[a-z]/.test(pwd) ||
+			!/\d/.test(pwd) ||
+			!/[^a-zA-Z0-9]/.test(pwd)
+		) {
+			return 'La contraseña debe contener al menos 8 caracteres, mayúscula, minúscula, número y carácter especial.';
+		}
+
+		return null;
+	};
 
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
@@ -43,8 +58,9 @@
 		passwordError = null;
 		confirmPasswordError = null;
 
-		if (password.length < 8) {
-			passwordError = 'La contraseña debe tener al menos 8 caracteres.';
+		const passwordValidationError = validatePassword(password);
+		if (passwordValidationError) {
+			passwordError = passwordValidationError;
 			return;
 		}
 
@@ -216,7 +232,6 @@
 								placeholder="Mínimo 8 caracteres"
 								bind:value={password}
 								required
-								minlength={8}
 								autocomplete="new-password"
 								oninput={() => {
 									if (passwordError) passwordError = null;
@@ -248,7 +263,6 @@
 								placeholder="Repite tu contraseña"
 								bind:value={confirmPassword}
 								required
-								minlength={8}
 								autocomplete="new-password"
 								oninput={() => {
 									if (confirmPasswordError) confirmPasswordError = null;
