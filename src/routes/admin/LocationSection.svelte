@@ -42,12 +42,12 @@
 	let loadingMunicipalities = $state(false);
 
 	// Derived values
-	const availableProvinces = $derived(
-		editRegionCode ? getProvincesByRegion(editRegionCode) : []
-	);
+	const availableProvinces = $derived(editRegionCode ? getProvincesByRegion(editRegionCode) : []);
 
 	const editRegionName = $derived(editRegionCode ? getRegionName(editRegionCode) : undefined);
-	const editProvinceName = $derived(editProvinceCode ? getProvinceName(editProvinceCode) : undefined);
+	const editProvinceName = $derived(
+		editProvinceCode ? getProvinceName(editProvinceCode) : undefined
+	);
 
 	// Postal code validation
 	const postalCodeError = $derived.by(() => {
@@ -64,11 +64,11 @@
 	// Form validity
 	const isFormValid = $derived(
 		editRegionCode &&
-		editProvinceCode &&
-		editMunicipalityName &&
-		editAddress.trim() &&
-		editPostalCode.trim() &&
-		!postalCodeError
+			editProvinceCode &&
+			editMunicipalityName &&
+			editAddress.trim() &&
+			editPostalCode.trim() &&
+			!postalCodeError
 	);
 
 	async function loadLocation() {
@@ -275,7 +275,8 @@
 					{:else}
 						<p class="text-xs text-muted-foreground flex items-start gap-1.5">
 							<span class="material-symbols-rounded text-sm!">info</span>
-							<span>Al introducir el código postal se autocompletará la provincia y comunidad.</span>
+							<span>Al introducir el código postal se autocompletará la provincia y comunidad.</span
+							>
 						</p>
 					{/if}
 				</div>
@@ -344,7 +345,9 @@
 							<SelectTrigger class="w-full">
 								{#if loadingMunicipalities}
 									<span class="text-muted-foreground flex items-center gap-2">
-										<span class="material-symbols-rounded animate-spin text-sm!">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin text-sm!"
+											>progress_activity</span
+										>
 										Cargando...
 									</span>
 								{:else if editMunicipalityName}
@@ -356,8 +359,8 @@
 								{/if}
 							</SelectTrigger>
 							<SelectContent>
-									{#each municipalities as municipality (municipality)}
-										<SelectItem value={municipality} label={municipality} />
+								{#each municipalities as municipality (municipality)}
+									<SelectItem value={municipality} label={municipality} />
 								{/each}
 							</SelectContent>
 						</Select>

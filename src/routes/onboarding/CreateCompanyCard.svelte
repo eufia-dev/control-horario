@@ -1,6 +1,6 @@
 <script lang="ts">
-import { createCompany } from '$lib/api/onboarding';
-import { fetchMunicipalities } from '$lib/api/company-location';
+	import { createCompany } from '$lib/api/onboarding';
+	import { fetchMunicipalities } from '$lib/api/company-location';
 	import {
 		SPAIN_REGIONS,
 		getProvincesByRegion,
@@ -9,7 +9,6 @@ import { fetchMunicipalities } from '$lib/api/company-location';
 		deriveLocationFromPostalCode,
 		isValidPostalCodeFormat,
 		isPostalCodeConsistentWithProvince,
-		type SpainProvince
 	} from '$lib/data/spain-locations';
 	import { auth } from '$lib/stores/auth';
 	import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
@@ -38,9 +37,9 @@ import { fetchMunicipalities } from '$lib/api/company-location';
 	let address = $state('');
 	let postalCode = $state('');
 
-// Municipalities loaded from API (plain names)
-let municipalities = $state<string[]>([]);
-let loadingMunicipalities = $state(false);
+	// Municipalities loaded from API (plain names)
+	let municipalities = $state<string[]>([]);
+	let loadingMunicipalities = $state(false);
 
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
@@ -64,7 +63,10 @@ let loadingMunicipalities = $state(false);
 		if (!isValidPostalCodeFormat(postalCode)) {
 			return 'El código postal debe tener 5 dígitos';
 		}
-		if (selectedProvinceCode && !isPostalCodeConsistentWithProvince(postalCode, selectedProvinceCode)) {
+		if (
+			selectedProvinceCode &&
+			!isPostalCodeConsistentWithProvince(postalCode, selectedProvinceCode)
+		) {
 			return 'El código postal no corresponde a la provincia seleccionada';
 		}
 		return null;
@@ -73,13 +75,13 @@ let loadingMunicipalities = $state(false);
 	// Form validity
 	const isFormValid = $derived(
 		companyName.trim() &&
-		userName.trim() &&
-		selectedRegionCode &&
-		selectedProvinceCode &&
-		selectedMunicipalityName &&
-		address.trim() &&
-		postalCode.trim() &&
-		!postalCodeError
+			userName.trim() &&
+			selectedRegionCode &&
+			selectedProvinceCode &&
+			selectedMunicipalityName &&
+			address.trim() &&
+			postalCode.trim() &&
+			!postalCodeError
 	);
 
 	// Load municipalities when province changes
@@ -285,9 +287,13 @@ let loadingMunicipalities = $state(false);
 						{#if postalCodeError}
 							<FieldError class="text-xs text-destructive">{postalCodeError}</FieldError>
 						{:else}
-							<FieldDescription class="text-xs text-muted-foreground flex items-start gap-1.5 mt-1.5">
+							<FieldDescription
+								class="text-xs text-muted-foreground flex items-start gap-1.5 mt-1.5"
+							>
 								<span class="material-symbols-rounded text-sm!">info</span>
-								<span>Al introducir el código postal se autocompletará la provincia y comunidad.</span>
+								<span
+									>Al introducir el código postal se autocompletará la provincia y comunidad.</span
+								>
 							</FieldDescription>
 						{/if}
 					</Field>
@@ -339,7 +345,9 @@ let loadingMunicipalities = $state(false);
 										{selectedProvinceName}
 									{:else}
 										<span class="text-muted-foreground">
-											{selectedRegionCode ? 'Seleccionar provincia' : 'Selecciona comunidad primero'}
+											{selectedRegionCode
+												? 'Seleccionar provincia'
+												: 'Selecciona comunidad primero'}
 										</span>
 									{/if}
 								</SelectTrigger>
@@ -364,14 +372,18 @@ let loadingMunicipalities = $state(false);
 								<SelectTrigger class="w-full">
 									{#if loadingMunicipalities}
 										<span class="text-muted-foreground flex items-center gap-2">
-											<span class="material-symbols-rounded animate-spin text-sm!">progress_activity</span>
+											<span class="material-symbols-rounded animate-spin text-sm!"
+												>progress_activity</span
+											>
 											Cargando...
 										</span>
 									{:else if selectedMunicipalityName}
 										{selectedMunicipalityName}
 									{:else}
 										<span class="text-muted-foreground">
-											{selectedProvinceCode ? 'Seleccionar municipio' : 'Selecciona provincia primero'}
+											{selectedProvinceCode
+												? 'Seleccionar municipio'
+												: 'Selecciona provincia primero'}
 										</span>
 									{/if}
 								</SelectTrigger>
