@@ -176,14 +176,16 @@
 			</div>
 		{:else}
 			<Tabs bind:value={activeTab} class="w-full">
-				<TabsList class="mb-4">
-					<TabsTrigger value="public">
-						Festivos Públicos ({publicHolidays.length})
-					</TabsTrigger>
-					<TabsTrigger value="company">
-						Festivos de Empresa ({companyHolidays.length})
-					</TabsTrigger>
-				</TabsList>
+				<div class="mb-4 overflow-x-auto">
+					<TabsList class="w-fit">
+						<TabsTrigger value="public">
+							Festivos Públicos ({publicHolidays.length})
+						</TabsTrigger>
+						<TabsTrigger value="company">
+							Festivos de Empresa ({companyHolidays.length})
+						</TabsTrigger>
+					</TabsList>
+				</div>
 
 				<TabsContent value="public">
 					{#if publicHolidays.length === 0}

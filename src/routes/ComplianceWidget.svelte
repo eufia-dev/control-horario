@@ -30,7 +30,7 @@
 </script>
 
 <Card class="w-full flex-1">
-	<CardHeader class="flex items-center justify-between">
+	<CardHeader class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
 		<CardTitle class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
 			<span class="material-symbols-rounded text-lg!">analytics</span>
 			Cumplimiento Este Mes

@@ -122,7 +122,7 @@
 	</div>
 
 	<!-- Summary Bar -->
-	<div class="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted/50 rounded-lg text-sm gap-4">
 		<div class="flex items-center gap-4 flex-wrap">
 			<div class="flex items-center gap-1.5">
 				<span class="material-symbols-rounded text-success text-lg!">check_circle</span>

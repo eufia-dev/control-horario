@@ -6,7 +6,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import AbsenceCard from '$lib/components/AbsenceCard.svelte';
-	import AbsenceReviewModal from './absences/AbsenceReviewModal.svelte';
+	import AbsenceReviewModal from './AbsenceReviewModal.svelte';
 	import {
 		fetchAllAbsences,
 		fetchAbsenceStats,
@@ -150,17 +150,19 @@
 				</div>
 			{:else}
 				<Tabs bind:value={activeTab} class="w-full">
-					<TabsList class="mb-4">
-						<TabsTrigger value="PENDING">
-							Pendientes
-							{#if stats && stats.pending > 0}
-								<Badge variant="destructive" class="ml-2">{stats.pending}</Badge>
-							{/if}
-						</TabsTrigger>
-						<TabsTrigger value="APPROVED">Aprobadas</TabsTrigger>
-						<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
-						<TabsTrigger value="all">Todas</TabsTrigger>
-					</TabsList>
+					<div class="mb-4 overflow-x-auto">
+						<TabsList class="w-fit">
+							<TabsTrigger value="PENDING">
+								Pendientes
+								{#if stats && stats.pending > 0}
+									<Badge variant="destructive" class="ml-2">{stats.pending}</Badge>
+								{/if}
+							</TabsTrigger>
+							<TabsTrigger value="APPROVED">Aprobadas</TabsTrigger>
+							<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
+							<TabsTrigger value="all">Todas</TabsTrigger>
+						</TabsList>
+					</div>
 
 					<TabsContent value={activeTab}>
 						{#if filteredAbsences.length === 0}

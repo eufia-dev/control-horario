@@ -25,9 +25,9 @@
 
 {#if !loading && missingDays.length > 0}
 	<Card class="bg-destructive/10 border-destructive/20 w-full flex-1">
-		<CardHeader class="flex items-center justify-between">
-			<CardTitle class="text-base font-medium text-destructive flex items-center gap-2">
-				<span class="material-symbols-rounded text-2xl!">warning</span>
+		<CardHeader class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+			<CardTitle class="text-sm font-medium text-destructive flex items-center gap-2">
+				<span class="material-symbols-rounded text-lg!">warning</span>
 				Tienes {missingDays.length}
 				{missingDays.length === 1 ? 'día' : 'días'} sin registrar
 			</CardTitle>

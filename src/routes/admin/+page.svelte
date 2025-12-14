@@ -58,24 +58,26 @@
 		</div>
 
 		<Tabs bind:value={activeTab} class="w-full">
-			<TabsList class="mb-6">
-				<TabsTrigger value="empresa" class="gap-1.5">
-					<span class="material-symbols-rounded text-lg!">business</span>
-					<span>Empresa</span>
-				</TabsTrigger>
-				<TabsTrigger value="equipo" class="gap-1.5">
-					<span class="material-symbols-rounded text-lg!">group</span>
-					<span>Equipo</span>
-				</TabsTrigger>
-				<TabsTrigger value="proyectos" class="gap-1.5">
-					<span class="material-symbols-rounded text-lg!">work</span>
-					<span>Proyectos</span>
-				</TabsTrigger>
-				<TabsTrigger value="ausencias" class="gap-1.5">
-					<span class="material-symbols-rounded text-lg!">event_available</span>
-					<span>Ausencias</span>
-				</TabsTrigger>
-			</TabsList>
+			<div class="mb-4 overflow-x-auto">
+				<TabsList class="w-fit">
+					<TabsTrigger value="empresa" class="gap-1.5">
+						<span class="material-symbols-rounded text-lg!">business</span>
+						<span>Empresa</span>
+					</TabsTrigger>
+					<TabsTrigger value="equipo" class="gap-1.5">
+						<span class="material-symbols-rounded text-lg!">group</span>
+						<span>Equipo</span>
+					</TabsTrigger>
+					<TabsTrigger value="proyectos" class="gap-1.5">
+						<span class="material-symbols-rounded text-lg!">work</span>
+						<span>Proyectos</span>
+					</TabsTrigger>
+					<TabsTrigger value="ausencias" class="gap-1.5">
+						<span class="material-symbols-rounded text-lg!">event_available</span>
+						<span>Ausencias</span>
+					</TabsTrigger>
+				</TabsList>
+			</div>
 
 			<TabsContent value="empresa" class="flex flex-col gap-6">
 				<LocationSection />

@@ -499,7 +499,7 @@
 		</div>
 	{/if}
 
-	<div class="w-full max-w-5xl mx-auto flex items-stretch gap-4">
+	<div class="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
 		<div class="flex-1 flex flex-col">
 			<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
 		</div>

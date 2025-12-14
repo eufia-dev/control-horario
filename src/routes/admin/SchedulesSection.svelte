@@ -216,16 +216,18 @@
 	</CardHeader>
 	<CardContent>
 		<Tabs bind:value={activeTab} class="w-full">
-			<TabsList class="mb-4">
-				<TabsTrigger value="company">
-					<span class="material-symbols-rounded mr-2 text-lg!">business</span>
-					Horario por Defecto
-				</TabsTrigger>
-				<TabsTrigger value="users">
-					<span class="material-symbols-rounded mr-2 text-lg!">person</span>
-					Horarios de Usuario
-				</TabsTrigger>
-			</TabsList>
+			<div class="mb-4 overflow-x-auto">
+				<TabsList class="w-fit">
+					<TabsTrigger value="company">
+						<span class="material-symbols-rounded mr-2 text-lg!">business</span>
+						Horario por Defecto
+					</TabsTrigger>
+					<TabsTrigger value="users">
+						<span class="material-symbols-rounded mr-2 text-lg!">person</span>
+						Horarios de Usuario
+					</TabsTrigger>
+				</TabsList>
+			</div>
 
 			<TabsContent value="company">
 				{#if loadingCompanySchedule}

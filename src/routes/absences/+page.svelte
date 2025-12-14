@@ -107,7 +107,7 @@
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 		<div class="flex items-center gap-2">
 			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
 				<span class="material-symbols-rounded text-lg!">arrow_back</span>
@@ -118,12 +118,17 @@
 			</h1>
 		</div>
 		<div class="flex items-center gap-2">
-			<Button onclick={handleNewRequest}>
+			<Button
+				onclick={handleNewRequest}
+			>
 				<span class="material-symbols-rounded text-lg! mr-2">add</span>
 				Nueva solicitud
 			</Button>
 			{#if isAdmin}
-				<Button variant="outline" href="{resolve('/admin')}?tab=ausencias">
+				<Button
+					variant="outline"
+					href="{resolve('/admin')}?tab=ausencias"
+				>
 					<span class="material-symbols-rounded text-lg! mr-2">admin_panel_settings</span>
 					Gestionar
 				</Button>
@@ -159,9 +164,6 @@
 	{/if}
 
 	<Card class="w-full max-w-5xl mx-auto">
-		<CardHeader>
-			<CardTitle class="sr-only">Lista de ausencias</CardTitle>
-		</CardHeader>
 		<CardContent>
 			{#if loading}
 				<div class="space-y-4">
@@ -179,19 +181,21 @@
 					</Button>
 				</div>
 			{:else}
-				<Tabs bind:value={activeTab} class="w-full">
-					<TabsList class="mb-4">
-						<TabsTrigger value="all">
-							Todas ({absences.length})
-						</TabsTrigger>
-						<TabsTrigger value="PENDING">
-							Pendientes ({pendingCount})
-						</TabsTrigger>
-						<TabsTrigger value="APPROVED">
-							Aprobadas ({approvedCount})
-						</TabsTrigger>
-						<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
-					</TabsList>
+				<Tabs bind:value={activeTab}>
+					<div class="mb-2 overflow-x-auto">
+						<TabsList class="w-fit">
+							<TabsTrigger value="all">
+								Todas ({absences.length})
+							</TabsTrigger>
+							<TabsTrigger value="PENDING">
+								Pendientes ({pendingCount})
+							</TabsTrigger>
+							<TabsTrigger value="APPROVED">
+								Aprobadas ({approvedCount})
+							</TabsTrigger>
+							<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
+						</TabsList>
+					</div>
 
 					<TabsContent value={activeTab}>
 						{#if filteredAbsences.length === 0}

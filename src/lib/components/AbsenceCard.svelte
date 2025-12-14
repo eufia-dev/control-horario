@@ -52,7 +52,7 @@
 
 <div class="border rounded-lg p-4 space-y-3">
 	<div class="flex items-start justify-between gap-2">
-		<div class="flex items-center gap-2">
+		<div class="flex flex-col sm:flex-row sm:items-center gap-2">
 			<Badge variant={statusStyle?.variant || 'secondary'}>
 				<span class="material-symbols-rounded text-sm! mr-1">{statusStyle?.icon || 'schedule'}</span
 				>
