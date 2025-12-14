@@ -6,8 +6,6 @@ const API_BASE = PUBLIC_API_URL;
 export type BugReportDto = {
 	page: string; // URL/view where bug occurred
 	occurredAt: string; // ISO timestamp
-	category: string; // e.g., 'ui', 'functionality', 'performance', 'data'
-	severity: string; // e.g., 'low', 'medium', 'high', 'critical'
 	description: string; // Detailed description
 	stepsToReproduce?: string;
 };

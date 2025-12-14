@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -182,6 +184,22 @@
 								<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
 								<TableCell>
 									<div class="flex items-center gap-1">
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0"
+													onclick={() => goto(resolve(`/admin/users/${user.id}`))}
+												>
+													<span class="material-symbols-rounded text-xl!">schedule</span>
+													<span class="sr-only">Ver registros</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Ver registros</p>
+											</TooltipContent>
+										</Tooltip>
 										<Tooltip>
 											<TooltipTrigger>
 												<Button

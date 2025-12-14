@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import ProjectsSection from './ProjectsSection.svelte';
 	import UsersSection from './UsersSection.svelte';
@@ -53,6 +54,9 @@
 {#if isAdmin}
 	<div class="grow flex flex-col gap-6 p-6">
 		<div class="flex items-center gap-2">
+			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+				<span class="material-symbols-rounded text-lg!">arrow_back</span>
+			</Button>
 			<span class="material-symbols-rounded text-3xl!">settings</span>
 			<h1 class="text-2xl font-semibold tracking-tight">Configuración</h1>
 		</div>

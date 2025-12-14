@@ -134,6 +134,11 @@ export async function fetchMyTimeEntries(): Promise<TimeEntry[]> {
 	return handleJsonResponse<TimeEntry[]>(response);
 }
 
+export async function fetchUserTimeEntries(userId: string): Promise<TimeEntry[]> {
+	const response = await fetchWithAuth(`${API_BASE}/time-entries?userId=${userId}`);
+	return handleJsonResponse<TimeEntry[]>(response);
+}
+
 export async function createTimeEntry(data: CreateTimeEntryDto): Promise<TimeEntry> {
 	const response = await fetchWithAuth(`${API_BASE}/time-entries/me`, {
 		method: 'POST',

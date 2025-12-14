@@ -503,9 +503,11 @@
 		<div class="flex-1 flex flex-col">
 			<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
 		</div>
-		<div class="flex-1 flex flex-col">
-			<MissingLogsAlert {missingDays} loading={loadingCalendar} />
-		</div>
+		{#if missingDays.length > 0}
+			<div class="flex-1 flex flex-col">
+				<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+			</div>
+		{/if}
 	</div>
 
 	<Card class="w-full max-w-5xl mx-auto">

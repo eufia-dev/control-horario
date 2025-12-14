@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { auth } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
@@ -81,7 +82,15 @@
 <div class="container mx-auto px-4 py-8">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold tracking-tight">Analíticas</h1>
+		<div class="flex items-center gap-2">
+			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+				<span class="material-symbols-rounded text-lg!">arrow_back</span>
+			</Button>
+			<h1 class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+				<span class="material-symbols-rounded text-3xl!">analytics</span>
+				Analíticas
+			</h1>
+		</div>
 		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
 	</div>
 

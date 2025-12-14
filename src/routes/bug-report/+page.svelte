@@ -20,8 +20,6 @@
 
 	let pageUrl = $state('');
 	let occurredAt = $state('');
-	let category = $state('');
-	let severity = $state('');
 	let description = $state('');
 	let stepsToReproduce = $state('');
 	let submitting = $state(false);
@@ -32,24 +30,16 @@
 	// All available routes/views
 	const allRoutes = [
 		{ value: '/', label: 'Fichajes' },
+		{ value: '/calendar', label: 'Calendario' },
+		{ value: '/absences', label: 'Ausencias' },
 		{ value: '/profile', label: 'Perfil' },
 		{ value: '/admin', label: 'Configuración', adminOnly: true },
-		{ value: '/analytics', label: 'Analíticas', adminOnly: true }
-	];
-
-	const categoryOptions = [
-		{ value: 'ui', label: 'Problema de interfaz' },
-		{ value: 'functionality', label: 'Funcionalidad' },
-		{ value: 'performance', label: 'Rendimiento' },
-		{ value: 'data', label: 'Problema de datos' },
-		{ value: 'other', label: 'Otro' }
-	];
-
-	const severityOptions = [
-		{ value: 'low', label: 'Baja' },
-		{ value: 'medium', label: 'Media' },
-		{ value: 'high', label: 'Alta' },
-		{ value: 'critical', label: 'Crítica' }
+		{ value: '/analytics', label: 'Analíticas', adminOnly: true },
+		{ value: '/contact', label: 'Contacto' },
+		{ value: '/login', label: 'Iniciar sesión' },
+		{ value: '/register', label: 'Registro' },
+		{ value: '/reset-password', label: 'Restablecer contraseña' },
+		{ value: '/onboarding', label: 'Onboarding' },
 	];
 
 	// Filter routes based on admin status
@@ -99,16 +89,6 @@
 			return;
 		}
 
-		if (!category) {
-			error = 'La categoría es obligatoria';
-			return;
-		}
-
-		if (!severity) {
-			error = 'La severidad es obligatoria';
-			return;
-		}
-
 		if (!description.trim()) {
 			error = 'La descripción es obligatoria';
 			return;
@@ -124,8 +104,6 @@
 			await submitBugReport({
 				page: pageUrl.trim(),
 				occurredAt: occurredAtISO,
-				category,
-				severity,
 				description: description.trim(),
 				stepsToReproduce: stepsToReproduce.trim() || undefined
 			});
@@ -142,8 +120,6 @@
 			const hours = String(now.getHours()).padStart(2, '0');
 			const minutes = String(now.getMinutes()).padStart(2, '0');
 			occurredAt = `${year}-${month}-${day}T${hours}:${minutes}`;
-			category = '';
-			severity = '';
 			description = '';
 			stepsToReproduce = '';
 		} catch (e) {
@@ -209,42 +185,6 @@
 							disabled={submitting}
 							required
 						/>
-					</div>
-
-					<div class="grid gap-2">
-						<Label for="category">Categoría</Label>
-						<Select type="single" bind:value={category} disabled={submitting}>
-							<SelectTrigger id="category" class="w-full">
-								{#if category}
-									{categoryOptions.find((o) => o.value === category)?.label ?? category}
-								{:else}
-									<span class="text-muted-foreground">Selecciona una categoría</span>
-								{/if}
-							</SelectTrigger>
-							<SelectContent>
-								{#each categoryOptions as option (option.value)}
-									<SelectItem value={option.value} label={option.label} />
-								{/each}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div class="grid gap-2">
-						<Label for="severity">Severidad</Label>
-						<Select type="single" bind:value={severity} disabled={submitting}>
-							<SelectTrigger id="severity" class="w-full">
-								{#if severity}
-									{severityOptions.find((o) => o.value === severity)?.label ?? severity}
-								{:else}
-									<span class="text-muted-foreground">Selecciona la severidad</span>
-								{/if}
-							</SelectTrigger>
-							<SelectContent>
-								{#each severityOptions as option (option.value)}
-									<SelectItem value={option.value} label={option.label} />
-								{/each}
-							</SelectContent>
-						</Select>
 					</div>
 
 					<div class="grid gap-2">
