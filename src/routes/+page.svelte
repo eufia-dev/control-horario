@@ -489,25 +489,19 @@
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
-	<!-- Dashboard Widgets -->
-	<div class="w-full max-w-5xl mx-auto space-y-4">
-		<!-- Admin: Pending Absences Alert -->
-		{#if isAdmin}
+
+	{#if isAdmin}
+		<div class="w-full max-w-5xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}
 				loading={loadingAbsenceStats}
 			/>
-		{/if}
+		</div>
+	{/if}
 
-		<!-- Missing Logs Alert -->
+	<div class="w-full max-w-5xl mx-auto flex items-center gap-4">
+		<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
 		<MissingLogsAlert {missingDays} loading={loadingCalendar} />
-
-		<!-- Compliance Widget (only if there's data) -->
-		{#if calendarData?.summary && calendarData.summary.workingDays > 0}
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<ComplianceWidget summary={calendarData.summary} loading={loadingCalendar} />
-			</div>
-		{/if}
 	</div>
 
 	<Card class="w-full max-w-5xl mx-auto">

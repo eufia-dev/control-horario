@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { resolve } from '$app/paths';
 	import type { CalendarDay } from '$lib/api/calendar';
@@ -23,37 +24,37 @@
 </script>
 
 {#if !loading && missingDays.length > 0}
-	<div class="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-		<div class="flex items-start gap-3">
-			<span class="material-symbols-rounded text-destructive text-2xl! shrink-0">warning</span>
-			<div class="flex-1 min-w-0">
-				<p class="font-medium text-destructive">
-					Tienes {missingDays.length}
-					{missingDays.length === 1 ? 'día' : 'días'} sin registrar
-				</p>
-				<ul class="mt-2 space-y-1 text-sm text-muted-foreground">
-					{#each displayDays as day (day.date)}
-						<li class="flex items-center gap-2">
-							<span class="material-symbols-rounded text-sm!">event</span>
-							<span class="capitalize">{formatDate(day.date)}</span>
-						</li>
-					{/each}
-					{#if hasMore}
-						<li class="text-muted-foreground/70">
-							y {missingDays.length - 5} más...
-						</li>
-					{/if}
-				</ul>
-				<Button
-					variant="outline"
-					size="sm"
-					href={resolve('/calendar')}
-					class="mt-3 border-destructive/30 text-destructive hover:bg-destructive/10"
-				>
-					<span class="material-symbols-rounded text-lg! mr-2">edit_calendar</span>
-					Registrar horas
-				</Button>
-			</div>
-		</div>
-	</div>
+	<Card class="bg-destructive/10 border-destructive/20 w-full">
+		<CardHeader class="pb-3">
+			<CardTitle class="text-base font-medium text-destructive flex items-center gap-2">
+				<span class="material-symbols-rounded text-2xl!">warning</span>
+				Tienes {missingDays.length}
+				{missingDays.length === 1 ? 'día' : 'días'} sin registrar
+			</CardTitle>
+		</CardHeader>
+		<CardContent class="pt-0">
+			<ul class="space-y-1 text-sm text-muted-foreground">
+				{#each displayDays as day (day.date)}
+					<li class="flex items-center gap-2">
+						<span class="material-symbols-rounded text-sm!">event</span>
+						<span class="capitalize">{formatDate(day.date)}</span>
+					</li>
+				{/each}
+				{#if hasMore}
+					<li class="text-muted-foreground/70">
+						y {missingDays.length - 5} más...
+					</li>
+				{/if}
+			</ul>
+			<Button
+				variant="outline"
+				size="sm"
+				href={resolve('/calendar')}
+				class="mt-3 border-destructive/30 text-destructive hover:bg-destructive/10"
+			>
+				<span class="material-symbols-rounded text-lg! mr-2">edit_calendar</span>
+				Registrar horas
+			</Button>
+		</CardContent>
+	</Card>
 {/if}

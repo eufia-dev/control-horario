@@ -24,6 +24,7 @@
 	let projects = $state<Project[]>([]);
 	let timeEntryTypes = $state<TimeEntryType[]>([]);
 	let timeEntryModalOpen = $state(false);
+	let initialDateForModal = $state<string | null>(null);
 	let loadingProjects = $state(true);
 	let loadingTypes = $state(true);
 
@@ -110,6 +111,8 @@
 
 	function handleAddEntry() {
 		dayDetailOpen = false;
+		// Store the selected day's date to pass to the modal
+		initialDateForModal = selectedDay?.date ?? null;
 		timeEntryModalOpen = true;
 	}
 
@@ -118,7 +121,8 @@
 	}
 
 	function handleTimeEntryModalClose() {
-		// Nothing specific needed
+		// Clear the initial date when modal closes
+		initialDateForModal = null;
 	}
 
 	// Reload calendar when month changes
@@ -238,6 +242,7 @@
 	{projects}
 	{timeEntryTypes}
 	latestProjectId={null}
+	initialDate={initialDateForModal}
 	onClose={handleTimeEntryModalClose}
 	onSuccess={handleEntrySuccess}
 />

@@ -9,11 +9,28 @@
 	import AbsenceCard from '$lib/components/AbsenceCard.svelte';
 	import AbsenceRequestModal from './AbsenceRequestModal.svelte';
 	import AbsenceCancelDialog from './AbsenceCancelDialog.svelte';
-	import { fetchMyAbsences, type AbsenceResponse, type AbsenceStatus } from '$lib/api/absences';
+	import {
+		fetchMyAbsences,
+		fetchAbsenceStats,
+		type AbsenceResponse,
+		type AbsenceStatus
+	} from '$lib/api/absences';
+	import { isAdmin as isAdminStore } from '$lib/stores/auth';
+	import PendingAbsencesWidget from '../PendingAbsencesWidget.svelte';
+
+	let isAdmin = $state(false);
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value;
+		});
+		return unsub;
+	});
 
 	let absences = $state<AbsenceResponse[]>([]);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
+	let adminPendingCount = $state(0);
+	let loadingAdminStats = $state(true);
 
 	let activeTab = $state<'all' | AbsenceStatus>('all');
 	let requestModalOpen = $state(false);
@@ -64,8 +81,28 @@
 		loadAbsences();
 	}
 
+	async function loadAdminStats() {
+		if (!isAdmin) return;
+		loadingAdminStats = true;
+		try {
+			const stats = await fetchAbsenceStats();
+			adminPendingCount = stats.pending;
+		} catch {
+			// Silently fail - widget just won't show
+		} finally {
+			loadingAdminStats = false;
+		}
+	}
+
 	onMount(() => {
 		loadAbsences();
+	});
+
+	// Load admin stats when isAdmin becomes true
+	$effect(() => {
+		if (isAdmin) {
+			loadAdminStats();
+		}
 	});
 </script>
 
@@ -80,11 +117,26 @@
 				Mis Ausencias
 			</h1>
 		</div>
-		<Button onclick={handleNewRequest}>
-			<span class="material-symbols-rounded text-lg! mr-2">add</span>
-			Nueva solicitud
-		</Button>
+		<div class="flex items-center gap-2">
+			<Button onclick={handleNewRequest}>
+				<span class="material-symbols-rounded text-lg! mr-2">add</span>
+				Nueva solicitud
+			</Button>
+			{#if isAdmin}
+				<Button variant="outline" href="{resolve('/admin')}?tab=ausencias">
+					<span class="material-symbols-rounded text-lg! mr-2">admin_panel_settings</span>
+					Gestionar
+				</Button>
+			{/if}
+		</div>
 	</div>
+
+	<!-- Admin pending absences widget -->
+	{#if isAdmin}
+		<div class="max-w-5xl mx-auto w-full">
+			<PendingAbsencesWidget pendingCount={adminPendingCount} loading={loadingAdminStats} />
+		</div>
+	{/if}
 
 	<!-- Quick Stats -->
 	{#if !loading && !error}

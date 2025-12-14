@@ -13,6 +13,7 @@ export type DayStatus =
 	| 'WORKED'
 	| 'PARTIALLY_WORKED'
 	| 'MISSING_LOGS'
+	| 'BEFORE_USER_CREATED'
 	| 'FUTURE';
 
 export type EntryType = 'WORK' | 'PAUSE_COFFEE' | 'PAUSE_LUNCH' | 'PAUSE_PERSONAL';

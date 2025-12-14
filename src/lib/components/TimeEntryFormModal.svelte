@@ -38,6 +38,7 @@
 		projects: Project[];
 		timeEntryTypes: TimeEntryType[];
 		latestProjectId?: string | null;
+		initialDate?: string | null;
 		onClose: () => void;
 		onSuccess: () => void;
 	};
@@ -48,6 +49,7 @@
 		projects,
 		timeEntryTypes,
 		latestProjectId = null,
+		initialDate = null,
 		onClose,
 		onSuccess
 	}: Props = $props();
@@ -158,13 +160,31 @@
 			isInOffice = entry.isInOffice;
 		} else {
 			resetForm();
-			const now = new Date();
-			const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-			startDateValue = dateToDateValue(oneHourAgo);
-			startTime = formatTimeForInput(oneHourAgo.toISOString());
-			endDateValue = dateToDateValue(now);
-			endTime = formatTimeForInput(now.toISOString());
-			durationMinutes = 60;
+			
+			// If initialDate is provided (from calendar click), use it for both start and end dates
+			if (initialDate) {
+				// Parse date string (YYYY-MM-DD) in local timezone
+				const [y, m, d] = initialDate.split('-').map(Number);
+				const selectedDate = new Date(y, m - 1, d);
+				// Set times to a default range (e.g., 9:00 to 17:00)
+				const startDateTime = new Date(y, m - 1, d, 9, 0, 0, 0);
+				const endDateTime = new Date(y, m - 1, d, 17, 0, 0, 0);
+				
+				startDateValue = dateToDateValue(startDateTime);
+				startTime = formatTimeForInput(startDateTime.toISOString());
+				endDateValue = dateToDateValue(endDateTime);
+				endTime = formatTimeForInput(endDateTime.toISOString());
+				durationMinutes = 480; // 8 hours
+			} else {
+				// Default behavior: use current time
+				const now = new Date();
+				const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+				startDateValue = dateToDateValue(oneHourAgo);
+				startTime = formatTimeForInput(oneHourAgo.toISOString());
+				endDateValue = dateToDateValue(now);
+				endTime = formatTimeForInput(now.toISOString());
+				durationMinutes = 60;
+			}
 
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 			if (trabajoType) {
