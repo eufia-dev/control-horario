@@ -19,6 +19,9 @@ export type TimeEntry = {
 	durationMinutes: number;
 	isInOffice: boolean;
 	createdAt: string;
+	source?: string;
+	isManual?: boolean;
+	isModified?: boolean;
 	user?: {
 		id: string;
 		name: string;

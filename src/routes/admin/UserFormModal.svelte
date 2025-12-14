@@ -11,7 +11,6 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { updateUser, type User, type UpdateUserDto } from '$lib/api/users';
 	import type { UserRole } from '$lib/stores/auth';
@@ -52,6 +51,16 @@
 	const selectedRoleLabel = $derived(
 		roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'
 	);
+
+	const selectedRelationTypeLabel = $derived(
+		relationTypeLabels[relationType] ?? 'Seleccionar tipo'
+	);
+
+	const relationTypeOptions: { value: RelationType; label: string }[] = [
+		{ value: 'EMPLOYEE', label: 'Empleado' },
+		{ value: 'CONTRACTOR', label: 'Autónomo' },
+		{ value: 'GUEST', label: 'Invitado' }
+	];
 
 	function resetForm() {
 		name = '';
@@ -129,7 +138,8 @@
 				phone: phone.trim() || undefined,
 				hourlyCost,
 				isActive,
-				role
+				role,
+				relationType
 			};
 			await updateUser(user.id, data);
 			onSuccess();
@@ -211,9 +221,16 @@
 
 				<div class="grid gap-2">
 					<Label>Tipo de relación</Label>
-					<div class="flex items-center h-10 px-3 border rounded-md bg-muted/50">
-						<Badge variant="secondary">{relationTypeLabels[relationType]}</Badge>
-					</div>
+					<Select type="single" bind:value={relationType} disabled={submitting}>
+						<SelectTrigger class="w-full">
+							{selectedRelationTypeLabel}
+						</SelectTrigger>
+						<SelectContent>
+							{#each relationTypeOptions as option (option.value)}
+								<SelectItem value={option.value} label={option.label} />
+							{/each}
+						</SelectContent>
+					</Select>
 				</div>
 			</div>
 

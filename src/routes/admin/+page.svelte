@@ -17,6 +17,7 @@
 	import AbsencesSection from './AbsencesSection.svelte';
 
 	let isAdmin = $state(false);
+
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
 			isAdmin = value;
@@ -40,6 +41,16 @@
 		const tabParam = $page.url.searchParams.get('tab');
 		if (tabParam && validTabs.includes(tabParam as TabValue)) {
 			activeTab = tabParam as TabValue;
+		}
+	});
+
+	// Update URL when tab changes
+	$effect(() => {
+		const currentTab = $page.url.searchParams.get('tab');
+		if (activeTab && activeTab !== currentTab) {
+			const url = new URL($page.url);
+			url.searchParams.set('tab', activeTab);
+			goto(url.toString(), { replaceState: true, noScroll: true });
 		}
 	});
 

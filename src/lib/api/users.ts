@@ -29,6 +29,7 @@ export type UpdateUserDto = {
 	hourlyCost?: number;
 	isActive?: boolean;
 	role?: UserRole;
+	relationType?: RelationType;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

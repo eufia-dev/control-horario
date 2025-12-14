@@ -1,6 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { get } from 'svelte/store';
-import { auth, type AuthUser } from '$lib/stores/auth';
+import { auth, type AuthUser, type Profile } from '$lib/stores/auth';
 import { supabase } from '$lib/supabase/client';
 import type { User } from '$lib/api/users';
 import {
@@ -12,6 +12,33 @@ import {
 export type AuthStatusType = OnboardingStatusType | 'EMAIL_CONFIRMATION_REQUIRED';
 
 const API_BASE = PUBLIC_API_URL;
+
+// Storage key for the active profile ID
+const PROFILE_STORAGE_KEY = 'control_horario_active_profile';
+
+/**
+ * Get the active profile ID from localStorage
+ */
+export function getActiveProfileId(): string | null {
+	if (typeof window === 'undefined') return null;
+	return localStorage.getItem(PROFILE_STORAGE_KEY);
+}
+
+/**
+ * Set the active profile ID in localStorage
+ */
+export function setActiveProfileId(profileId: string): void {
+	if (typeof window === 'undefined') return;
+	localStorage.setItem(PROFILE_STORAGE_KEY, profileId);
+}
+
+/**
+ * Clear the active profile ID from localStorage
+ */
+export function clearActiveProfileId(): void {
+	if (typeof window === 'undefined') return;
+	localStorage.removeItem(PROFILE_STORAGE_KEY);
+}
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
@@ -60,6 +87,15 @@ export async function checkAndSetOnboardingStatus(
 
 	if (result.status === 'ACTIVE' && result.user) {
 		auth.setUser(result.user);
+
+		// Load profiles for multi-tenancy support
+		try {
+			await loadAndSetProfiles(tokenOverride);
+		} catch (err) {
+			console.error('[auth] Failed to load profiles', err);
+			// Continue even if profiles fail - user can still work with default profile
+		}
+
 		if (broadcastActive && !wasActive) {
 			broadcastOnboardingComplete();
 		}
@@ -152,6 +188,8 @@ export async function logout(): Promise<void> {
 	} catch {
 		// ignore errors on logout
 	} finally {
+		// Clear profile from localStorage
+		clearActiveProfileId();
 		auth.reset();
 	}
 }
@@ -282,6 +320,7 @@ export async function updateProfile(name: string, email: string): Promise<AuthUs
 
 /**
  * Fetch wrapper that adds Authorization header with Supabase access token
+ * and X-Profile-Id header for multi-tenancy
  * @param input - The URL or Request object
  * @param init - Optional RequestInit options
  * @param tokenOverride - Optional token to use instead of fetching from session (useful after login/signup)
@@ -292,10 +331,14 @@ export async function fetchWithAuth(
 	tokenOverride?: string
 ): Promise<Response> {
 	const accessToken = tokenOverride ?? (await getAccessToken());
+	const profileId = getActiveProfileId();
 
 	const headers = new Headers(init.headers);
 	if (accessToken) {
 		headers.set('Authorization', `Bearer ${accessToken}`);
+	}
+	if (profileId) {
+		headers.set('X-Profile-Id', profileId);
 	}
 
 	const response = await fetch(input, {
@@ -555,4 +598,54 @@ export function initAuthSyncChannel() {
  */
 export function broadcastOnboardingComplete() {
 	authChannel?.postMessage({ type: 'ONBOARDING_COMPLETED' });
+}
+
+/**
+ * Fetch all profiles for the current user
+ * Returns an array of profiles (one per company the user belongs to)
+ */
+export async function fetchProfiles(tokenOverride?: string): Promise<Profile[]> {
+	const response = await fetchWithAuth(`${API_BASE}/auth/profiles`, {}, tokenOverride);
+	const data = await handleJsonResponse<{ profiles: Profile[] }>(response);
+	return data.profiles;
+}
+
+/**
+ * Switch to a different profile (validates the profile belongs to the user)
+ */
+export async function switchProfile(profileId: string): Promise<Profile> {
+	const response = await fetchWithAuth(`${API_BASE}/auth/switch-profile`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ profileId })
+	});
+	return handleJsonResponse<Profile>(response);
+}
+
+/**
+ * Load and set profiles in auth store.
+ * Determines the active profile based on stored preference or first available.
+ * Returns true if profiles need selection (multiple profiles, none stored).
+ */
+export async function loadAndSetProfiles(tokenOverride?: string): Promise<boolean> {
+	const profiles = await fetchProfiles(tokenOverride);
+
+	if (profiles.length === 0) {
+		auth.setProfiles([], null);
+		return false;
+	}
+
+	const storedProfileId = getActiveProfileId();
+	let activeProfile = profiles.find((p) => p.id === storedProfileId);
+
+	// If no stored profile or stored profile not found, auto-select first one
+	if (!activeProfile) {
+		activeProfile = profiles[0];
+		setActiveProfileId(activeProfile.id);
+	}
+
+	auth.setProfiles(profiles, activeProfile);
+
+	// Return true if user has multiple profiles and should potentially pick one
+	return profiles.length > 1 && !storedProfileId;
 }

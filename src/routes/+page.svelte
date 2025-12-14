@@ -49,14 +49,32 @@
 	} from '$lib/api/externals';
 	import { fetchMyCalendar, type CalendarResponse } from '$lib/api/calendar';
 	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
-	import { isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { isAdmin as isAdminStore, isGuest as isGuestStore, activeProfile } from '$lib/stores/auth';
 	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
+	import GuestBanner from '$lib/components/GuestBanner.svelte';
 	import { formatProjectLabel } from '$lib/utils';
 
 	let isAdmin = $state(false);
+	let isGuest = $state(false);
+	let currentProfile = $state<typeof $activeProfile>(null);
+
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
 			isAdmin = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = isGuestStore.subscribe((value) => {
+			isGuest = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = activeProfile.subscribe((value) => {
+			currentProfile = value;
 		});
 		return unsub;
 	});
@@ -475,11 +493,14 @@
 	onMount(() => {
 		loadProjects();
 		loadTypes();
-		loadEntries();
-		loadActiveTimer();
+		// Only load personal data for non-GUEST users
+		if (!isGuest) {
+			loadEntries();
+			loadActiveTimer();
+			loadCalendarData();
+		}
 		loadExternals();
 		loadExternalHours();
-		loadCalendarData();
 		loadAbsenceStats();
 	});
 
@@ -499,18 +520,42 @@
 		</div>
 	{/if}
 
-	<div class="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
-		<div class="flex-1 flex flex-col">
-			<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
-		</div>
-		{#if missingDays.length > 0}
+	{#if isGuest}
+		<!-- GUEST user welcome message -->
+		<Card class="w-full max-w-5xl mx-auto">
+			<CardHeader>
+				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+					<span class="material-symbols-rounded text-3xl!">waving_hand</span>
+					Bienvenido
+				</CardTitle>
+			</CardHeader>
+			<CardContent class="space-y-4">
+				<GuestBanner />
+				<p class="text-muted-foreground">
+					Estás accediendo a <strong>{currentProfile?.company.name ?? 'esta empresa'}</strong> como usuario invitado.
+					Los usuarios invitados pueden ver información de la empresa pero no pueden registrar su propio tiempo de trabajo.
+				</p>
+				{#if isAdmin}
+					<p class="text-muted-foreground">
+						Como administrador, puedes acceder a la configuración de la empresa, ver analíticas y gestionar usuarios desde el menú de navegación.
+					</p>
+				{/if}
+			</CardContent>
+		</Card>
+	{:else}
+		<!-- Non-GUEST user: show personal widgets -->
+		<div class="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
 			<div class="flex-1 flex flex-col">
-				<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+				<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
 			</div>
-		{/if}
-	</div>
+			{#if missingDays.length > 0}
+				<div class="flex-1 flex flex-col">
+					<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+				</div>
+			{/if}
+		</div>
 
-	<Card class="w-full max-w-5xl mx-auto">
+		<Card class="w-full max-w-5xl mx-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 				<span class="material-symbols-rounded text-3xl!">timer</span>
@@ -1137,24 +1182,27 @@
 			{/if}
 		</CardContent>
 	</Card>
+	{/if}
 </div>
 
-<TimeEntryFormModal
-	bind:open={formModalOpen}
-	entry={selectedEntry}
-	{projects}
-	{timeEntryTypes}
-	{latestProjectId}
-	onClose={handleModalClose}
-	onSuccess={handleEntrySuccess}
-/>
+{#if !isGuest}
+	<TimeEntryFormModal
+		bind:open={formModalOpen}
+		entry={selectedEntry}
+		{projects}
+		{timeEntryTypes}
+		{latestProjectId}
+		onClose={handleModalClose}
+		onSuccess={handleEntrySuccess}
+	/>
 
-<TimeEntryDeleteDialog
-	bind:open={deleteDialogOpen}
-	entry={selectedEntry}
-	onClose={handleModalClose}
-	onSuccess={handleEntrySuccess}
-/>
+	<TimeEntryDeleteDialog
+		bind:open={deleteDialogOpen}
+		entry={selectedEntry}
+		onClose={handleModalClose}
+		onSuccess={handleEntrySuccess}
+	/>
+{/if}
 
 {#if isAdmin}
 	<ExternalHoursFormModal

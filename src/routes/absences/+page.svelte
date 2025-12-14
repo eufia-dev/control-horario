@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
@@ -15,15 +16,31 @@
 		type AbsenceResponse,
 		type AbsenceStatus
 	} from '$lib/api/absences';
-	import { isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { isAdmin as isAdminStore, isGuest as isGuestStore } from '$lib/stores/auth';
 	import PendingAbsencesWidget from '../PendingAbsencesWidget.svelte';
 
 	let isAdmin = $state(false);
+	let isGuest = $state(false);
+
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
 			isAdmin = value;
 		});
 		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = isGuestStore.subscribe((value) => {
+			isGuest = value;
+		});
+		return unsub;
+	});
+
+	// Redirect GUEST users to home - they cannot access personal absences
+	$effect(() => {
+		if (browser && isGuest) {
+			goto(resolve('/'));
+		}
 	});
 
 	let absences = $state<AbsenceResponse[]>([]);

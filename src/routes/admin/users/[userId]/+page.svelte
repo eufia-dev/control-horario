@@ -80,6 +80,15 @@
 		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
 	}
 
+	function getSourceLabel(source?: string): string {
+		const sourceLabels: Record<string, string> = {
+			WEB: 'Web',
+			APP: 'App',
+			WHATSAPP: 'WhatsApp'
+		};
+		return sourceLabels[source ?? ''] ?? source ?? '-';
+	}
+
 	function formatLocalDateKey(date: Date): string {
 		const y = date.getFullYear();
 		const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -291,6 +300,8 @@
 											<TableHead>Fin</TableHead>
 											<TableHead>Duración</TableHead>
 											<TableHead>Lugar</TableHead>
+											<TableHead>Origen</TableHead>
+											<TableHead>Estado</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -303,6 +314,8 @@
 												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
 												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
 												<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+												<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
 											</TableRow>
 										{/each}
 									</TableBody>
@@ -329,6 +342,8 @@
 												<TableHead>Fin</TableHead>
 												<TableHead>Duración</TableHead>
 												<TableHead>Lugar</TableHead>
+												<TableHead>Origen</TableHead>
+												<TableHead>Estado</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
@@ -368,6 +383,44 @@
 														<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
 															{entry.isInOffice ? 'Oficina' : 'Remoto'}
 														</Badge>
+													</TableCell>
+													<TableCell>
+														<Badge variant="outline">
+															{getSourceLabel(entry.source)}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														<div class="flex items-center gap-1 flex-wrap">
+															{#if entry.isManual}
+																<Tooltip>
+																	<TooltipTrigger>
+																		<Badge variant="secondary" class="text-xs">
+																			<span class="material-symbols-rounded text-sm! mr-0.5">edit</span>
+																			Manual
+																		</Badge>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>Registro creado manualmente</p>
+																	</TooltipContent>
+																</Tooltip>
+															{/if}
+															{#if entry.isModified}
+																<Tooltip>
+																	<TooltipTrigger>
+																		<Badge variant="outline" class="text-xs text-yellow-600 border-yellow-600">
+																			<span class="material-symbols-rounded text-sm! mr-0.5">sync</span>
+																			Modificado
+																		</Badge>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>Registro modificado después de su creación</p>
+																	</TooltipContent>
+																</Tooltip>
+															{/if}
+															{#if !entry.isManual && !entry.isModified}
+																<span class="text-muted-foreground text-xs">-</span>
+															{/if}
+														</div>
 													</TableCell>
 												</TableRow>
 											{/each}

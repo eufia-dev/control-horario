@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
@@ -11,6 +12,23 @@
 	import { fetchMyCalendar, type CalendarDay, type CalendarResponse } from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType } from '$lib/api/time-entries';
+	import { isGuest as isGuestStore } from '$lib/stores/auth';
+
+	let isGuest = $state(false);
+
+	$effect(() => {
+		const unsub = isGuestStore.subscribe((value) => {
+			isGuest = value;
+		});
+		return unsub;
+	});
+
+	// Redirect GUEST users to home - they cannot access personal calendar
+	$effect(() => {
+		if (browser && isGuest) {
+			goto(resolve('/'));
+		}
+	});
 
 	let calendarData = $state<CalendarResponse | null>(null);
 	let loading = $state(true);

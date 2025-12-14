@@ -4,7 +4,16 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
-	import { auth, isAuthenticated, isSignedIn, isAdmin, type AuthUser } from '$lib/stores/auth';
+	import {
+		auth,
+		isAuthenticated,
+		isSignedIn,
+		isAdmin,
+		isGuest,
+		hasMultipleProfiles,
+		activeProfile,
+		type AuthUser
+	} from '$lib/stores/auth';
 	import {
 		initAuth,
 		logout,
@@ -16,6 +25,8 @@
 	import { slide } from 'svelte/transition';
 
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import type { OnboardingStatusType } from '$lib/api/onboarding';
 	import type { RouteId } from './$types';
@@ -26,6 +37,8 @@
 	let isAuthed = $state(false);
 	let signedIn = $state(false);
 	let isUserAdmin = $state(false);
+	let isUserGuest = $state(false);
+	let hasMultiProfiles = $state(false);
 	let user = $state<AuthUser | null>(null);
 	let onboardingStatus = $state<OnboardingStatusType | null>(null);
 	let mobileMenuOpen = $state(false);
@@ -34,6 +47,8 @@
 	let unsubIsAuthed: (() => void) | undefined;
 	let unsubIsSignedIn: (() => void) | undefined;
 	let unsubIsAdmin: (() => void) | undefined;
+	let unsubIsGuest: (() => void) | undefined;
+	let unsubHasMultipleProfiles: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
 	const publicRoutes = ['/login', '/register', '/reset-password'];
@@ -138,6 +153,14 @@
 			isUserAdmin = value;
 		});
 
+		unsubIsGuest = isGuest.subscribe((value) => {
+			isUserGuest = value;
+		});
+
+		unsubHasMultipleProfiles = hasMultipleProfiles.subscribe((value) => {
+			hasMultiProfiles = value;
+		});
+
 		unsubAuthChanges = subscribeToAuthChanges();
 
 		initAuthSyncChannel();
@@ -173,6 +196,8 @@
 			unsubIsAuthed?.();
 			unsubIsSignedIn?.();
 			unsubIsAdmin?.();
+			unsubIsGuest?.();
+			unsubHasMultipleProfiles?.();
 			unsubAuthChanges?.data.subscription.unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
@@ -183,6 +208,8 @@
 		unsubIsAuthed?.();
 		unsubIsSignedIn?.();
 		unsubIsAdmin?.();
+		unsubIsGuest?.();
+		unsubHasMultipleProfiles?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
 	});
 
@@ -203,26 +230,30 @@
 			<div class="flex items-center gap-4">
 				<a href={resolve('/')} class="flex items-center gap-2">
 					<span>Control horario</span>
-					{#if isAuthed && user?.companyName}
+					{#if isAuthed && (hasMultiProfiles ? $activeProfile?.company.name : user?.companyName)}
 						<span class="hidden sm:inline">-</span>
-						<span class="hidden sm:inline font-semibold tracking-tight">{user.companyName}</span>
+						<span class="hidden sm:inline font-semibold tracking-tight">
+							{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
+						</span>
 					{/if}
 				</a>
 
 				{#if isAuthed}
 					<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
-						<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
-							<span class="material-symbols-rounded text-lg!">schedule</span>
-							<span>Fichajes</span>
-						</Button>
-						<Button href={resolve('/calendar')} variant="ghost" size="sm" class="gap-1.5">
-							<span class="material-symbols-rounded text-lg!">calendar_month</span>
-							<span>Calendario</span>
-						</Button>
-						<Button href={resolve('/absences')} variant="ghost" size="sm" class="gap-1.5">
-							<span class="material-symbols-rounded text-lg!">beach_access</span>
-							<span>Ausencias</span>
-						</Button>
+						{#if !isUserGuest}
+							<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">schedule</span>
+								<span>Fichajes</span>
+							</Button>
+							<Button href={resolve('/calendar')} variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">calendar_month</span>
+								<span>Calendario</span>
+							</Button>
+							<Button href={resolve('/absences')} variant="ghost" size="sm" class="gap-1.5">
+								<span class="material-symbols-rounded text-lg!">beach_access</span>
+								<span>Ausencias</span>
+							</Button>
+						{/if}
 						{#if isUserAdmin}
 							<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
 								<span class="material-symbols-rounded text-lg!">settings</span>
@@ -239,6 +270,17 @@
 
 			{#if signedIn}
 				<div class="flex items-center gap-2">
+					{#if isAuthed && hasMultiProfiles}
+						<div class="hidden md:block">
+							<ProfileSwitcher />
+						</div>
+					{/if}
+					{#if isAuthed && isUserGuest}
+						<Badge variant="outline" class="hidden md:flex gap-1">
+							<span class="material-symbols-rounded text-sm!">visibility</span>
+							<span>Invitado</span>
+						</Badge>
+					{/if}
 					{#if isAuthed}
 						<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
 							<Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
@@ -293,43 +335,56 @@
 					transition:slide={{ duration: 200 }}
 				>
 					<nav class="flex flex-col p-4 gap-2 flex-1">
-						{#if user?.companyName}
+						{#if hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
 							<div
-								class="px-4 py-3 text-base text-muted-foreground font-medium border-b border-border mb-2"
+								class="px-4 py-3 text-base text-muted-foreground font-medium border-b border-border mb-2 flex items-center justify-between"
 							>
-								{user.companyName}
+								<span class="flex items-center gap-2">
+									{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
+									{#if hasMultiProfiles}
+										<ProfileSwitcher />
+									{/if}
+								</span>
+								{#if isUserGuest}
+									<Badge variant="outline" class="gap-1">
+										<span class="material-symbols-rounded text-sm!">visibility</span>
+										<span>Invitado</span>
+									</Badge>
+								{/if}
 							</div>
 						{/if}
-						<Button
-							href={resolve('/')}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">schedule</span>
-							<span>Fichajes</span>
-						</Button>
-						<Button
-							href={resolve('/calendar')}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">calendar_month</span>
-							<span>Calendario</span>
-						</Button>
-						<Button
-							href={resolve('/absences')}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">beach_access</span>
-							<span>Ausencias</span>
-						</Button>
+						{#if !isUserGuest}
+							<Button
+								href={resolve('/')}
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">schedule</span>
+								<span>Fichajes</span>
+							</Button>
+							<Button
+								href={resolve('/calendar')}
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">calendar_month</span>
+								<span>Calendario</span>
+							</Button>
+							<Button
+								href={resolve('/absences')}
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">beach_access</span>
+								<span>Ausencias</span>
+							</Button>
+						{/if}
 						{#if isUserAdmin}
 							<Button
 								href={resolve('/admin')}

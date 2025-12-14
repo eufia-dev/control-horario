@@ -2,17 +2,26 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { auth, type AuthUser } from '$lib/stores/auth';
-	import { updateProfile } from '$lib/auth';
+	import {
+		auth,
+		profiles as profilesStore,
+		activeProfile as activeProfileStore,
+		isGuest as isGuestStore,
+		type AuthUser,
+		type Profile
+	} from '$lib/stores/auth';
+	import { updateProfile, setActiveProfileId, switchProfile } from '$lib/auth';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardDescription,
-		CardContent
+		CardContent,
+		CardAction
 	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -24,6 +33,8 @@
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import ScheduleEditor from '../admin/ScheduleEditor.svelte';
+	import AddCompanyModal from '$lib/components/AddCompanyModal.svelte';
+	import RelationTypeBadge from '$lib/components/RelationTypeBadge.svelte';
 	import { fetchMyCompany, type Company } from '$lib/api/companies';
 	import {
 		fetchMyEffectiveSchedule,
@@ -35,6 +46,9 @@
 	} from '$lib/api/work-schedules';
 
 	let user = $state<AuthUser | null>(null);
+	let profiles = $state<Profile[]>([]);
+	let activeProfile = $state<Profile | null>(null);
+	let isGuest = $state(false);
 
 	let isEditing = $state(false);
 	let editName = $state('');
@@ -51,11 +65,43 @@
 	let deletingOverrides = $state(false);
 	let scheduleError = $state<string | null>(null);
 
+	// Add company modal state
+	let addCompanyModalOpen = $state(false);
+	let switchingProfileId = $state<string | null>(null);
+
 	const canEditSchedule = $derived(company?.allowUserEditSchedule ?? false);
+
+	const roleLabels: Record<string, string> = {
+		OWNER: 'Propietario',
+		ADMIN: 'Administrador',
+		WORKER: 'Trabajador',
+		AUDITOR: 'Auditor'
+	};
 
 	$effect(() => {
 		const unsubscribe = auth.subscribe((state) => {
 			user = state.user;
+		});
+		return unsubscribe;
+	});
+
+	$effect(() => {
+		const unsubscribe = profilesStore.subscribe((value) => {
+			profiles = value;
+		});
+		return unsubscribe;
+	});
+
+	$effect(() => {
+		const unsubscribe = activeProfileStore.subscribe((value) => {
+			activeProfile = value;
+		});
+		return unsubscribe;
+	});
+
+	$effect(() => {
+		const unsubscribe = isGuestStore.subscribe((value) => {
+			isGuest = value;
 		});
 		return unsubscribe;
 	});
@@ -175,9 +221,29 @@
 		return sortedDays.map((d) => `${DAY_NAMES[d.dayOfWeek].slice(0, 3)}`).join(', ');
 	}
 
+	async function handleSwitchProfile(profile: Profile) {
+		if (profile.id === activeProfile?.id || switchingProfileId) return;
+
+		switchingProfileId = profile.id;
+		try {
+			await switchProfile(profile.id);
+			setActiveProfileId(profile.id);
+			auth.setActiveProfile(profile);
+			// Reload to apply new profile
+			window.location.reload();
+		} catch (e) {
+			console.error('Failed to switch profile:', e);
+		} finally {
+			switchingProfileId = null;
+		}
+	}
+
 	onMount(() => {
-		loadCompany();
-		loadSchedule();
+		// Only load schedule-related data for non-GUEST users
+		if (!isGuest) {
+			loadCompany();
+			loadSchedule();
+		}
 	});
 </script>
 
@@ -196,83 +262,159 @@
 
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			<!-- Left Column: Profile Info -->
-			<Card class="h-fit">
-				<CardHeader class="space-y-4">
-					<div class="flex flex-col items-center justify-center gap-4">
-						<div
-							class="flex items-center justify-center rounded-full text-4xl font-semibold text-white size-20"
-							style="background-color: {avatarColor}"
-						>
-							{initials}
+			<div class="space-y-6">
+				<Card class="h-fit">
+					<CardHeader class="space-y-4">
+						<div class="flex flex-col items-center justify-center gap-4">
+							<div
+								class="flex items-center justify-center rounded-full text-4xl font-semibold text-white size-20"
+								style="background-color: {avatarColor}"
+							>
+								{initials}
+							</div>
+							{#if isEditing}
+								<div class="w-full space-y-4">
+									<div class="grid gap-2">
+										<Label for="edit-name">Nombre completo</Label>
+										<Input
+											id="edit-name"
+											bind:value={editName}
+											placeholder="Juan García"
+											disabled={submitting}
+										/>
+									</div>
+									<div class="grid gap-2">
+										<Label for="edit-email">Email</Label>
+										<Input
+											id="edit-email"
+											type="email"
+											bind:value={editEmail}
+											placeholder="usuario@email.com"
+											disabled={submitting}
+										/>
+									</div>
+									{#if error}
+										<div class="text-sm text-destructive text-center">{error}</div>
+									{/if}
+									<div class="flex justify-center gap-2">
+										<Button variant="outline" size="sm" onclick={cancelEditing} disabled={submitting}>
+											Cancelar
+										</Button>
+										<Button size="sm" onclick={handleSave} disabled={submitting}>
+											{#if submitting}
+												<span class="material-symbols-rounded animate-spin text-lg!"
+													>progress_activity</span
+												>
+											{/if}
+											Guardar
+										</Button>
+									</div>
+								</div>
+							{:else}
+								<div class="text-center">
+									<CardTitle class="text-2xl font-semibold tracking-tight">{user?.name ?? ''}</CardTitle
+									>
+									<CardDescription class="mt-1">{user?.email ?? ''}</CardDescription>
+								</div>
+								<Button variant="outline" size="sm" onclick={startEditing}>
+									<span class="material-symbols-rounded text-lg!">edit</span>
+									Editar perfil
+								</Button>
+							{/if}
 						</div>
-						{#if isEditing}
-							<div class="w-full space-y-4">
-								<div class="grid gap-2">
-									<Label for="edit-name">Nombre completo</Label>
-									<Input
-										id="edit-name"
-										bind:value={editName}
-										placeholder="Juan García"
-										disabled={submitting}
-									/>
-								</div>
-								<div class="grid gap-2">
-									<Label for="edit-email">Email</Label>
-									<Input
-										id="edit-email"
-										type="email"
-										bind:value={editEmail}
-										placeholder="usuario@email.com"
-										disabled={submitting}
-									/>
-								</div>
-								{#if error}
-									<div class="text-sm text-destructive text-center">{error}</div>
-								{/if}
-								<div class="flex justify-center gap-2">
-									<Button variant="outline" size="sm" onclick={cancelEditing} disabled={submitting}>
-										Cancelar
-									</Button>
-									<Button size="sm" onclick={handleSave} disabled={submitting}>
-										{#if submitting}
-											<span class="material-symbols-rounded animate-spin text-lg!"
-												>progress_activity</span
-											>
-										{/if}
-										Guardar
-									</Button>
-								</div>
+					</CardHeader>
+
+					<Separator />
+
+					<CardContent class="space-y-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-sm font-medium">Contraseña</p>
+								<p class="text-sm text-muted-foreground">
+									Restablece tu contraseña por correo electrónico
+								</p>
+							</div>
+							<Button href={resolve('/reset-password')} variant="outline" size="sm">Restablecer</Button>
+						</div>
+					</CardContent>
+				</Card>
+
+				<!-- My Companies Card -->
+				<Card class="h-fit">
+					<CardHeader>
+						<CardTitle class="text-lg font-semibold tracking-tight flex items-center gap-2">
+							<span class="material-symbols-rounded text-xl!">business</span>
+							Mis Empresas
+						</CardTitle>
+						<CardAction>
+							<Button size="sm" onclick={() => (addCompanyModalOpen = true)}>
+								<span class="material-symbols-rounded text-lg!">add</span>
+								Añadir
+							</Button>
+						</CardAction>
+						<CardDescription>
+							Empresas a las que tienes acceso. Haz clic para cambiar.
+						</CardDescription>
+					</CardHeader>
+
+					<CardContent>
+						{#if profiles.length === 0}
+							<div class="text-center py-6 text-muted-foreground">
+								<span class="material-symbols-rounded text-3xl! mb-2">business</span>
+								<p class="text-sm">No tienes empresas asociadas</p>
 							</div>
 						{:else}
-							<div class="text-center">
-								<CardTitle class="text-2xl font-semibold tracking-tight">{user?.name ?? ''}</CardTitle
-								>
-								<CardDescription class="mt-1">{user?.email ?? ''}</CardDescription>
+							<div class="space-y-2">
+								{#each profiles as profile (profile.id)}
+									<Button
+										variant="outline"
+										class="w-full h-auto flex items-center gap-3 p-3 justify-start text-left
+											{activeProfile?.id === profile.id
+												? 'border-primary bg-primary/5 hover:bg-primary/10'
+												: ''}"
+										onclick={() => handleSwitchProfile(profile)}
+										disabled={switchingProfileId !== null}
+									>
+										<!-- Company Logo or Initial -->
+										<div
+											class="flex items-center justify-center w-10 h-10 rounded-md bg-muted text-sm font-semibold shrink-0"
+										>
+											{#if profile.company.logoUrl}
+												<img
+													src={profile.company.logoUrl}
+													alt={profile.company.name}
+													class="w-full h-full object-cover rounded-md"
+												/>
+											{:else}
+												{profile.company.name.charAt(0).toUpperCase()}
+											{/if}
+										</div>
+
+										<div class="flex-1 min-w-0">
+											<div class="font-medium text-sm truncate">{profile.company.name}</div>
+											<div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+												<span class="text-xs text-muted-foreground">
+													{roleLabels[profile.role] ?? profile.role}
+												</span>
+												<RelationTypeBadge type={profile.relationType} class="text-[10px] px-1.5 py-0" />
+											</div>
+										</div>
+
+										{#if switchingProfileId === profile.id}
+											<span class="material-symbols-rounded animate-spin text-lg text-muted-foreground">progress_activity</span>
+										{:else if activeProfile?.id === profile.id}
+											<Badge variant="secondary" class="text-xs">Activa</Badge>
+										{/if}
+									</Button>
+								{/each}
 							</div>
-							<Button variant="outline" size="sm" onclick={startEditing}>
-								<span class="material-symbols-rounded text-lg!">edit</span>
-								Editar perfil
-							</Button>
 						{/if}
-					</div>
-				</CardHeader>
+					</CardContent>
+				</Card>
+			</div>
 
-				<Separator />
-
-				<CardContent class="space-y-4">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium">Contraseña</p>
-							<p class="text-sm text-muted-foreground">
-								Restablece tu contraseña por correo electrónico
-							</p>
-						</div>
-						<Button href={resolve('/reset-password')} variant="outline" size="sm">Restablecer</Button>
-					</div>
-				</CardContent>
-			</Card>
-
-			<!-- Right Column: Schedule -->
+			<!-- Right Column: Schedule (hidden for GUEST users) -->
+			{#if !isGuest}
 			<Card class="h-fit">
 				<CardHeader>
 					<CardTitle class="text-lg font-semibold tracking-tight flex items-center gap-2">
@@ -392,6 +534,9 @@
 					{/if}
 				</CardContent>
 			</Card>
+			{/if}
 		</div>
 	</div>
 </div>
+
+<AddCompanyModal bind:open={addCompanyModalOpen} />

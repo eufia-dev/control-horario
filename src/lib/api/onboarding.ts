@@ -66,6 +66,44 @@ export type RequestJoinDto = {
 	name: string;
 };
 
+export type RequestJoinByCodeDto = {
+	inviteCode: string;
+};
+
+export type RequestJoinByCodeResponse = {
+	companyName: string;
+	status: 'PENDING';
+};
+
+// Pending invitation for logged-in users (different from onboarding PendingInvitation)
+export type AuthPendingInvitation = {
+	id: string;
+	token: string;
+	role: UserRole;
+	relationType: 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+	expiresAt: string;
+	company: {
+		id: string;
+		name: string;
+		logoUrl: string | null;
+	};
+};
+
+export type AcceptInvitationResponse = {
+	profile: {
+		id: string;
+		name: string;
+		email: string;
+		role: UserRole;
+		relationType: 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+		company: {
+			id: string;
+			name: string;
+			logoUrl: string | null;
+		};
+	};
+};
+
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -169,4 +207,46 @@ export async function searchCompanies(query: string): Promise<CompanySearchResul
 export async function getCompanyByCode(code: string): Promise<CompanySearchResult> {
 	const response = await fetchWithAuth(`${API_BASE}/companies/by-code/${encodeURIComponent(code)}`);
 	return handleJsonResponse<CompanySearchResult>(response);
+}
+
+// ==================== Multi-tenancy API functions ====================
+
+/**
+ * Get pending invitations for the logged-in user
+ * Returns invitations for companies the user is not already a member of
+ */
+export async function fetchAuthPendingInvitations(): Promise<AuthPendingInvitation[]> {
+	const response = await fetchWithAuth(`${API_BASE}/auth/pending-invitations`);
+	const data = await handleJsonResponse<{ invitations: AuthPendingInvitation[] }>(response);
+	return data.invitations;
+}
+
+/**
+ * Accept an invitation as a logged-in user (no userName needed)
+ * This creates a new profile for the user in the invited company
+ */
+export async function acceptInvitationAsUser(
+	token: string
+): Promise<AcceptInvitationResponse> {
+	const response = await fetchWithAuth(`${API_BASE}/auth/accept-invitation/${token}`, {
+		method: 'POST'
+	});
+	return handleJsonResponse<AcceptInvitationResponse>(response);
+}
+
+/**
+ * Request to join a company using an invite code
+ * The request will be pending until approved by an admin
+ */
+export async function requestJoinByCode(
+	inviteCode: string
+): Promise<RequestJoinByCodeResponse> {
+	const response = await fetchWithAuth(`${API_BASE}/auth/request-join`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ inviteCode })
+	});
+	return handleJsonResponse<RequestJoinByCodeResponse>(response);
 }

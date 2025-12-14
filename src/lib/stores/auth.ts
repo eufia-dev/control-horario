@@ -3,12 +3,28 @@ import type { PendingInvitation, JoinRequest, OnboardingStatusType } from '$lib/
 
 export type UserRole = 'OWNER' | 'ADMIN' | 'WORKER' | 'AUDITOR';
 
+export type RelationType = 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+
+export type Profile = {
+	id: string;
+	name: string;
+	email: string;
+	role: UserRole;
+	relationType: RelationType;
+	company: {
+		id: string;
+		name: string;
+		logoUrl: string | null;
+	};
+};
+
 export type AuthUser = {
 	id: string;
 	name: string;
 	email: string;
 	companyName: string;
 	role: UserRole;
+	relationType: RelationType;
 	createdAt: string;
 };
 
@@ -19,6 +35,8 @@ export type AuthState = {
 	onboardingStatus: OnboardingStatusType | null;
 	pendingInvitations: PendingInvitation[];
 	pendingRequests: JoinRequest[];
+	profiles: Profile[];
+	activeProfile: Profile | null;
 };
 
 const createAuthStore = () => {
@@ -28,7 +46,9 @@ const createAuthStore = () => {
 		error: null,
 		onboardingStatus: null,
 		pendingInvitations: [],
-		pendingRequests: []
+		pendingRequests: [],
+		profiles: [],
+		activeProfile: null
 	};
 
 	const { subscribe, update, set } = writable<AuthState>(initialState);
@@ -76,6 +96,23 @@ const createAuthStore = () => {
 				onboardingStatus: null,
 				pendingInvitations: [],
 				pendingRequests: []
+			})),
+		setProfiles: (profiles: Profile[], activeProfile: Profile | null) =>
+			update((state) => ({
+				...state,
+				profiles,
+				activeProfile
+			})),
+		setActiveProfile: (activeProfile: Profile | null) =>
+			update((state) => ({
+				...state,
+				activeProfile
+			})),
+		clearProfiles: () =>
+			update((state) => ({
+				...state,
+				profiles: [],
+				activeProfile: null
 			}))
 	};
 };
@@ -107,4 +144,20 @@ export const needsOnboarding = derived(
 export const hasPendingApproval = derived(
 	auth,
 	($auth) => $auth.onboardingStatus === 'PENDING_APPROVAL'
+);
+
+export const activeProfile = derived(auth, ($auth) => $auth.activeProfile);
+
+export const profiles = derived(auth, ($auth) => $auth.profiles);
+
+export const hasMultipleProfiles = derived(auth, ($auth) => $auth.profiles.length > 1);
+
+export const isGuest = derived(
+	auth,
+	($auth) => $auth.activeProfile?.relationType === 'GUEST'
+);
+
+export const canTrackTime = derived(
+	auth,
+	($auth) => $auth.activeProfile?.relationType !== 'GUEST'
 );
