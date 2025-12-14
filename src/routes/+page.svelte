@@ -488,9 +488,9 @@
 	});
 </script>
 
-<div class="grow flex flex-col gap-6 p-6">
+<div class="grow p-6 space-y-6">
 
-	{#if isAdmin}
+	{#if isAdmin && absenceStats && absenceStats.pending > 0}
 		<div class="w-full max-w-5xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}
@@ -499,9 +499,13 @@
 		</div>
 	{/if}
 
-	<div class="w-full max-w-5xl mx-auto flex items-center gap-4">
-		<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
-		<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+	<div class="w-full max-w-5xl mx-auto flex items-stretch gap-4">
+		<div class="flex-1 flex flex-col">
+			<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
+		</div>
+		<div class="flex-1 flex flex-col">
+			<MissingLogsAlert {missingDays} loading={loadingCalendar} />
+		</div>
 	</div>
 
 	<Card class="w-full max-w-5xl mx-auto">

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
+	import { Card, CardHeader, CardTitle, CardContent, CardAction } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { resolve } from '$app/paths';
 	import type { CalendarSummary } from '$lib/api/calendar';
@@ -29,12 +29,24 @@
 	});
 </script>
 
-<Card class="w-full">
-	<CardHeader>
+<Card class="w-full flex-1">
+	<CardHeader class="flex items-center justify-between">
 		<CardTitle class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
 			<span class="material-symbols-rounded text-lg!">analytics</span>
 			Cumplimiento Este Mes
 		</CardTitle>
+		<CardAction>
+			<Button
+				variant="ghost"
+				size="sm"
+				href={resolve('/calendar')}
+				title="Ver calendario"
+			>
+				<span class="material-symbols-rounded text-lg!">calendar_month</span>
+				Calendario
+				<span class="material-symbols-rounded text-lg! ml-auto">chevron_right</span>
+			</Button>
+		</CardAction>
 	</CardHeader>
 	<CardContent>
 		{#if loading}
@@ -62,16 +74,4 @@
 			<p class="text-sm text-muted-foreground">No hay datos disponibles</p>
 		{/if}
 	</CardContent>
-	<CardFooter>
-		<Button
-			variant="ghost"
-			size="sm"
-			href={resolve('/calendar')}
-			class="w-full justify-start"
-		>
-			<span class="material-symbols-rounded text-lg! mr-2">calendar_month</span>
-			Ver calendario
-			<span class="material-symbols-rounded text-lg! ml-auto">chevron_right</span>
-		</Button>
-	</CardFooter>
 </Card>

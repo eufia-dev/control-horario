@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { Card, CardHeader, CardTitle, CardContent, CardAction } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { resolve } from '$app/paths';
 	import type { CalendarDay } from '$lib/api/calendar';
@@ -24,15 +24,25 @@
 </script>
 
 {#if !loading && missingDays.length > 0}
-	<Card class="bg-destructive/10 border-destructive/20 w-full">
-		<CardHeader class="pb-3">
+	<Card class="bg-destructive/10 border-destructive/20 w-full flex-1">
+		<CardHeader class="flex items-center justify-between">
 			<CardTitle class="text-base font-medium text-destructive flex items-center gap-2">
 				<span class="material-symbols-rounded text-2xl!">warning</span>
 				Tienes {missingDays.length}
 				{missingDays.length === 1 ? 'día' : 'días'} sin registrar
 			</CardTitle>
+			<CardAction>
+				<Button
+					variant="destructive"
+					size="sm"
+					href={resolve('/calendar')}
+				>
+					<span class="material-symbols-rounded text-lg! mr-2">edit_calendar</span>
+					Registrar horas
+				</Button>
+			</CardAction>
 		</CardHeader>
-		<CardContent class="pt-0">
+		<CardContent>
 			<ul class="space-y-1 text-sm text-muted-foreground">
 				{#each displayDays as day (day.date)}
 					<li class="flex items-center gap-2">
@@ -46,15 +56,6 @@
 					</li>
 				{/if}
 			</ul>
-			<Button
-				variant="outline"
-				size="sm"
-				href={resolve('/calendar')}
-				class="mt-3 border-destructive/30 text-destructive hover:bg-destructive/10"
-			>
-				<span class="material-symbols-rounded text-lg! mr-2">edit_calendar</span>
-				Registrar horas
-			</Button>
 		</CardContent>
 	</Card>
 {/if}
