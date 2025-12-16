@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
-	import { hasActiveSession } from '$lib/auth';
+	import { hasActiveSession, loadAndSetProfiles } from '$lib/auth';
 	import { acceptInvitation } from '$lib/api/onboarding';
 	import { auth } from '$lib/stores/auth';
 	import {
@@ -26,15 +26,6 @@
 	let needsAuth = $state(false);
 	let needsName = $state(false);
 	let userName = $state($page.url.searchParams.get('userName') ?? '');
-
-	const buildRedirectPath = () => {
-		const base = `/invite/${token}`;
-		const params = new SvelteURLSearchParams();
-		if (userName.trim()) {
-			params.set('userName', userName.trim());
-		}
-		return params.toString() ? `${base}?${params.toString()}` : base;
-	};
 
 	onMount(async () => {
 		const hasSession = await hasActiveSession();
@@ -78,6 +69,11 @@
 
 			if (result.status === 'ACTIVE' && result.user) {
 				auth.setUser(result.user);
+				try {
+					await loadAndSetProfiles();
+				} catch {
+					// ignore profile loading issues; user can still proceed
+				}
 				await goto(resolve('/'));
 			} else {
 				error = 'La invitación no pudo ser procesada';
@@ -92,13 +88,13 @@
 
 	const handleGoToRegister = () => {
 		const base = '/register';
-		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
+		const params = new SvelteURLSearchParams({ redirect: `/invite/${token}` });
 		goto(`${base}?${params.toString()}`);
 	};
 
 	const handleGoToLogin = () => {
 		const base = '/login';
-		const params = new SvelteURLSearchParams({ redirect: buildRedirectPath() });
+		const params = new SvelteURLSearchParams({ redirect: `/invite/${token}` });
 		goto(`${base}?${params.toString()}`);
 	};
 
@@ -135,19 +131,6 @@
 					Has recibido una invitación para unirte a una empresa. Crea una cuenta o inicia sesión
 					para aceptarla.
 				</p>
-				<div class="space-y-2">
-					<Label for="user-name">Nombre completo</Label>
-					<Input
-						id="user-name"
-						type="text"
-						placeholder="Juan García"
-						bind:value={userName}
-						autocomplete="name"
-					/>
-					<p class="text-xs text-muted-foreground">
-						Guardaremos este nombre para completar tu perfil al aceptar la invitación.
-					</p>
-				</div>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-3">
 				<Button class="w-full" onclick={handleGoToRegister}>

@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { auth } from '$lib/stores/auth';
+	import { loadAndSetProfiles } from '$lib/auth';
 	import {
 		acceptInvitation,
 		// getCompanyByCode,
@@ -165,8 +166,30 @@
 		errorMessage = null;
 
 		try {
-			await acceptInvitation(token, userName.trim());
-			await goto(resolve('/'));
+			const result = await acceptInvitation(token, userName.trim());
+
+			if (result.status === 'ACTIVE' && result.user) {
+				// Critical: update auth store before navigating, otherwise the layout guard
+				// will still think onboarding is required and bounce back to /onboarding.
+				auth.setUser(result.user);
+				try {
+					await loadAndSetProfiles();
+				} catch {
+					// ignore profile loading issues; user can still proceed with default context
+				}
+				await goto(resolve('/'));
+				return;
+			}
+
+			// If backend says we still need onboarding / approval, sync store and route accordingly.
+			if (result.status === 'PENDING_APPROVAL') {
+				auth.setOnboardingStatus('PENDING_APPROVAL', [], result.requests ?? []);
+				await goto(resolve('/onboarding/status'));
+				return;
+			}
+
+			auth.setOnboardingStatus('ONBOARDING_REQUIRED', result.pendingInvitations ?? [], []);
+			await goto(resolve('/onboarding'));
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'Error al aceptar la invitación';
 		} finally {

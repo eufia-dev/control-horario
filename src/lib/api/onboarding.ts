@@ -1,6 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { fetchWithAuth } from '$lib/auth';
-import type { UserRole } from '$lib/stores/auth';
+import type { UserRole, RelationType } from '$lib/stores/auth';
 
 const API_BASE = PUBLIC_API_URL;
 
@@ -37,6 +37,7 @@ export type OnboardingCheckResponse = {
 		email: string;
 		companyName: string;
 		role: UserRole;
+		relationType: RelationType;
 		createdAt: string;
 	};
 	pendingInvitations?: PendingInvitation[];
@@ -80,7 +81,7 @@ export type AuthPendingInvitation = {
 	id: string;
 	token: string;
 	role: UserRole;
-	relationType: 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+	relationType: RelationType;
 	expiresAt: string;
 	company: {
 		id: string;
@@ -95,7 +96,7 @@ export type AcceptInvitationResponse = {
 		name: string;
 		email: string;
 		role: UserRole;
-		relationType: 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
+		relationType: RelationType;
 		company: {
 			id: string;
 			name: string;
