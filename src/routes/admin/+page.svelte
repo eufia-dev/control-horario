@@ -96,8 +96,8 @@
 
 			<TabsContent value="empresa" class="flex flex-col gap-6">
 				<SchedulesSection />
-				<LocationSection />
 				<HolidaysSection />
+				<LocationSection />
 			</TabsContent>
 
 			<TabsContent value="equipo" class="flex flex-col gap-6">
