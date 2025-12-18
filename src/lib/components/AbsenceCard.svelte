@@ -39,15 +39,9 @@
 		return `${formatDate(start)} - ${formatDate(end)}`;
 	}
 
-	function calculateDays(start: string, end: string): number {
-		const startDate = new Date(start);
-		const endDate = new Date(end);
-		const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-		return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-	}
-
-	const days = $derived(calculateDays(absence.startDate, absence.endDate));
-	const canCancel = $derived(absence.status === 'PENDING' && onCancel);
+	const canCancel = $derived(
+		onCancel !== undefined && absence.status !== 'CANCELLED' && absence.status !== 'REJECTED'
+	);
 </script>
 
 <div class="border rounded-lg p-4 space-y-3">
@@ -62,17 +56,19 @@
 				<span class="text-sm font-medium">{absence.user.name}</span>
 			{/if}
 		</div>
-		{#if canCancel}
-			<Button
-				variant="ghost"
-				size="sm"
-				class="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
-				onclick={() => onCancel?.(absence)}
-			>
-				<span class="material-symbols-rounded text-lg!">close</span>
-				<span class="sr-only">Cancelar</span>
-			</Button>
-		{/if}
+		<div class="flex items-center gap-1">
+			{#if canCancel}
+				<Button
+					variant="ghost"
+					size="sm"
+					class="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+					onclick={() => onCancel?.(absence)}
+				>
+					<span class="material-symbols-rounded text-lg!">close</span>
+					<span class="sr-only">Cancelar</span>
+				</Button>
+			{/if}
+		</div>
 	</div>
 
 	<div>
@@ -80,8 +76,8 @@
 		<p class="text-sm text-muted-foreground">
 			{formatDateRange(absence.startDate, absence.endDate)}
 			<span class="mx-1">·</span>
-			{days}
-			{days === 1 ? 'día' : 'días'}
+			{absence.workdaysCount}
+			{absence.workdaysCount === 1 ? 'día' : 'días'}
 		</p>
 	</div>
 

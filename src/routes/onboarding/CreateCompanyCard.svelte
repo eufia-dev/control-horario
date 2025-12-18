@@ -8,7 +8,7 @@
 		getProvinceName,
 		deriveLocationFromPostalCode,
 		isValidPostalCodeFormat,
-		isPostalCodeConsistentWithProvince,
+		isPostalCodeConsistentWithProvince
 	} from '$lib/data/spain-locations';
 	import { auth } from '$lib/stores/auth';
 	import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';

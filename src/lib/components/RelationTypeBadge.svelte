@@ -9,7 +9,10 @@
 
 	let { type, class: className = '' }: Props = $props();
 
-	const config: Record<RelationType, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+	const config: Record<
+		RelationType,
+		{ label: string; variant: 'default' | 'secondary' | 'outline' }
+	> = {
 		EMPLOYEE: { label: 'Empleado', variant: 'default' },
 		CONTRACTOR: { label: 'Autónomo', variant: 'secondary' },
 		GUEST: { label: 'Invitado', variant: 'outline' }

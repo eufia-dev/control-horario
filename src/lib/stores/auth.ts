@@ -152,12 +152,6 @@ export const profiles = derived(auth, ($auth) => $auth.profiles);
 
 export const hasMultipleProfiles = derived(auth, ($auth) => $auth.profiles.length > 1);
 
-export const isGuest = derived(
-	auth,
-	($auth) => $auth.activeProfile?.relationType === 'GUEST'
-);
+export const isGuest = derived(auth, ($auth) => $auth.activeProfile?.relationType === 'GUEST');
 
-export const canTrackTime = derived(
-	auth,
-	($auth) => $auth.activeProfile?.relationType !== 'GUEST'
-);
+export const canTrackTime = derived(auth, ($auth) => $auth.activeProfile?.relationType !== 'GUEST');

@@ -39,7 +39,7 @@
 		{ value: '/login', label: 'Iniciar sesión' },
 		{ value: '/register', label: 'Registro' },
 		{ value: '/reset-password', label: 'Restablecer contraseña' },
-		{ value: '/onboarding', label: 'Onboarding' },
+		{ value: '/onboarding', label: 'Onboarding' }
 	];
 
 	// Filter routes based on admin status

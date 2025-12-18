@@ -21,7 +21,10 @@
 		AUDITOR: 'Auditor'
 	};
 
-	const relationTypeConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+	const relationTypeConfig: Record<
+		string,
+		{ label: string; variant: 'default' | 'secondary' | 'outline' }
+	> = {
 		EMPLOYEE: { label: 'Empleado', variant: 'default' },
 		CONTRACTOR: { label: 'Autónomo', variant: 'secondary' },
 		GUEST: { label: 'Invitado', variant: 'outline' }
@@ -91,7 +94,9 @@
 				<span class="truncate hidden sm:inline">{$activeProfile?.company.name ?? 'Empresa'}</span>
 				<span class="material-symbols-rounded text-base!">expand_more</span>
 				{#if pendingInvitations.length > 0}
-					<span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium">
+					<span
+						class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium"
+					>
 						{pendingInvitations.length}
 					</span>
 				{/if}
@@ -111,13 +116,16 @@
 					class="w-full flex items-center gap-3 p-2 rounded-md hover:bg-primary/10 transition-colors text-left"
 					onclick={handleManageProfiles}
 				>
-					<div class="flex items-center justify-center w-10 h-10 rounded-md bg-primary/10 text-primary shrink-0">
+					<div
+						class="flex items-center justify-center w-10 h-10 rounded-md bg-primary/10 text-primary shrink-0"
+					>
 						<span class="material-symbols-rounded text-xl!">mail</span>
 					</div>
 					<div class="flex-1 min-w-0">
 						<div class="text-sm font-medium">Invitaciones pendientes</div>
 						<div class="text-xs text-muted-foreground">
-							{pendingInvitations.length} {pendingInvitations.length === 1 ? 'invitación' : 'invitaciones'}
+							{pendingInvitations.length}
+							{pendingInvitations.length === 1 ? 'invitación' : 'invitaciones'}
 						</div>
 					</div>
 					<Badge variant="default" class="text-xs">{pendingInvitations.length}</Badge>
@@ -130,9 +138,7 @@
 				<button
 					type="button"
 					class="w-full flex items-center gap-3 p-2 rounded-md transition-colors text-left
-						{$activeProfile?.id === profile.id
-							? 'bg-primary/10'
-							: 'hover:bg-muted'}"
+						{$activeProfile?.id === profile.id ? 'bg-primary/10' : 'hover:bg-muted'}"
 					onclick={() => handleSwitch(profile)}
 					disabled={isSwitching}
 				>

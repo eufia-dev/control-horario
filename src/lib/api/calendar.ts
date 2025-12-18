@@ -85,12 +85,12 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 export async function fetchCalendar(
 	from: string,
 	to: string,
-	userId?: string
+	userId: string
 ): Promise<CalendarResponse> {
 	const params = new URLSearchParams();
 	params.set('from', from);
 	params.set('to', to);
-	if (userId) params.set('userId', userId);
+	params.set('userId', userId);
 	const response = await fetchWithAuth(`${API_BASE}/calendar?${params.toString()}`);
 	return handleJsonResponse<CalendarResponse>(response);
 }

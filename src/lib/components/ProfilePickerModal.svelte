@@ -25,7 +25,10 @@
 		AUDITOR: 'Auditor'
 	};
 
-	const relationTypeConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+	const relationTypeConfig: Record<
+		string,
+		{ label: string; variant: 'default' | 'secondary' | 'outline' }
+	> = {
 		EMPLOYEE: { label: 'Empleado', variant: 'default' },
 		CONTRACTOR: { label: 'Autónomo', variant: 'secondary' },
 		GUEST: { label: 'Invitado', variant: 'outline' }
@@ -72,8 +75,8 @@
 					type="button"
 					class="w-full flex items-center gap-4 p-4 rounded-lg border transition-colors text-left
 						{selectedProfileId === profile.id
-							? 'border-primary bg-primary/5'
-							: 'border-border hover:border-muted-foreground/50 hover:bg-muted/50'}"
+						? 'border-primary bg-primary/5'
+						: 'border-border hover:border-muted-foreground/50 hover:bg-muted/50'}"
 					onclick={() => handleSelect(profile)}
 				>
 					<!-- Company Logo or Initial -->
@@ -112,9 +115,7 @@
 
 		<div class="flex items-center gap-3 pb-4">
 			<Switch id="remember-profile" bind:checked={rememberChoice} />
-			<Label for="remember-profile" class="text-sm cursor-pointer">
-				Recordar mi elección
-			</Label>
+			<Label for="remember-profile" class="text-sm cursor-pointer">Recordar mi elección</Label>
 		</div>
 
 		<Dialog.Footer>

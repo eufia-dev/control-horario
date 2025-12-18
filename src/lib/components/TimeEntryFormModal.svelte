@@ -81,6 +81,7 @@
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
 	const selectedType = $derived(timeEntryTypes.find((t) => t.value === entryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
+	const hasProjects = $derived(activeProjects.length > 0);
 	const isWorkType = $derived(selectedType?.name === 'Trabajo');
 
 	// Get the default project (latest from entries or first active)
@@ -98,11 +99,11 @@
 		// Only for new entries (not editing)
 		if (isEditMode) return;
 
-		if (isWorkType && !projectId) {
+		if (isWorkType && hasProjects && !projectId) {
 			// Switching to work type: restore default project
 			projectId = defaultProjectId();
-		} else if (!isWorkType && projectId) {
-			// Switching away from work type: clear project
+		} else if ((!isWorkType || !hasProjects) && projectId) {
+			// Switching away from work type or no projects: clear project
 			projectId = undefined;
 		}
 	});
@@ -160,16 +161,15 @@
 			isInOffice = entry.isInOffice;
 		} else {
 			resetForm();
-			
+
 			// If initialDate is provided (from calendar click), use it for both start and end dates
 			if (initialDate) {
 				// Parse date string (YYYY-MM-DD) in local timezone
 				const [y, m, d] = initialDate.split('-').map(Number);
-				const selectedDate = new Date(y, m - 1, d);
 				// Set times to a default range (e.g., 9:00 to 17:00)
 				const startDateTime = new Date(y, m - 1, d, 9, 0, 0, 0);
 				const endDateTime = new Date(y, m - 1, d, 17, 0, 0, 0);
-				
+
 				startDateValue = dateToDateValue(startDateTime);
 				startTime = formatTimeForInput(startDateTime.toISOString());
 				endDateValue = dateToDateValue(endDateTime);
@@ -219,7 +219,7 @@
 			return;
 		}
 
-		if (isWorkType && !projectId) {
+		if (isWorkType && hasProjects && !projectId) {
 			error = 'Debes seleccionar un proyecto';
 			return;
 		}
@@ -249,7 +249,7 @@
 		try {
 			if (isEditMode && entry) {
 				const data: UpdateTimeEntryDto = {
-					projectId: isWorkType ? projectId : undefined,
+					projectId: isWorkType && hasProjects ? projectId : undefined,
 					entryType,
 					startTime: startTimeIso,
 					endTime: endTimeIso,
@@ -259,7 +259,7 @@
 				await updateTimeEntry(entry.id, data);
 			} else {
 				const data: CreateTimeEntryDto = {
-					projectId: isWorkType ? projectId : undefined,
+					projectId: isWorkType && hasProjects ? projectId : undefined,
 					entryType,
 					startTime: startTimeIso,
 					endTime: endTimeIso,
@@ -319,7 +319,7 @@
 					</Select>
 				</div>
 
-				{#if isWorkType}
+				{#if isWorkType && hasProjects}
 					<div class="grid gap-2">
 						<Label>Proyecto</Label>
 						<Select type="single" bind:value={projectId} disabled={submitting}>

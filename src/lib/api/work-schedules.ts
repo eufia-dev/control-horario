@@ -229,4 +229,3 @@ export function validateSchedule(
 
 	return { valid: true };
 }
-

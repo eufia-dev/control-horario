@@ -215,12 +215,6 @@
 		}
 	}
 
-	function formatScheduleSummary(days: WorkScheduleDay[]): string {
-		if (days.length === 0) return 'Sin horario definido';
-		const sortedDays = [...days].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
-		return sortedDays.map((d) => `${DAY_NAMES[d.dayOfWeek].slice(0, 3)}`).join(', ');
-	}
-
 	async function handleSwitchProfile(profile: Profile) {
 		if (profile.id === activeProfile?.id || switchingProfileId) return;
 
@@ -297,7 +291,12 @@
 										<div class="text-sm text-destructive text-center">{error}</div>
 									{/if}
 									<div class="flex justify-center gap-2">
-										<Button variant="outline" size="sm" onclick={cancelEditing} disabled={submitting}>
+										<Button
+											variant="outline"
+											size="sm"
+											onclick={cancelEditing}
+											disabled={submitting}
+										>
 											Cancelar
 										</Button>
 										<Button size="sm" onclick={handleSave} disabled={submitting}>
@@ -312,7 +311,8 @@
 								</div>
 							{:else}
 								<div class="text-center">
-									<CardTitle class="text-2xl font-semibold tracking-tight">{user?.name ?? ''}</CardTitle
+									<CardTitle class="text-2xl font-semibold tracking-tight"
+										>{user?.name ?? ''}</CardTitle
 									>
 									<CardDescription class="mt-1">{user?.email ?? ''}</CardDescription>
 								</div>
@@ -334,7 +334,9 @@
 									Restablece tu contraseña por correo electrónico
 								</p>
 							</div>
-							<Button href={resolve('/reset-password')} variant="outline" size="sm">Restablecer</Button>
+							<Button href={resolve('/reset-password')} variant="outline" size="sm"
+								>Restablecer</Button
+							>
 						</div>
 					</CardContent>
 				</Card>
@@ -369,9 +371,7 @@
 									<Button
 										variant="outline"
 										class="w-full h-auto flex items-center gap-3 p-3 justify-start text-left
-											{activeProfile?.id === profile.id
-												? 'border-primary bg-primary/5 hover:bg-primary/10'
-												: ''}"
+											{activeProfile?.id === profile.id ? 'border-primary bg-primary/5 hover:bg-primary/10' : ''}"
 										onclick={() => handleSwitchProfile(profile)}
 										disabled={switchingProfileId !== null}
 									>
@@ -396,12 +396,18 @@
 												<span class="text-xs text-muted-foreground">
 													{roleLabels[profile.role] ?? profile.role}
 												</span>
-												<RelationTypeBadge type={profile.relationType} class="text-[10px] px-1.5 py-0" />
+												<RelationTypeBadge
+													type={profile.relationType}
+													class="text-[10px] px-1.5 py-0"
+												/>
 											</div>
 										</div>
 
 										{#if switchingProfileId === profile.id}
-											<span class="material-symbols-rounded animate-spin text-lg text-muted-foreground">progress_activity</span>
+											<span
+												class="material-symbols-rounded animate-spin text-lg text-muted-foreground"
+												>progress_activity</span
+											>
 										{:else if activeProfile?.id === profile.id}
 											<Badge variant="secondary" class="text-xs">Activa</Badge>
 										{/if}
@@ -415,125 +421,125 @@
 
 			<!-- Right Column: Schedule (hidden for GUEST users) -->
 			{#if !isGuest}
-			<Card class="h-fit">
-				<CardHeader>
-					<CardTitle class="text-lg font-semibold tracking-tight flex items-center gap-2">
-						<span class="material-symbols-rounded text-xl!">schedule</span>
-						Mi Horario de Trabajo
-					</CardTitle>
-					<CardDescription>
-						{#if loadingCompany}
-							<Skeleton class="h-4 w-48" />
-						{:else if canEditSchedule}
-							Personaliza tu horario de trabajo semanal
-						{:else}
-							Tu empresa no permite personalizar horarios
-						{/if}
-					</CardDescription>
-				</CardHeader>
-
-				<CardContent>
-					{#if loadingSchedule || loadingCompany}
-						<div class="space-y-3">
-							{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-								<Skeleton class="h-10 w-full" />
-							{/each}
-						</div>
-					{:else if scheduleError && mySchedule.length === 0}
-						<div class="flex flex-col items-center justify-center py-6 text-destructive">
-							<span class="material-symbols-rounded text-3xl! mb-2">error</span>
-							<p class="text-sm">{scheduleError}</p>
-							<Button variant="outline" size="sm" class="mt-3" onclick={loadSchedule}>
-								<span class="material-symbols-rounded text-lg! mr-1">refresh</span>
-								Reintentar
-							</Button>
-						</div>
-					{:else if canEditSchedule}
-						<!-- Editable schedule -->
-						<div class="space-y-4">
-							<ScheduleEditor
-								bind:schedule={mySchedule}
-								disabled={savingSchedule || deletingOverrides}
-							/>
-
-							{#if scheduleError}
-								<div class="text-sm text-destructive flex items-center gap-1">
-									<span class="material-symbols-rounded text-base">error</span>
-									{scheduleError}
-								</div>
+				<Card class="h-fit">
+					<CardHeader>
+						<CardTitle class="text-lg font-semibold tracking-tight flex items-center gap-2">
+							<span class="material-symbols-rounded text-xl!">schedule</span>
+							Mi Horario de Trabajo
+						</CardTitle>
+						<CardDescription>
+							{#if loadingCompany}
+								<Skeleton class="h-4 w-48" />
+							{:else if canEditSchedule}
+								Personaliza tu horario de trabajo semanal
+							{:else}
+								Tu empresa no permite personalizar horarios
 							{/if}
+						</CardDescription>
+					</CardHeader>
 
-							<div class="flex justify-between gap-2">
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger>
-											<Button
-												variant="outline"
-												size="sm"
-												onclick={handleResetSchedule}
-												disabled={savingSchedule || deletingOverrides}
-											>
-												{#if deletingOverrides}
-													<span class="material-symbols-rounded animate-spin text-lg!"
-														>progress_activity</span
-													>
-												{:else}
-													<span class="material-symbols-rounded text-lg! mr-1">restart_alt</span>
-												{/if}
-												Restablecer
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>Usar el horario por defecto de la empresa</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-
-								<Button
-									size="sm"
-									onclick={handleSaveSchedule}
-									disabled={savingSchedule || deletingOverrides}
-								>
-									{#if savingSchedule}
-										<span class="material-symbols-rounded animate-spin text-lg!"
-											>progress_activity</span
-										>
-									{:else}
-										<span class="material-symbols-rounded text-lg! mr-1">save</span>
-									{/if}
-									Guardar
+					<CardContent>
+						{#if loadingSchedule || loadingCompany}
+							<div class="space-y-3">
+								{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+									<Skeleton class="h-10 w-full" />
+								{/each}
+							</div>
+						{:else if scheduleError && mySchedule.length === 0}
+							<div class="flex flex-col items-center justify-center py-6 text-destructive">
+								<span class="material-symbols-rounded text-3xl! mb-2">error</span>
+								<p class="text-sm">{scheduleError}</p>
+								<Button variant="outline" size="sm" class="mt-3" onclick={loadSchedule}>
+									<span class="material-symbols-rounded text-lg! mr-1">refresh</span>
+									Reintentar
 								</Button>
 							</div>
-						</div>
-					{:else}
-						<!-- Read-only schedule view -->
-						<div class="space-y-3">
-							{#each Array.from({ length: 7 }, (_, i) => i) as dayIndex (dayIndex)}
-								{@const daySchedule = mySchedule.find((d) => d.dayOfWeek === dayIndex)}
-								<div
-									class="flex items-center justify-between p-3 border rounded-lg {daySchedule
-										? 'bg-background'
-										: 'bg-muted/30'}"
-								>
-									<span class="font-medium {!daySchedule ? 'text-muted-foreground' : ''}">
-										{DAY_NAMES[dayIndex]}
-									</span>
-									{#if daySchedule}
-										<span class="text-sm">
-											{daySchedule.startTime} – {daySchedule.endTime}
-										</span>
-									{:else}
-										<span class="text-sm text-muted-foreground italic">No laborable</span>
-									{/if}
+						{:else if canEditSchedule}
+							<!-- Editable schedule -->
+							<div class="space-y-4">
+								<ScheduleEditor
+									bind:schedule={mySchedule}
+									disabled={savingSchedule || deletingOverrides}
+								/>
+
+								{#if scheduleError}
+									<div class="text-sm text-destructive flex items-center gap-1">
+										<span class="material-symbols-rounded text-base">error</span>
+										{scheduleError}
+									</div>
+								{/if}
+
+								<div class="flex justify-between gap-2">
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="outline"
+													size="sm"
+													onclick={handleResetSchedule}
+													disabled={savingSchedule || deletingOverrides}
+												>
+													{#if deletingOverrides}
+														<span class="material-symbols-rounded animate-spin text-lg!"
+															>progress_activity</span
+														>
+													{:else}
+														<span class="material-symbols-rounded text-lg! mr-1">restart_alt</span>
+													{/if}
+													Restablecer
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Usar el horario por defecto de la empresa</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+
+									<Button
+										size="sm"
+										onclick={handleSaveSchedule}
+										disabled={savingSchedule || deletingOverrides}
+									>
+										{#if savingSchedule}
+											<span class="material-symbols-rounded animate-spin text-lg!"
+												>progress_activity</span
+											>
+										{:else}
+											<span class="material-symbols-rounded text-lg! mr-1">save</span>
+										{/if}
+										Guardar
+									</Button>
 								</div>
-							{/each}
-							<p class="text-xs text-muted-foreground text-center mt-4">
-								Contacta con un administrador para modificar tu horario
-							</p>
-						</div>
-					{/if}
-				</CardContent>
-			</Card>
+							</div>
+						{:else}
+							<!-- Read-only schedule view -->
+							<div class="space-y-3">
+								{#each Array.from({ length: 7 }, (_, i) => i) as dayIndex (dayIndex)}
+									{@const daySchedule = mySchedule.find((d) => d.dayOfWeek === dayIndex)}
+									<div
+										class="flex items-center justify-between p-3 border rounded-lg {daySchedule
+											? 'bg-background'
+											: 'bg-muted/30'}"
+									>
+										<span class="font-medium {!daySchedule ? 'text-muted-foreground' : ''}">
+											{DAY_NAMES[dayIndex]}
+										</span>
+										{#if daySchedule}
+											<span class="text-sm">
+												{daySchedule.startTime} – {daySchedule.endTime}
+											</span>
+										{:else}
+											<span class="text-sm text-muted-foreground italic">No laborable</span>
+										{/if}
+									</div>
+								{/each}
+								<p class="text-xs text-muted-foreground text-center mt-4">
+									Contacta con un administrador para modificar tu horario
+								</p>
+							</div>
+						{/if}
+					</CardContent>
+				</Card>
 			{/if}
 		</div>
 	</div>

@@ -32,11 +32,7 @@
 				{missingDays.length === 1 ? 'día' : 'días'} sin registrar
 			</CardTitle>
 			<CardAction>
-				<Button
-					variant="destructive"
-					size="sm"
-					href={resolve('/calendar')}
-				>
+				<Button variant="destructive" size="sm" href={resolve('/calendar')}>
 					<span class="material-symbols-rounded text-lg! mr-2">edit_calendar</span>
 					Registrar horas
 				</Button>

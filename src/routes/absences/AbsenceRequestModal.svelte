@@ -11,7 +11,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import { Calendar as CalendarPicker } from '$lib/components/ui/calendar';
+	import { RangeCalendar } from '$lib/components/ui/range-calendar';
 	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
 	import {
 		createAbsence,
@@ -20,7 +20,12 @@
 		type AbsenceTypeOption
 	} from '$lib/api/absences';
 	import { onMount } from 'svelte';
-	import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date';
+	import { today, getLocalTimeZone, type DateValue } from '@internationalized/date';
+
+	type DateRange = {
+		start: DateValue | undefined;
+		end: DateValue | undefined;
+	};
 
 	type Props = {
 		open: boolean;
@@ -34,14 +39,12 @@
 	let loadingTypes = $state(true);
 
 	let selectedType = $state<AbsenceType | undefined>(undefined);
-	let startDate = $state<CalendarDate | undefined>(undefined);
-	let endDate = $state<CalendarDate | undefined>(undefined);
+	let dateRange = $state<DateRange | undefined>(undefined);
 	let notes = $state('');
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
 
-	let startDatePopoverOpen = $state(false);
-	let endDatePopoverOpen = $state(false);
+	let dateRangePopoverOpen = $state(false);
 
 	const selectedTypeOption = $derived(absenceTypes.find((t) => t.value === selectedType));
 
@@ -61,8 +64,7 @@
 
 	function resetForm() {
 		selectedType = absenceTypes.length > 0 ? absenceTypes[0].value : undefined;
-		startDate = undefined;
-		endDate = undefined;
+		dateRange = undefined;
 		notes = '';
 		error = null;
 	}
@@ -76,7 +78,7 @@
 		}
 	});
 
-	function formatDate(date: CalendarDate): string {
+	function formatDate(date: DateValue): string {
 		return new Date(date.year, date.month - 1, date.day).toLocaleDateString('es-ES', {
 			day: '2-digit',
 			month: '2-digit',
@@ -84,7 +86,16 @@
 		});
 	}
 
-	function toISODate(date: CalendarDate): string {
+	function formatDateRange(range: DateRange): string {
+		if (!range.start) return 'Seleccionar';
+		if (!range.end) return formatDate(range.start);
+		if (range.start.compare(range.end) === 0) {
+			return formatDate(range.start);
+		}
+		return `${formatDate(range.start)} - ${formatDate(range.end)}`;
+	}
+
+	function toISODate(date: DateValue): string {
 		return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
 	}
 
@@ -97,18 +108,13 @@
 			return;
 		}
 
-		if (!startDate) {
-			error = 'Selecciona la fecha de inicio';
+		if (!dateRange || !dateRange.start) {
+			error = 'Selecciona el rango de fechas';
 			return;
 		}
 
-		if (!endDate) {
+		if (!dateRange.end) {
 			error = 'Selecciona la fecha de fin';
-			return;
-		}
-
-		if (endDate.compare(startDate) < 0) {
-			error = 'La fecha de fin debe ser posterior a la fecha de inicio';
 			return;
 		}
 
@@ -117,10 +123,11 @@
 		try {
 			await createAbsence({
 				type: selectedType,
-				startDate: toISODate(startDate),
-				endDate: toISODate(endDate),
+				startDate: toISODate(dateRange.start),
+				endDate: toISODate(dateRange.end),
 				notes: notes.trim() || undefined
 			});
+
 			onSuccess();
 			handleClose();
 		} catch (e) {
@@ -168,61 +175,31 @@
 				</Select>
 			</div>
 
-			<div class="grid grid-cols-2 gap-4">
-				<div class="grid gap-2">
-					<Label>Fecha inicio</Label>
-					<Popover bind:open={startDatePopoverOpen}>
-						<PopoverTrigger>
-							<Button
-								variant="outline"
-								class="w-full justify-start text-left font-normal"
-								disabled={submitting}
-							>
-								<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
-								{startDate ? formatDate(startDate) : 'Seleccionar'}
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent class="w-auto p-0" align="start">
-							<CalendarPicker
-								type="single"
-								bind:value={startDate}
-								minValue={today(getLocalTimeZone())}
-								onValueChange={() => {
-									startDatePopoverOpen = false;
-									if (startDate && (!endDate || endDate.compare(startDate) < 0)) {
-										endDate = startDate;
-									}
-								}}
-							/>
-						</PopoverContent>
-					</Popover>
-				</div>
-
-				<div class="grid gap-2">
-					<Label>Fecha fin</Label>
-					<Popover bind:open={endDatePopoverOpen}>
-						<PopoverTrigger>
-							<Button
-								variant="outline"
-								class="w-full justify-start text-left font-normal"
-								disabled={submitting}
-							>
-								<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
-								{endDate ? formatDate(endDate) : 'Seleccionar'}
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent class="w-auto p-0" align="start">
-							<CalendarPicker
-								type="single"
-								bind:value={endDate}
-								minValue={startDate || today(getLocalTimeZone())}
-								onValueChange={() => {
-									endDatePopoverOpen = false;
-								}}
-							/>
-						</PopoverContent>
-					</Popover>
-				</div>
+			<div class="grid gap-2">
+				<Label>Rango de fechas</Label>
+				<Popover bind:open={dateRangePopoverOpen}>
+					<PopoverTrigger>
+						<Button
+							variant="outline"
+							class="w-full justify-start text-left font-normal"
+							disabled={submitting}
+						>
+							<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
+							{dateRange ? formatDateRange(dateRange) : 'Seleccionar'}
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent class="w-auto p-0" align="start">
+						<RangeCalendar
+							bind:value={dateRange}
+							minValue={today(getLocalTimeZone())}
+							onValueChange={() => {
+								if (dateRange?.start && dateRange?.end) {
+									dateRangePopoverOpen = false;
+								}
+							}}
+						/>
+					</PopoverContent>
+				</Popover>
 			</div>
 
 			<div class="grid gap-2">

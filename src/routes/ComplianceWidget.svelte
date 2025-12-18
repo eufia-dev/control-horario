@@ -36,12 +36,7 @@
 			Cumplimiento Este Mes
 		</CardTitle>
 		<CardAction>
-			<Button
-				variant="ghost"
-				size="sm"
-				href={resolve('/calendar')}
-				title="Ver calendario"
-			>
+			<Button variant="ghost" size="sm" href={resolve('/calendar')} title="Ver calendario">
 				<span class="material-symbols-rounded text-lg!">calendar_month</span>
 				Calendario
 				<span class="material-symbols-rounded text-lg! ml-auto">chevron_right</span>

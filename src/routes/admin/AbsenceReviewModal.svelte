@@ -50,13 +50,6 @@
 		});
 	}
 
-	function calculateDays(start: string, end: string): number {
-		const startDate = new Date(start);
-		const endDate = new Date(end);
-		const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-		return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-	}
-
 	async function handleReview(status: 'APPROVED' | 'REJECTED') {
 		if (!absence) return;
 
@@ -82,8 +75,6 @@
 		open = false;
 		onClose();
 	}
-
-	const days = $derived(absence ? calculateDays(absence.startDate, absence.endDate) : 0);
 </script>
 
 <Dialog bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -121,7 +112,7 @@
 					</div>
 					<div class="flex items-center justify-between">
 						<span class="text-sm text-muted-foreground">Duración</span>
-						<span class="text-sm font-medium">{days} {days === 1 ? 'día' : 'días'}</span>
+						<span class="text-sm font-medium">{absence.workdaysCount} {absence.workdaysCount === 1 ? 'día' : 'días'}</span>
 					</div>
 				</div>
 

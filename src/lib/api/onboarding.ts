@@ -226,9 +226,7 @@ export async function fetchAuthPendingInvitations(): Promise<AuthPendingInvitati
  * Accept an invitation as a logged-in user (no userName needed)
  * This creates a new profile for the user in the invited company
  */
-export async function acceptInvitationAsUser(
-	token: string
-): Promise<AcceptInvitationResponse> {
+export async function acceptInvitationAsUser(token: string): Promise<AcceptInvitationResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/auth/accept-invitation/${token}`, {
 		method: 'POST'
 	});
@@ -239,9 +237,7 @@ export async function acceptInvitationAsUser(
  * Request to join a company using an invite code
  * The request will be pending until approved by an admin
  */
-export async function requestJoinByCode(
-	inviteCode: string
-): Promise<RequestJoinByCodeResponse> {
+export async function requestJoinByCode(inviteCode: string): Promise<RequestJoinByCodeResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/auth/request-join`, {
 		method: 'POST',
 		headers: {

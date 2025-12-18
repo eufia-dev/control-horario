@@ -7,6 +7,7 @@
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import AbsenceCard from '$lib/components/AbsenceCard.svelte';
 	import AbsenceReviewModal from './AbsenceReviewModal.svelte';
+	import AbsenceCancelDialog from '$lib/components/AbsenceCancelDialog.svelte';
 	import {
 		fetchAllAbsences,
 		fetchAbsenceStats,
@@ -19,8 +20,9 @@
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 
-	let activeTab = $state<'PENDING' | 'APPROVED' | 'REJECTED' | 'all'>('PENDING');
+	let activeTab = $state<'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'all'>('PENDING');
 	let reviewModalOpen = $state(false);
+	let cancelDialogOpen = $state(false);
 	let selectedAbsence = $state<AbsenceResponse | null>(null);
 
 	const filteredAbsences = $derived(
@@ -61,6 +63,19 @@
 		loadData();
 	}
 
+	function handleCancelAbsence(absence: AbsenceResponse) {
+		selectedAbsence = absence;
+		cancelDialogOpen = true;
+	}
+
+	function handleCancelDialogClose() {
+		selectedAbsence = null;
+	}
+
+	function handleCancelSuccess() {
+		loadData();
+	}
+
 	onMount(() => {
 		loadData();
 	});
@@ -69,13 +84,13 @@
 <div class="flex flex-col gap-6">
 	<!-- Stats Cards -->
 	{#if loading}
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto w-full">
-			{#each Array.from({ length: 4 }, (_, i) => i) as i (i)}
+		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto w-full">
+			{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
 				<Skeleton class="h-20 w-full rounded-lg" />
 			{/each}
 		</div>
 	{:else if stats}
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto w-full">
+		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto w-full">
 			<button
 				type="button"
 				class="p-4 bg-yellow-500/10 rounded-lg text-center hover:bg-yellow-500/20 transition-colors relative {activeTab ===
@@ -113,6 +128,17 @@
 			>
 				<p class="text-2xl font-bold text-destructive">{stats.rejected}</p>
 				<p class="text-sm text-muted-foreground">Rechazadas</p>
+			</button>
+			<button
+				type="button"
+				class="p-4 bg-muted/50 rounded-lg text-center hover:bg-muted transition-colors {activeTab ===
+				'CANCELLED'
+					? 'ring-2 ring-muted-foreground'
+					: ''}"
+				onclick={() => (activeTab = 'CANCELLED')}
+			>
+				<p class="text-2xl font-bold">{stats.cancelled}</p>
+				<p class="text-sm text-muted-foreground">Canceladas</p>
 			</button>
 			<button
 				type="button"
@@ -160,6 +186,7 @@
 							</TabsTrigger>
 							<TabsTrigger value="APPROVED">Aprobadas</TabsTrigger>
 							<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
+							<TabsTrigger value="CANCELLED">Canceladas</TabsTrigger>
 							<TabsTrigger value="all">Todas</TabsTrigger>
 						</TabsList>
 					</div>
@@ -180,7 +207,7 @@
 							<div class="space-y-4">
 								{#each filteredAbsences as absence (absence.id)}
 									<div class="relative">
-										<AbsenceCard {absence} showUser />
+										<AbsenceCard {absence} showUser onCancel={handleCancelAbsence} />
 										{#if absence.status === 'PENDING'}
 											<div class="absolute top-4 right-4">
 												<Button size="sm" onclick={() => handleReviewAbsence(absence)}>
@@ -205,4 +232,12 @@
 	absence={selectedAbsence}
 	onClose={handleReviewClose}
 	onSuccess={handleReviewSuccess}
+/>
+
+<AbsenceCancelDialog
+	bind:open={cancelDialogOpen}
+	absence={selectedAbsence}
+	onClose={handleCancelDialogClose}
+	onSuccess={handleCancelSuccess}
+	showUserName={true}
 />

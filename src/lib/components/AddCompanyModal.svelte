@@ -409,7 +409,12 @@
 
 	// Switch to appropriate tab based on invitations (only once on initial load)
 	$effect(() => {
-		if (!loadingInvitations && invitations.length === 0 && activeTab === 'invitations' && !hasAutoSwitched) {
+		if (
+			!loadingInvitations &&
+			invitations.length === 0 &&
+			activeTab === 'invitations' &&
+			!hasAutoSwitched
+		) {
 			activeTab = 'search';
 			hasAutoSwitched = true;
 		}
@@ -475,9 +480,7 @@
 					<div class="text-center py-8 text-muted-foreground">
 						<span class="material-symbols-rounded text-4xl! mb-2">inbox</span>
 						<p>No tienes invitaciones pendientes</p>
-						<p class="text-sm mt-1">
-							Pide a un administrador que te invite o busca una empresa
-						</p>
+						<p class="text-sm mt-1">Pide a un administrador que te invite o busca una empresa</p>
 					</div>
 				{:else}
 					<div class="space-y-3">
@@ -513,7 +516,9 @@
 									disabled={acceptingId !== null}
 								>
 									{#if acceptingId === invitation.id}
-										<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+										<span class="material-symbols-rounded animate-spin text-lg!"
+											>progress_activity</span
+										>
 									{:else}
 										Aceptar
 									{/if}
@@ -528,8 +533,8 @@
 			<TabsContent value="search" class="mt-4">
 				<div class="space-y-4">
 					<p class="text-sm text-muted-foreground">
-						Busca tu empresa por nombre y solicita acceso.
-						Un administrador deberá aprobar tu solicitud.
+						Busca tu empresa por nombre y solicita acceso. Un administrador deberá aprobar tu
+						solicitud.
 					</p>
 
 					<Field>
@@ -559,7 +564,10 @@
 							{#each searchResults as company (company.id)}
 								<button
 									type="button"
-									class="w-full flex items-center gap-3 p-3 border rounded-lg text-left transition-colors hover:bg-muted/50 {selectedCompany?.id === company.id ? 'border-primary bg-primary/5' : ''}"
+									class="w-full flex items-center gap-3 p-3 border rounded-lg text-left transition-colors hover:bg-muted/50 {selectedCompany?.id ===
+									company.id
+										? 'border-primary bg-primary/5'
+										: ''}"
 									onclick={() => handleSelectCompany(company)}
 								>
 									<div
@@ -592,12 +600,11 @@
 
 					{#if selectedCompany}
 						<div class="flex justify-end pt-2">
-							<Button
-								onclick={handleSubmitJoin}
-								disabled={isSubmittingJoin}
-							>
+							<Button onclick={handleSubmitJoin} disabled={isSubmittingJoin}>
 								{#if isSubmittingJoin}
-									<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+									<span class="material-symbols-rounded animate-spin text-lg! mr-2"
+										>progress_activity</span
+									>
 									Enviando...
 								{:else}
 									Solicitar acceso
@@ -752,7 +759,9 @@
 										<SelectTrigger class="w-full">
 											{#if loadingMunicipalities}
 												<span class="text-muted-foreground flex items-center gap-2">
-													<span class="material-symbols-rounded animate-spin text-sm!">progress_activity</span>
+													<span class="material-symbols-rounded animate-spin text-sm!"
+														>progress_activity</span
+													>
 													Cargando...
 												</span>
 											{:else if selectedMunicipalityName}
@@ -794,7 +803,9 @@
 					<div class="flex justify-end pt-4">
 						<Button type="submit" disabled={isSubmittingCreate || !isCreateFormValid}>
 							{#if isSubmittingCreate}
-								<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-lg! mr-2"
+									>progress_activity</span
+								>
 								Creando...
 							{:else}
 								Crear empresa

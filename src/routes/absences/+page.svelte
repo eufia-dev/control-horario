@@ -3,13 +3,13 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import AbsenceCard from '$lib/components/AbsenceCard.svelte';
 	import AbsenceRequestModal from './AbsenceRequestModal.svelte';
-	import AbsenceCancelDialog from './AbsenceCancelDialog.svelte';
+	import AbsenceCancelDialog from '$lib/components/AbsenceCancelDialog.svelte';
 	import {
 		fetchMyAbsences,
 		fetchAbsenceStats,
@@ -50,6 +50,7 @@
 	let loadingAdminStats = $state(true);
 
 	let activeTab = $state<'all' | AbsenceStatus>('all');
+	const cancelledCount = $derived(absences.filter((a) => a.status === 'CANCELLED').length);
 	let requestModalOpen = $state(false);
 	let cancelDialogOpen = $state(false);
 	let selectedAbsence = $state<AbsenceResponse | null>(null);
@@ -135,17 +136,12 @@
 			</h1>
 		</div>
 		<div class="flex items-center gap-2">
-			<Button
-				onclick={handleNewRequest}
-			>
+			<Button onclick={handleNewRequest}>
 				<span class="material-symbols-rounded text-lg! mr-2">add</span>
 				Nueva solicitud
 			</Button>
 			{#if isAdmin}
-				<Button
-					variant="outline"
-					href="{resolve('/admin')}?tab=ausencias"
-				>
+				<Button variant="outline" href="{resolve('/admin')}?tab=ausencias">
 					<span class="material-symbols-rounded text-lg! mr-2">admin_panel_settings</span>
 					Gestionar
 				</Button>
@@ -211,6 +207,9 @@
 								Aprobadas ({approvedCount})
 							</TabsTrigger>
 							<TabsTrigger value="REJECTED">Rechazadas</TabsTrigger>
+							<TabsTrigger value="CANCELLED">
+								Canceladas {cancelledCount > 0 ? `(${cancelledCount})` : ''}
+							</TabsTrigger>
 						</TabsList>
 					</div>
 

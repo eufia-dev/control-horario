@@ -28,6 +28,7 @@ export type AbsenceResponse = {
 	startDate: string;
 	endDate: string;
 	type: AbsenceType;
+	workdaysCount: number;
 	status: AbsenceStatus;
 	notes: string | null;
 	reviewedById: string | null;
@@ -116,7 +117,7 @@ export async function createAbsence(data: CreateAbsenceDto): Promise<AbsenceResp
 }
 
 /**
- * Cancel a pending absence (user can only cancel their own)
+ * Cancel an absence (admin can cancel any, users can cancel their own)
  */
 export async function cancelAbsence(id: string): Promise<AbsenceResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/absences/${id}`, {

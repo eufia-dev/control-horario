@@ -164,8 +164,7 @@
 			// Reload to get the effective schedule (which will now be company defaults)
 			await loadUserSchedule(selectedUserId);
 		} catch (e) {
-			userScheduleError =
-				e instanceof Error ? e.message : 'Error al restablecer el horario';
+			userScheduleError = e instanceof Error ? e.message : 'Error al restablecer el horario';
 		} finally {
 			deletingUserOverrides = false;
 		}
@@ -248,8 +247,8 @@
 				{:else}
 					<div class="space-y-4">
 						<p class="text-sm text-muted-foreground">
-							Define el horario de trabajo por defecto para todos los empleados de la empresa.
-							Los días no habilitados se consideran no laborables.
+							Define el horario de trabajo por defecto para todos los empleados de la empresa. Los
+							días no habilitados se consideran no laborables.
 						</p>
 
 						<ScheduleEditor bind:schedule={companySchedule} disabled={savingCompanySchedule} />
@@ -280,8 +279,8 @@
 			<TabsContent value="users">
 				<div class="space-y-4">
 					<p class="text-sm text-muted-foreground">
-						Configura horarios personalizados para usuarios específicos. Estos horarios
-						sobrescriben el horario por defecto de la empresa.
+						Configura horarios personalizados para usuarios específicos. Estos horarios sobrescriben
+						el horario por defecto de la empresa.
 					</p>
 
 					<div class="flex items-center gap-4">
@@ -390,4 +389,3 @@
 		</Tabs>
 	</CardContent>
 </Card>
-

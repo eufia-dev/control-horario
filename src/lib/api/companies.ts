@@ -57,4 +57,3 @@ export async function updateCompanySettings(dto: UpdateCompanySettingsDto): Prom
 	});
 	return handleJsonResponse<Company>(response);
 }
-

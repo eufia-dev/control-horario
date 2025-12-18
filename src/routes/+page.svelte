@@ -49,7 +49,11 @@
 	} from '$lib/api/externals';
 	import { fetchMyCalendar, type CalendarResponse } from '$lib/api/calendar';
 	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
-	import { isAdmin as isAdminStore, isGuest as isGuestStore, activeProfile } from '$lib/stores/auth';
+	import {
+		isAdmin as isAdminStore,
+		isGuest as isGuestStore,
+		activeProfile
+	} from '$lib/stores/auth';
 	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import GuestBanner from '$lib/components/GuestBanner.svelte';
 	import { formatProjectLabel } from '$lib/utils';
@@ -135,6 +139,7 @@
 	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
 	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
+	const hasProjects = $derived(activeProjects.length > 0);
 	const isWorkType = $derived(selectedType?.name === 'Trabajo');
 	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
 
@@ -162,6 +167,7 @@
 	$effect(() => {
 		if (
 			isWorkType &&
+			hasProjects &&
 			!selectedProjectId &&
 			!loadingEntries &&
 			!loadingProjects &&
@@ -169,25 +175,28 @@
 		) {
 			// Switching to work type or initial load: set default project
 			selectedProjectId = defaultProjectId;
-		} else if (!isWorkType && selectedProjectId) {
-			// Switching away from work type: clear project
+		} else if ((!isWorkType || !hasProjects) && selectedProjectId) {
+			// Switching away from work type or no projects: clear project
 			selectedProjectId = undefined;
 		}
 	});
 
 	// Handle project selection when switching entry types for switch form
 	$effect(() => {
-		if (isSwitchWorkType && !switchProjectId && showSwitchForm && defaultProjectId) {
+		if (isSwitchWorkType && hasProjects && !switchProjectId && showSwitchForm && defaultProjectId) {
 			// Switching to work type: set default project
 			switchProjectId = defaultProjectId;
-		} else if (!isSwitchWorkType && switchProjectId) {
-			// Switching away from work type: clear project
+		} else if ((!isSwitchWorkType || !hasProjects) && switchProjectId) {
+			// Switching away from work type or no projects: clear project
 			switchProjectId = undefined;
 		}
 	});
 
 	const canStartTimer = $derived(
-		selectedEntryType && (isWorkType ? selectedProjectId : true) && !startingTimer && !activeTimer
+		selectedEntryType &&
+			(isWorkType && hasProjects ? selectedProjectId : true) &&
+			!startingTimer &&
+			!activeTimer
 	);
 
 	const timeEntryTypeLookup = $derived(
@@ -376,12 +385,12 @@
 
 	async function handleStartTimer() {
 		if (!selectedEntryType) return;
-		if (isWorkType && !selectedProjectId) return;
+		if (isWorkType && hasProjects && !selectedProjectId) return;
 
 		startingTimer = true;
 		try {
 			activeTimer = await startTimer({
-				projectId: isWorkType ? selectedProjectId : undefined,
+				projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
 				entryType: selectedEntryType,
 				isInOffice
 			});
@@ -424,7 +433,7 @@
 
 	async function handleSwitchTimer() {
 		if (!switchEntryType) return;
-		if (isSwitchWorkType && !switchProjectId) return;
+		if (isSwitchWorkType && hasProjects && !switchProjectId) return;
 
 		switchingTimer = true;
 		try {
@@ -510,7 +519,6 @@
 </script>
 
 <div class="grow p-6 space-y-6">
-
 	{#if isAdmin && absenceStats && absenceStats.pending > 0}
 		<div class="w-full max-w-5xl mx-auto">
 			<PendingAbsencesWidget
@@ -532,12 +540,14 @@
 			<CardContent class="space-y-4">
 				<GuestBanner />
 				<p class="text-muted-foreground">
-					Estás accediendo a <strong>{currentProfile?.company.name ?? 'esta empresa'}</strong> como usuario invitado.
-					Los usuarios invitados pueden ver información de la empresa pero no pueden registrar su propio tiempo de trabajo.
+					Estás accediendo a <strong>{currentProfile?.company.name ?? 'esta empresa'}</strong> como usuario
+					invitado. Los usuarios invitados pueden ver información de la empresa pero no pueden registrar
+					su propio tiempo de trabajo.
 				</p>
 				{#if isAdmin}
 					<p class="text-muted-foreground">
-						Como administrador, puedes acceder a la configuración de la empresa, ver analíticas y gestionar usuarios desde el menú de navegación.
+						Como administrador, puedes acceder a la configuración de la empresa, ver analíticas y
+						gestionar usuarios desde el menú de navegación.
 					</p>
 				{/if}
 			</CardContent>
@@ -556,318 +566,278 @@
 		</div>
 
 		<Card class="w-full max-w-5xl mx-auto">
-		<CardHeader>
-			<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
-				<span class="material-symbols-rounded text-3xl!">timer</span>
-				Temporizador
-			</CardTitle>
-		</CardHeader>
-		<CardContent>
-			{#if loadingTimer || loadingProjects || loadingTypes}
-				<div class="flex flex-col gap-4">
-					<Skeleton class="h-10 w-full" />
-					<div class="flex gap-4">
-						<Skeleton class="h-10 w-48" />
-						<Skeleton class="h-10 w-32" />
-					</div>
-				</div>
-			{:else if activeTimer}
-				<div class="flex flex-col gap-6">
-					<div class="flex items-center justify-between flex-wrap gap-4">
-						<div class="flex flex-col gap-1">
-							<div class="flex items-center gap-2">
-								<span class="relative flex h-3 w-3">
-									<span
-										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"
-									></span>
-									<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-								</span>
-								<span class="text-sm font-medium text-success">En curso</span>
-							</div>
-							<div class="text-4xl font-mono font-bold tracking-tight">
-								{formatElapsedTime(elapsedSeconds)}
-							</div>
-						</div>
-						<div class="flex flex-col gap-1 text-right">
-							<div class="text-lg font-semibold">{activeTimer.project?.name ?? 'Proyecto'}</div>
-							<div class="flex items-center gap-2 justify-end">
-								<Badge variant="secondary">
-									{getEntryTypeName(
-										activeTimer.entryType,
-										activeTimer.timeEntryType?.name ?? activeTimer.entryTypeName ?? 'Tipo'
-									)}
-								</Badge>
-								<Badge variant={activeTimer.isInOffice ? 'default' : 'outline'}>
-									{activeTimer.isInOffice ? 'Oficina' : 'Remoto'}
-								</Badge>
-							</div>
+			<CardHeader>
+				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+					<span class="material-symbols-rounded text-3xl!">timer</span>
+					Temporizador
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				{#if loadingTimer || loadingProjects || loadingTypes}
+					<div class="flex flex-col gap-4">
+						<Skeleton class="h-10 w-full" />
+						<div class="flex gap-4">
+							<Skeleton class="h-10 w-48" />
+							<Skeleton class="h-10 w-32" />
 						</div>
 					</div>
-
-					{#if showSwitchForm}
-						<!-- Switch Task Form -->
-						<div class="border rounded-lg p-4 bg-muted/30 space-y-4">
-							<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-								<span class="material-symbols-rounded text-lg!">swap_horiz</span>
-								Cambiar a otra tarea
-							</div>
-							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-								<div class="grid gap-2">
-									<Label>Tipo</Label>
-									<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
-										<SelectTrigger class="w-full">
-											{#if switchType}
-												{switchType.name}
-											{:else}
-												<span class="text-muted-foreground">Seleccionar tipo</span>
-											{/if}
-										</SelectTrigger>
-										<SelectContent>
-											{#each timeEntryTypes as type (type.value)}
-												<SelectItem value={type.value} label={type.name} />
-											{/each}
-										</SelectContent>
-									</Select>
+				{:else if activeTimer}
+					<div class="flex flex-col gap-6">
+						<div class="flex items-center justify-between flex-wrap gap-4">
+							<div class="flex flex-col gap-1">
+								<div class="flex items-center gap-2">
+									<span class="relative flex h-3 w-3">
+										<span
+											class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"
+										></span>
+										<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+									</span>
+									<span class="text-sm font-medium text-success">En curso</span>
 								</div>
-								{#if isSwitchWorkType}
+								<div class="text-4xl font-mono font-bold tracking-tight">
+									{formatElapsedTime(elapsedSeconds)}
+								</div>
+							</div>
+							<div class="flex flex-col gap-1 text-right">
+								{#if activeTimer.project}
+									<div class="text-lg font-semibold">{activeTimer.project.name}</div>
+								{/if}
+								<div class="flex items-center gap-2 justify-end">
+									<Badge variant="secondary">
+										{getEntryTypeName(
+											activeTimer.entryType,
+											activeTimer.timeEntryType?.name ?? activeTimer.entryTypeName ?? 'Tipo'
+										)}
+									</Badge>
+									<Badge variant={activeTimer.isInOffice ? 'default' : 'outline'}>
+										{activeTimer.isInOffice ? 'Oficina' : 'Remoto'}
+									</Badge>
+								</div>
+							</div>
+						</div>
+
+						{#if showSwitchForm}
+							<!-- Switch Task Form -->
+							<div class="border rounded-lg p-4 bg-muted/30 space-y-4">
+								<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+									<span class="material-symbols-rounded text-lg!">swap_horiz</span>
+									Cambiar a otra tarea
+								</div>
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div class="grid gap-2">
-										<Label>Proyecto</Label>
-										<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
-											<SelectTrigger class="w-full min-w-0">
-												<div class="flex min-w-0 items-center">
-													{#if switchProject}
-														<ProjectLabel project={switchProject} truncate />
-													{:else}
-														<span class="text-muted-foreground">Seleccionar proyecto</span>
-													{/if}
-												</div>
+										<Label>Tipo</Label>
+										<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
+											<SelectTrigger class="w-full">
+												{#if switchType}
+													{switchType.name}
+												{:else}
+													<span class="text-muted-foreground">Seleccionar tipo</span>
+												{/if}
 											</SelectTrigger>
 											<SelectContent>
-												{#each activeProjects as project (project.id)}
-													<SelectItem value={project.id} label={formatProjectLabel(project)}>
-														<ProjectLabel {project} className="flex-1 min-w-0" />
-													</SelectItem>
+												{#each timeEntryTypes as type (type.value)}
+													<SelectItem value={type.value} label={type.name} />
 												{/each}
 											</SelectContent>
 										</Select>
 									</div>
-								{/if}
+									{#if isSwitchWorkType && hasProjects}
+										<div class="grid gap-2">
+											<Label>Proyecto</Label>
+											<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
+												<SelectTrigger class="w-full min-w-0">
+													<div class="flex min-w-0 items-center">
+														{#if switchProject}
+															<ProjectLabel project={switchProject} truncate />
+														{:else}
+															<span class="text-muted-foreground">Seleccionar proyecto</span>
+														{/if}
+													</div>
+												</SelectTrigger>
+												<SelectContent>
+													{#each activeProjects as project (project.id)}
+														<SelectItem value={project.id} label={formatProjectLabel(project)}>
+															<ProjectLabel {project} className="flex-1 min-w-0" />
+														</SelectItem>
+													{/each}
+												</SelectContent>
+											</Select>
+										</div>
+									{/if}
+								</div>
+								<div class="flex items-center gap-3">
+									<Switch
+										id="switchIsInOffice"
+										bind:checked={switchIsInOffice}
+										disabled={switchingTimer}
+									/>
+									<Label for="switchIsInOffice" class="cursor-pointer">
+										{switchIsInOffice ? 'Oficina' : 'Remoto'}
+									</Label>
+								</div>
+								<div class="flex gap-2 justify-end">
+									<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
+										Cancelar
+									</Button>
+									<Button
+										onclick={handleSwitchTimer}
+										disabled={!switchEntryType ||
+											(isSwitchWorkType && hasProjects && !switchProjectId) ||
+											switchingTimer}
+									>
+										{#if switchingTimer}
+											<span class="material-symbols-rounded animate-spin text-base"
+												>progress_activity</span
+											>
+										{/if}
+										Cambiar tarea
+									</Button>
+								</div>
 							</div>
-							<div class="flex items-center gap-3">
-								<Switch
-									id="switchIsInOffice"
-									bind:checked={switchIsInOffice}
-									disabled={switchingTimer}
-								/>
-								<Label for="switchIsInOffice" class="cursor-pointer">
-									{switchIsInOffice ? 'Oficina' : 'Remoto'}
-								</Label>
-							</div>
-							<div class="flex gap-2 justify-end">
-								<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
-									Cancelar
-								</Button>
+						{:else}
+							<!-- Timer Actions -->
+							<div class="flex gap-3 flex-wrap">
 								<Button
-									onclick={handleSwitchTimer}
-									disabled={!switchEntryType ||
-										(isSwitchWorkType && !switchProjectId) ||
-										switchingTimer}
+									variant="destructive"
+									onclick={handleStopTimer}
+									disabled={stoppingTimer}
+									class="flex-1 sm:flex-none"
 								>
-									{#if switchingTimer}
-										<span class="material-symbols-rounded animate-spin text-base"
+									{#if stoppingTimer}
+										<span class="material-symbols-rounded mr-2 animate-spin text-base"
 											>progress_activity</span
 										>
+									{:else}
+										<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
 									{/if}
+									Detener
+								</Button>
+								<Button
+									variant="outline"
+									onclick={handleShowSwitchForm}
+									disabled={stoppingTimer}
+									class="flex-1 sm:flex-none"
+								>
+									<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
 									Cambiar tarea
 								</Button>
 							</div>
-						</div>
-					{:else}
-						<!-- Timer Actions -->
-						<div class="flex gap-3 flex-wrap">
-							<Button
-								variant="destructive"
-								onclick={handleStopTimer}
-								disabled={stoppingTimer}
-								class="flex-1 sm:flex-none"
-							>
-								{#if stoppingTimer}
-									<span class="material-symbols-rounded mr-2 animate-spin text-base"
-										>progress_activity</span
-									>
-								{:else}
-									<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
-								{/if}
-								Detener
-							</Button>
-							<Button
-								variant="outline"
-								onclick={handleShowSwitchForm}
-								disabled={stoppingTimer}
-								class="flex-1 sm:flex-none"
-							>
-								<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
-								Cambiar tarea
-							</Button>
-						</div>
-					{/if}
-				</div>
-			{:else}
-				<!-- Start Timer Form -->
-				<div class="flex flex-col gap-4">
-					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						<div class="grid gap-2">
-							<Label>Tipo</Label>
-							<Select type="single" bind:value={selectedEntryType} disabled={startingTimer}>
-								<SelectTrigger class="w-full">
-									{#if selectedType}
-										{selectedType.name}
-									{:else}
-										<span class="text-muted-foreground">Seleccionar tipo</span>
-									{/if}
-								</SelectTrigger>
-								<SelectContent>
-									{#each timeEntryTypes as type (type.value)}
-										<SelectItem value={type.value} label={type.name} />
-									{/each}
-								</SelectContent>
-							</Select>
-						</div>
-						{#if isWorkType}
+						{/if}
+					</div>
+				{:else}
+					<!-- Start Timer Form -->
+					<div class="flex flex-col gap-4">
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 							<div class="grid gap-2">
-								<Label>Proyecto</Label>
-								<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
-									<SelectTrigger class="w-full min-w-0">
-										<div class="flex min-w-0 items-center">
-											{#if selectedProject}
-												<ProjectLabel project={selectedProject} truncate />
-											{:else}
-												<span class="text-muted-foreground">Seleccionar proyecto</span>
-											{/if}
-										</div>
+								<Label>Tipo</Label>
+								<Select type="single" bind:value={selectedEntryType} disabled={startingTimer}>
+									<SelectTrigger class="w-full">
+										{#if selectedType}
+											{selectedType.name}
+										{:else}
+											<span class="text-muted-foreground">Seleccionar tipo</span>
+										{/if}
 									</SelectTrigger>
 									<SelectContent>
-										{#each activeProjects as project (project.id)}
-											<SelectItem value={project.id} label={formatProjectLabel(project)}>
-												<ProjectLabel {project} className="flex-1 min-w-0" />
-											</SelectItem>
+										{#each timeEntryTypes as type (type.value)}
+											<SelectItem value={type.value} label={type.name} />
 										{/each}
 									</SelectContent>
 								</Select>
 							</div>
-						{/if}
-					</div>
-					<div class="flex items-center justify-between flex-wrap gap-4">
-						<div class="flex items-center gap-3">
-							<Switch id="isInOffice" bind:checked={isInOffice} disabled={startingTimer} />
-							<Label for="isInOffice" class="cursor-pointer">
-								{isInOffice ? 'Oficina' : 'Remoto'}
-							</Label>
-						</div>
-						<Button onclick={handleStartTimer} disabled={!canStartTimer}>
-							{#if startingTimer}
-								<span class="material-symbols-rounded animate-spin text-base"
-									>progress_activity</span
-								>
-							{:else}
-								<span class="material-symbols-rounded text-lg!">play_arrow</span>
+							{#if isWorkType && hasProjects}
+								<div class="grid gap-2">
+									<Label>Proyecto</Label>
+									<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
+										<SelectTrigger class="w-full min-w-0">
+											<div class="flex min-w-0 items-center">
+												{#if selectedProject}
+													<ProjectLabel project={selectedProject} truncate />
+												{:else}
+													<span class="text-muted-foreground">Seleccionar proyecto</span>
+												{/if}
+											</div>
+										</SelectTrigger>
+										<SelectContent>
+											{#each activeProjects as project (project.id)}
+												<SelectItem value={project.id} label={formatProjectLabel(project)}>
+													<ProjectLabel {project} className="flex-1 min-w-0" />
+												</SelectItem>
+											{/each}
+										</SelectContent>
+									</Select>
+								</div>
 							{/if}
-							Iniciar temporizador
-						</Button>
+						</div>
+						<div class="flex items-center justify-between flex-wrap gap-4">
+							<div class="flex items-center gap-3">
+								<Switch id="isInOffice" bind:checked={isInOffice} disabled={startingTimer} />
+								<Label for="isInOffice" class="cursor-pointer">
+									{isInOffice ? 'Oficina' : 'Remoto'}
+								</Label>
+							</div>
+							<Button onclick={handleStartTimer} disabled={!canStartTimer}>
+								{#if startingTimer}
+									<span class="material-symbols-rounded animate-spin text-base"
+										>progress_activity</span
+									>
+								{:else}
+									<span class="material-symbols-rounded text-lg!">play_arrow</span>
+								{/if}
+								Iniciar temporizador
+							</Button>
+						</div>
 					</div>
-				</div>
-			{/if}
-		</CardContent>
-	</Card>
+				{/if}
+			</CardContent>
+		</Card>
 
-	<!-- Time Entries / External Hours Card -->
-	<Card class="w-full max-w-5xl mx-auto">
-		<CardHeader class="flex flex-row items-center justify-between space-y-0">
-			<CardTitle class="text-2xl font-semibold tracking-tight">Historial</CardTitle>
-			{#if isAdmin}
-				{#if activeTab === 'my-entries'}
+		<!-- Time Entries / External Hours Card -->
+		<Card class="w-full max-w-5xl mx-auto">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0">
+				<CardTitle class="text-2xl font-semibold tracking-tight">Historial</CardTitle>
+				{#if isAdmin}
+					{#if activeTab === 'my-entries'}
+						<Button onclick={handleCreateEntry}>
+							<span class="material-symbols-rounded text-lg!">add</span>
+							Añadir
+						</Button>
+					{:else}
+						<Button onclick={handleCreateExternalHours}>
+							<span class="material-symbols-rounded text-lg!">add</span>
+							Añadir externas
+						</Button>
+					{/if}
+				{:else}
 					<Button onclick={handleCreateEntry}>
 						<span class="material-symbols-rounded text-lg!">add</span>
 						Añadir
 					</Button>
-				{:else}
-					<Button onclick={handleCreateExternalHours}>
-						<span class="material-symbols-rounded text-lg!">add</span>
-						Añadir externas
-					</Button>
 				{/if}
-			{:else}
-				<Button onclick={handleCreateEntry}>
-					<span class="material-symbols-rounded text-lg!">add</span>
-					Añadir
-				</Button>
-			{/if}
-		</CardHeader>
-		<CardContent>
-			{#if isAdmin}
-				<Tabs bind:value={activeTab} class="w-full">
-					<TabsList class="mb-4">
-						<TabsTrigger value="my-entries">
-							<span class="material-symbols-rounded mr-2 text-lg!">person</span>
-							Mis Registros
-						</TabsTrigger>
-						<TabsTrigger value="external-hours">
-							<span class="material-symbols-rounded mr-2 text-lg!">group</span>
-							Externos
-						</TabsTrigger>
-					</TabsList>
+			</CardHeader>
+			<CardContent>
+				{#if isAdmin}
+					<Tabs bind:value={activeTab} class="w-full">
+						<TabsList class="mb-4">
+							<TabsTrigger value="my-entries">
+								<span class="material-symbols-rounded mr-2 text-lg!">person</span>
+								Mis Registros
+							</TabsTrigger>
+							<TabsTrigger value="external-hours">
+								<span class="material-symbols-rounded mr-2 text-lg!">group</span>
+								Externos
+							</TabsTrigger>
+						</TabsList>
 
-					<TabsContent value="my-entries">
-						{#if loadingEntries}
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Fecha</TableHead>
-										<TableHead>Proyecto</TableHead>
-										<TableHead>Tipo</TableHead>
-										<TableHead>Inicio</TableHead>
-										<TableHead>Fin</TableHead>
-										<TableHead>Duración</TableHead>
-										<TableHead>Lugar</TableHead>
-										<TableHead class="w-[100px]">Acciones</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-										<TableRow data-placeholder-index={i}>
-											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-											<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-											<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-										</TableRow>
-									{/each}
-								</TableBody>
-							</Table>
-						{:else if entriesError}
-							<div class="flex items-center justify-center py-8 text-destructive">
-								<span class="material-symbols-rounded mr-2">error</span>
-								{entriesError}
-							</div>
-						{:else if timeEntries.length === 0}
-							<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-								<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-								<p>No hay registros de tiempo</p>
-								<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
-									<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-									Crear primer registro
-								</Button>
-							</div>
-						{:else}
-							<TooltipProvider>
+						<TabsContent value="my-entries">
+							{#if loadingEntries}
 								<Table>
 									<TableHeader>
 										<TableRow>
 											<TableHead>Fecha</TableHead>
-											<TableHead>Proyecto</TableHead>
+											{#if hasProjects}
+												<TableHead>Proyecto</TableHead>
+											{/if}
 											<TableHead>Tipo</TableHead>
 											<TableHead>Inicio</TableHead>
 											<TableHead>Fin</TableHead>
@@ -877,113 +847,125 @@
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{#each timeEntries as entry (entry.id)}
-											<TableRow>
-												<TableCell class="font-medium">
-													{formatDate(entry.startTime)}
-												</TableCell>
-												<TableCell>
-													<Tooltip>
-														<TooltipTrigger class="max-w-[150px] truncate">
-															{entry.project?.name ?? '-'}
-														</TooltipTrigger>
-														<TooltipContent>
-															<p>{entry.project?.name ?? '-'}</p>
-														</TooltipContent>
-													</Tooltip>
-												</TableCell>
-												<TableCell>
-													<Badge variant="secondary">
-														{getEntryTypeName(
-															entry.entryType,
-															entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-														)}
-													</Badge>
-												</TableCell>
-												<TableCell class="text-muted-foreground">
-													{formatTime(entry.startTime)}
-												</TableCell>
-												<TableCell class="text-muted-foreground">
-													{formatTime(entry.endTime)}
-												</TableCell>
-												<TableCell class="font-medium">
-													{formatDuration(entry.durationMinutes)}
-												</TableCell>
-												<TableCell>
-													<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
-														{entry.isInOffice ? 'Oficina' : 'Remoto'}
-													</Badge>
-												</TableCell>
-												<TableCell>
-													<div class="flex items-center gap-1">
-														<Button
-															variant="ghost"
-															size="sm"
-															class="h-8 w-8 p-0"
-															onclick={() => handleEditEntry(entry)}
-														>
-															<span class="material-symbols-rounded text-xl!">edit</span>
-															<span class="sr-only">Editar</span>
-														</Button>
-														<Button
-															variant="ghost"
-															size="sm"
-															class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-															onclick={() => handleDeleteEntry(entry)}
-														>
-															<span class="material-symbols-rounded text-xl!">delete</span>
-															<span class="sr-only">Eliminar</span>
-														</Button>
-													</div>
-												</TableCell>
+										{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+											<TableRow data-placeholder-index={i}>
+												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+												{#if hasProjects}
+													<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+												{/if}
+												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+												<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+												<TableCell><Skeleton class="h-8 w-20" /></TableCell>
 											</TableRow>
 										{/each}
 									</TableBody>
 								</Table>
-							</TooltipProvider>
-						{/if}
-					</TabsContent>
+							{:else if entriesError}
+								<div class="flex items-center justify-center py-8 text-destructive">
+									<span class="material-symbols-rounded mr-2">error</span>
+									{entriesError}
+								</div>
+							{:else if timeEntries.length === 0}
+								<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+									<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+									<p>No hay registros de tiempo</p>
+									<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
+										<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+										Crear primer registro
+									</Button>
+								</div>
+							{:else}
+								<TooltipProvider>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>Fecha</TableHead>
+												{#if hasProjects}
+													<TableHead>Proyecto</TableHead>
+												{/if}
+												<TableHead>Tipo</TableHead>
+												<TableHead>Inicio</TableHead>
+												<TableHead>Fin</TableHead>
+												<TableHead>Duración</TableHead>
+												<TableHead>Lugar</TableHead>
+												<TableHead class="w-[100px]">Acciones</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{#each timeEntries as entry (entry.id)}
+												<TableRow>
+													<TableCell class="font-medium">
+														{formatDate(entry.startTime)}
+													</TableCell>
+													{#if hasProjects}
+														<TableCell>
+															<Tooltip>
+																<TooltipTrigger class="max-w-[150px] truncate">
+																	{entry.project?.name ?? '-'}
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>{entry.project?.name ?? '-'}</p>
+																</TooltipContent>
+															</Tooltip>
+														</TableCell>
+													{/if}
+													<TableCell>
+														<Badge variant="secondary">
+															{getEntryTypeName(
+																entry.entryType,
+																entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+															)}
+														</Badge>
+													</TableCell>
+													<TableCell class="text-muted-foreground">
+														{formatTime(entry.startTime)}
+													</TableCell>
+													<TableCell class="text-muted-foreground">
+														{formatTime(entry.endTime)}
+													</TableCell>
+													<TableCell class="font-medium">
+														{formatDuration(entry.durationMinutes)}
+													</TableCell>
+													<TableCell>
+														<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
+															{entry.isInOffice ? 'Oficina' : 'Remoto'}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														<div class="flex items-center gap-1">
+															<Button
+																variant="ghost"
+																size="sm"
+																class="h-8 w-8 p-0"
+																onclick={() => handleEditEntry(entry)}
+															>
+																<span class="material-symbols-rounded text-xl!">edit</span>
+																<span class="sr-only">Editar</span>
+															</Button>
+															<Button
+																variant="ghost"
+																size="sm"
+																class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+																onclick={() => handleDeleteEntry(entry)}
+															>
+																<span class="material-symbols-rounded text-xl!">delete</span>
+																<span class="sr-only">Eliminar</span>
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											{/each}
+										</TableBody>
+									</Table>
+								</TooltipProvider>
+							{/if}
+						</TabsContent>
 
-					<TabsContent value="external-hours">
-						{#if loadingExternalHours || loadingExternals}
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Fecha</TableHead>
-										<TableHead>Externo</TableHead>
-										<TableHead>Proyecto</TableHead>
-										<TableHead>Duración</TableHead>
-										<TableHead class="w-[100px]">Acciones</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-										<TableRow data-placeholder-index={i}>
-											<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-											<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-											<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-										</TableRow>
-									{/each}
-								</TableBody>
-							</Table>
-						{:else if externalHoursError}
-							<div class="flex items-center justify-center py-8 text-destructive">
-								<span class="material-symbols-rounded mr-2">error</span>
-								{externalHoursError}
-							</div>
-						{:else if enrichedExternalHours.length === 0}
-							<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-								<span class="material-symbols-rounded text-4xl! mb-2">group</span>
-								<p>No hay horas de externos registradas</p>
-								<Button variant="outline" class="mt-4" onclick={handleCreateExternalHours}>
-									<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-									Registrar primeras horas
-								</Button>
-							</div>
-						{:else}
-							<TooltipProvider>
+						<TabsContent value="external-hours">
+							{#if loadingExternalHours || loadingExternals}
 								<Table>
 									<TableHeader>
 										<TableRow>
@@ -995,21 +977,175 @@
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{#each enrichedExternalHours as entry (entry.id)}
+										{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+											<TableRow data-placeholder-index={i}>
+												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+												<TableCell><Skeleton class="h-8 w-20" /></TableCell>
+											</TableRow>
+										{/each}
+									</TableBody>
+								</Table>
+							{:else if externalHoursError}
+								<div class="flex items-center justify-center py-8 text-destructive">
+									<span class="material-symbols-rounded mr-2">error</span>
+									{externalHoursError}
+								</div>
+							{:else if enrichedExternalHours.length === 0}
+								<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+									<span class="material-symbols-rounded text-4xl! mb-2">group</span>
+									<p>No hay horas de externos registradas</p>
+									<Button variant="outline" class="mt-4" onclick={handleCreateExternalHours}>
+										<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+										Registrar primeras horas
+									</Button>
+								</div>
+							{:else}
+								<TooltipProvider>
+									<Table>
+										<TableHeader>
 											<TableRow>
-												<TableCell class="font-medium">
-													{formatDate(entry.date)}
-												</TableCell>
-												<TableCell>
-													<Tooltip>
-														<TooltipTrigger class="max-w-[150px] truncate">
-															{entry.external?.name ?? '-'}
-														</TooltipTrigger>
-														<TooltipContent>
-															<p>{entry.external?.name ?? '-'}</p>
-														</TooltipContent>
-													</Tooltip>
-												</TableCell>
+												<TableHead>Fecha</TableHead>
+												<TableHead>Externo</TableHead>
+												<TableHead>Proyecto</TableHead>
+												<TableHead>Duración</TableHead>
+												<TableHead class="w-[100px]">Acciones</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{#each enrichedExternalHours as entry (entry.id)}
+												<TableRow>
+													<TableCell class="font-medium">
+														{formatDate(entry.date)}
+													</TableCell>
+													<TableCell>
+														<Tooltip>
+															<TooltipTrigger class="max-w-[150px] truncate">
+																{entry.external?.name ?? '-'}
+															</TooltipTrigger>
+															<TooltipContent>
+																<p>{entry.external?.name ?? '-'}</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableCell>
+													<TableCell>
+														<Tooltip>
+															<TooltipTrigger class="max-w-[150px] truncate">
+																{entry.project?.name ?? '-'}
+															</TooltipTrigger>
+															<TooltipContent>
+																<p>{entry.project?.name ?? '-'}</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableCell>
+													<TableCell class="font-medium">
+														{formatDuration(entry.minutes)}
+													</TableCell>
+													<TableCell>
+														<div class="flex items-center gap-1">
+															<Button
+																variant="ghost"
+																size="sm"
+																class="h-8 w-8 p-0"
+																onclick={() => handleEditExternalHours(entry)}
+															>
+																<span class="material-symbols-rounded text-xl!">edit</span>
+																<span class="sr-only">Editar</span>
+															</Button>
+															<Button
+																variant="ghost"
+																size="sm"
+																class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+																onclick={() => handleDeleteExternalHours(entry)}
+															>
+																<span class="material-symbols-rounded text-xl!">delete</span>
+																<span class="sr-only">Eliminar</span>
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											{/each}
+										</TableBody>
+									</Table>
+								</TooltipProvider>
+							{/if}
+						</TabsContent>
+					</Tabs>
+				{:else}
+					<!-- Non-admin view: just the time entries table -->
+					{#if loadingEntries}
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Fecha</TableHead>
+									{#if hasProjects}
+										<TableHead>Proyecto</TableHead>
+									{/if}
+									<TableHead>Tipo</TableHead>
+									<TableHead>Inicio</TableHead>
+									<TableHead>Fin</TableHead>
+									<TableHead>Duración</TableHead>
+									<TableHead>Lugar</TableHead>
+									<TableHead class="w-[100px]">Acciones</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+									<TableRow data-placeholder-index={i}>
+										<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+										{#if hasProjects}
+											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+										{/if}
+										<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+										<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+										<TableCell><Skeleton class="h-4 w-14" /></TableCell>
+										<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+										<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
+										<TableCell><Skeleton class="h-8 w-20" /></TableCell>
+									</TableRow>
+								{/each}
+							</TableBody>
+						</Table>
+					{:else if entriesError}
+						<div class="flex items-center justify-center py-8 text-destructive">
+							<span class="material-symbols-rounded mr-2">error</span>
+							{entriesError}
+						</div>
+					{:else if timeEntries.length === 0}
+						<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+							<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+							<p>No hay registros de tiempo</p>
+							<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
+								<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+								Crear primer registro
+							</Button>
+						</div>
+					{:else}
+						<TooltipProvider>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Fecha</TableHead>
+										{#if hasProjects}
+											<TableHead>Proyecto</TableHead>
+										{/if}
+										<TableHead>Tipo</TableHead>
+										<TableHead>Inicio</TableHead>
+										<TableHead>Fin</TableHead>
+										<TableHead>Duración</TableHead>
+										<TableHead>Lugar</TableHead>
+										<TableHead class="w-[100px]">Acciones</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{#each timeEntries as entry (entry.id)}
+										<TableRow>
+											<TableCell class="font-medium">
+												{formatDate(entry.startTime)}
+											</TableCell>
+											{#if hasProjects}
 												<TableCell>
 													<Tooltip>
 														<TooltipTrigger class="max-w-[150px] truncate">
@@ -1020,168 +1156,60 @@
 														</TooltipContent>
 													</Tooltip>
 												</TableCell>
-												<TableCell class="font-medium">
-													{formatDuration(entry.minutes)}
-												</TableCell>
-												<TableCell>
-													<div class="flex items-center gap-1">
-														<Button
-															variant="ghost"
-															size="sm"
-															class="h-8 w-8 p-0"
-															onclick={() => handleEditExternalHours(entry)}
-														>
-															<span class="material-symbols-rounded text-xl!">edit</span>
-															<span class="sr-only">Editar</span>
-														</Button>
-														<Button
-															variant="ghost"
-															size="sm"
-															class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-															onclick={() => handleDeleteExternalHours(entry)}
-														>
-															<span class="material-symbols-rounded text-xl!">delete</span>
-															<span class="sr-only">Eliminar</span>
-														</Button>
-													</div>
-												</TableCell>
-											</TableRow>
-										{/each}
-									</TableBody>
-								</Table>
-							</TooltipProvider>
-						{/if}
-					</TabsContent>
-				</Tabs>
-			{:else}
-				<!-- Non-admin view: just the time entries table -->
-				{#if loadingEntries}
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Fecha</TableHead>
-								<TableHead>Proyecto</TableHead>
-								<TableHead>Tipo</TableHead>
-								<TableHead>Inicio</TableHead>
-								<TableHead>Fin</TableHead>
-								<TableHead>Duración</TableHead>
-								<TableHead>Lugar</TableHead>
-								<TableHead class="w-[100px]">Acciones</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-								<TableRow data-placeholder-index={i}>
-									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-									<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-									<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-									<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-								</TableRow>
-							{/each}
-						</TableBody>
-					</Table>
-				{:else if entriesError}
-					<div class="flex items-center justify-center py-8 text-destructive">
-						<span class="material-symbols-rounded mr-2">error</span>
-						{entriesError}
-					</div>
-				{:else if timeEntries.length === 0}
-					<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-						<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-						<p>No hay registros de tiempo</p>
-						<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
-							<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-							Crear primer registro
-						</Button>
-					</div>
-				{:else}
-					<TooltipProvider>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Fecha</TableHead>
-									<TableHead>Proyecto</TableHead>
-									<TableHead>Tipo</TableHead>
-									<TableHead>Inicio</TableHead>
-									<TableHead>Fin</TableHead>
-									<TableHead>Duración</TableHead>
-									<TableHead>Lugar</TableHead>
-									<TableHead class="w-[100px]">Acciones</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{#each timeEntries as entry (entry.id)}
-									<TableRow>
-										<TableCell class="font-medium">
-											{formatDate(entry.startTime)}
-										</TableCell>
-										<TableCell>
-											<Tooltip>
-												<TooltipTrigger class="max-w-[150px] truncate">
-													{entry.project?.name ?? '-'}
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>{entry.project?.name ?? '-'}</p>
-												</TooltipContent>
-											</Tooltip>
-										</TableCell>
-										<TableCell>
-											<Badge variant="secondary">
-												{getEntryTypeName(
-													entry.entryType,
-													entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-												)}
-											</Badge>
-										</TableCell>
-										<TableCell class="text-muted-foreground">
-											{formatTime(entry.startTime)}
-										</TableCell>
-										<TableCell class="text-muted-foreground">
-											{formatTime(entry.endTime)}
-										</TableCell>
-										<TableCell class="font-medium">
-											{formatDuration(entry.durationMinutes)}
-										</TableCell>
-										<TableCell>
-											<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
-												{entry.isInOffice ? 'Oficina' : 'Remoto'}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											<div class="flex items-center gap-1">
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0"
-													onclick={() => handleEditEntry(entry)}
-												>
-													<span class="material-symbols-rounded text-xl!">edit</span>
-													<span class="sr-only">Editar</span>
-												</Button>
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-													onclick={() => handleDeleteEntry(entry)}
-												>
-													<span class="material-symbols-rounded text-xl!">delete</span>
-													<span class="sr-only">Eliminar</span>
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								{/each}
-							</TableBody>
-						</Table>
-					</TooltipProvider>
+											{/if}
+											<TableCell>
+												<Badge variant="secondary">
+													{getEntryTypeName(
+														entry.entryType,
+														entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+													)}
+												</Badge>
+											</TableCell>
+											<TableCell class="text-muted-foreground">
+												{formatTime(entry.startTime)}
+											</TableCell>
+											<TableCell class="text-muted-foreground">
+												{formatTime(entry.endTime)}
+											</TableCell>
+											<TableCell class="font-medium">
+												{formatDuration(entry.durationMinutes)}
+											</TableCell>
+											<TableCell>
+												<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
+													{entry.isInOffice ? 'Oficina' : 'Remoto'}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<div class="flex items-center gap-1">
+													<Button
+														variant="ghost"
+														size="sm"
+														class="h-8 w-8 p-0"
+														onclick={() => handleEditEntry(entry)}
+													>
+														<span class="material-symbols-rounded text-xl!">edit</span>
+														<span class="sr-only">Editar</span>
+													</Button>
+													<Button
+														variant="ghost"
+														size="sm"
+														class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+														onclick={() => handleDeleteEntry(entry)}
+													>
+														<span class="material-symbols-rounded text-xl!">delete</span>
+														<span class="sr-only">Eliminar</span>
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									{/each}
+								</TableBody>
+							</Table>
+						</TooltipProvider>
+					{/if}
 				{/if}
-			{/if}
-		</CardContent>
-	</Card>
+			</CardContent>
+		</Card>
 	{/if}
 </div>
 

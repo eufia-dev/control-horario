@@ -43,7 +43,7 @@
 	});
 
 	// Get userId from route params
-	let userId = $derived($page.params.userId ?? '');
+	let userId = $derived($page.params.userId);
 
 	// User data
 	let user = $state<User | null>(null);
@@ -136,6 +136,7 @@
 		loadingEntries = true;
 		entriesError = null;
 		try {
+			if (!userId) return;
 			timeEntries = await fetchUserTimeEntries(userId);
 		} catch (e) {
 			entriesError = e instanceof Error ? e.message : 'Error al cargar registros';
@@ -159,6 +160,7 @@
 		loadingCalendar = true;
 		calendarError = null;
 		try {
+			if (!userId) return;
 			const { from, to } = getMonthRange(currentMonth);
 			calendarData = await fetchCalendar(from, to, userId);
 		} catch (e) {
@@ -250,7 +252,9 @@
 				<h1 class="text-2xl font-semibold tracking-tight">{user.name}</h1>
 				<Badge variant="secondary" class="ml-2">{user.email}</Badge>
 			{:else}
-				<h1 class="text-2xl font-semibold tracking-tight text-destructive">Usuario no encontrado</h1>
+				<h1 class="text-2xl font-semibold tracking-tight text-destructive">
+					Usuario no encontrado
+				</h1>
 			{/if}
 		</div>
 
@@ -260,7 +264,11 @@
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-4xl! mb-2">error</span>
 						<p>{userError}</p>
-						<Button variant="outline" class="mt-4" onclick={() => goto(`${resolve('/admin')}?tab=equipo`)}>
+						<Button
+							variant="outline"
+							class="mt-4"
+							onclick={() => goto(`${resolve('/admin')}?tab=equipo`)}
+						>
 							Volver al equipo
 						</Button>
 					</div>
@@ -395,7 +403,9 @@
 																<Tooltip>
 																	<TooltipTrigger>
 																		<Badge variant="secondary" class="text-xs">
-																			<span class="material-symbols-rounded text-sm! mr-0.5">edit</span>
+																			<span class="material-symbols-rounded text-sm! mr-0.5"
+																				>edit</span
+																			>
 																			Manual
 																		</Badge>
 																	</TooltipTrigger>
@@ -407,8 +417,13 @@
 															{#if entry.isModified}
 																<Tooltip>
 																	<TooltipTrigger>
-																		<Badge variant="outline" class="text-xs text-yellow-600 border-yellow-600">
-																			<span class="material-symbols-rounded text-sm! mr-0.5">sync</span>
+																		<Badge
+																			variant="outline"
+																			class="text-xs text-yellow-600 border-yellow-600"
+																		>
+																			<span class="material-symbols-rounded text-sm! mr-0.5"
+																				>sync</span
+																			>
 																			Modificado
 																		</Badge>
 																	</TooltipTrigger>
@@ -496,7 +511,9 @@
 									</div>
 									{#if calendarData.summary.daysMissing > 0}
 										<div class="p-4 bg-destructive/10 rounded-lg text-center">
-											<p class="text-2xl font-bold text-destructive">{calendarData.summary.daysMissing}</p>
+											<p class="text-2xl font-bold text-destructive">
+												{calendarData.summary.daysMissing}
+											</p>
 											<p class="text-sm text-muted-foreground">Días sin registrar</p>
 										</div>
 									{/if}
@@ -513,9 +530,5 @@
 		{/if}
 	</div>
 
-	<CalendarDayDetail
-		bind:open={dayDetailOpen}
-		day={selectedDay}
-		onClose={handleDayDetailClose}
-	/>
+	<CalendarDayDetail bind:open={dayDetailOpen} day={selectedDay} onClose={handleDayDetailClose} />
 {/if}
