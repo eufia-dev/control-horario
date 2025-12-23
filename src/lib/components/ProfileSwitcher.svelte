@@ -60,7 +60,7 @@
 			// Close popover
 			isOpen = false;
 
-			// Reload to clear all cached data
+			// Reload to clear all cached data (layout guards will handle redirects if needed)
 			window.location.reload();
 		} catch (error) {
 			console.error('Failed to switch profile:', error);

@@ -601,14 +601,22 @@ export function broadcastOnboardingComplete() {
 	authChannel?.postMessage({ type: 'ONBOARDING_COMPLETED' });
 }
 
+type ProfilesResponse = {
+	profiles: Profile[];
+	currentProfileId: string | null;
+};
+
 /**
  * Fetch all profiles for the current user
- * Returns an array of profiles (one per company the user belongs to)
+ * Returns an object with profiles array and the current profile ID from the server
  */
-export async function fetchProfiles(tokenOverride?: string): Promise<Profile[]> {
+export async function fetchProfiles(tokenOverride?: string): Promise<ProfilesResponse> {
 	const response = await fetchWithAuth(`${API_BASE}/auth/profiles`, {}, tokenOverride);
-	const data = await handleJsonResponse<{ profiles: Profile[] }>(response);
-	return data.profiles;
+	const data = await handleJsonResponse<ProfilesResponse>(response);
+	return {
+		profiles: data.profiles,
+		currentProfileId: data.currentProfileId ?? null
+	};
 }
 
 /**
@@ -625,11 +633,14 @@ export async function switchProfile(profileId: string): Promise<Profile> {
 
 /**
  * Load and set profiles in auth store.
- * Determines the active profile based on stored preference or first available.
+ * Determines the active profile based on:
+ * 1. Stored preference in localStorage (user's explicit choice)
+ * 2. Server's currentProfileId (from API response)
+ * 3. First available profile as fallback
  * Returns true if profiles need selection (multiple profiles, none stored).
  */
 export async function loadAndSetProfiles(tokenOverride?: string): Promise<boolean> {
-	const profiles = await fetchProfiles(tokenOverride);
+	const { profiles, currentProfileId } = await fetchProfiles(tokenOverride);
 
 	if (profiles.length === 0) {
 		auth.setProfiles([], null);
@@ -637,13 +648,20 @@ export async function loadAndSetProfiles(tokenOverride?: string): Promise<boolea
 	}
 
 	const storedProfileId = getActiveProfileId();
+
+	// Priority: 1) localStorage (user's choice), 2) server's currentProfileId, 3) first profile
 	let activeProfile = profiles.find((p) => p.id === storedProfileId);
 
-	// If no stored profile or stored profile not found, auto-select first one
+	if (!activeProfile && currentProfileId) {
+		activeProfile = profiles.find((p) => p.id === currentProfileId);
+	}
+
 	if (!activeProfile) {
 		activeProfile = profiles[0];
-		setActiveProfileId(activeProfile.id);
 	}
+
+	// Save to localStorage for future sessions
+	setActiveProfileId(activeProfile.id);
 
 	auth.setProfiles(profiles, activeProfile);
 

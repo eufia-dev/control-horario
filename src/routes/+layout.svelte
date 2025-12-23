@@ -55,6 +55,8 @@
 
 	const onboardingRoutes = ['/onboarding', '/onboarding/join', '/onboarding/status'];
 
+	const adminOnlyRoutes = ['/admin', '/analytics'];
+
 	const inviteRoutePrefix = '/invite/';
 	const authCallbackPrefix = '/auth/callback';
 
@@ -67,6 +69,10 @@
 
 	function isOnboardingRoute(pathname: string): boolean {
 		return onboardingRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
+	}
+
+	function isAdminOnlyRoute(pathname: string): boolean {
+		return adminOnlyRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 	}
 
 	function isInviteRoute(pathname: string): boolean {
@@ -124,6 +130,12 @@
 
 		if (onboardingStatus === 'ACTIVE' && isOnboardingRoute(pathname)) {
 			goto(resolve(routeForOnboardingStatus('ACTIVE') as RouteId));
+			return;
+		}
+
+		// Redirect non-admin users away from admin-only routes
+		if (isAdminOnlyRoute(pathname) && !isUserAdmin) {
+			goto(resolve('/'));
 			return;
 		}
 	}

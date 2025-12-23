@@ -223,7 +223,7 @@
 			await switchProfile(profile.id);
 			setActiveProfileId(profile.id);
 			auth.setActiveProfile(profile);
-			// Reload to apply new profile
+			// Reload to apply new profile (layout guards will handle redirects if needed)
 			window.location.reload();
 		} catch (e) {
 			console.error('Failed to switch profile:', e);

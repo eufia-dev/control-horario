@@ -263,11 +263,7 @@
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-4xl! mb-2">error</span>
 						<p>{userError}</p>
-						<Button
-							variant="outline"
-							class="mt-4"
-							onclick={() => goto('/admin?tab=equipo')}
-						>
+						<Button variant="outline" class="mt-4" onclick={() => goto('/admin?tab=equipo')}>
 							Volver al equipo
 						</Button>
 					</div>

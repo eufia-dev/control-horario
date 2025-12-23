@@ -130,7 +130,7 @@ export const isSignedIn = derived(auth, ($auth) =>
 );
 
 export const isAdmin = derived(auth, ($auth) => {
-	const role = $auth.user?.role;
+	const role = $auth.activeProfile?.role ?? $auth.user?.role;
 	return role === 'OWNER' || role === 'ADMIN';
 });
 
