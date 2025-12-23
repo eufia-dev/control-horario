@@ -10,7 +10,7 @@ export type Profile = {
 	name: string;
 	email: string;
 	role: UserRole;
-	relationType: RelationType;
+	relation: RelationType;
 	company: {
 		id: string;
 		name: string;
@@ -24,7 +24,7 @@ export type AuthUser = {
 	email: string;
 	companyName: string;
 	role: UserRole;
-	relationType: RelationType;
+	relation: RelationType;
 	createdAt: string;
 };
 
@@ -152,6 +152,6 @@ export const profiles = derived(auth, ($auth) => $auth.profiles);
 
 export const hasMultipleProfiles = derived(auth, ($auth) => $auth.profiles.length > 1);
 
-export const isGuest = derived(auth, ($auth) => $auth.activeProfile?.relationType === 'GUEST');
+export const isGuest = derived(auth, ($auth) => $auth.activeProfile?.relation === 'GUEST');
 
-export const canTrackTime = derived(auth, ($auth) => $auth.activeProfile?.relationType !== 'GUEST');
+export const canTrackTime = derived(auth, ($auth) => $auth.activeProfile?.relation !== 'GUEST');

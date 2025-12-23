@@ -144,7 +144,7 @@
 					<TableBody>
 						{#each users as user (user.id)}
 							{@const roleBadge = getRoleBadge(user.role)}
-							{@const relationBadge = getRelationTypeBadge(user.relationType)}
+							{@const relationBadge = getRelationTypeBadge(user.relation)}
 							{@const isOwner = user.role === 'OWNER'}
 							<TableRow>
 								<TableCell class="font-medium">

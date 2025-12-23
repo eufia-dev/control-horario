@@ -14,7 +14,7 @@ export type User = {
 	avatarUrl: string | null;
 	hourlyCost: number;
 	isActive: boolean;
-	relationType: RelationType;
+	relation: RelationType;
 	role: UserRole;
 	nif: string | null;
 	naf: string | null;
@@ -29,7 +29,7 @@ export type UpdateUserDto = {
 	hourlyCost?: number;
 	isActive?: boolean;
 	role?: UserRole;
-	relationType?: RelationType;
+	relation?: RelationType;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

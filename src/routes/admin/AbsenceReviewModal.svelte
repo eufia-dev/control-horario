@@ -112,7 +112,9 @@
 					</div>
 					<div class="flex items-center justify-between">
 						<span class="text-sm text-muted-foreground">Duración</span>
-						<span class="text-sm font-medium">{absence.workdaysCount} {absence.workdaysCount === 1 ? 'día' : 'días'}</span>
+						<span class="text-sm font-medium"
+							>{absence.workdaysCount} {absence.workdaysCount === 1 ? 'día' : 'días'}</span
+						>
 					</div>
 				</div>
 

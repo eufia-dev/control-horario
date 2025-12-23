@@ -507,7 +507,7 @@
 										<span class="text-sm text-muted-foreground">
 											{roleLabels[invitation.role] ?? invitation.role}
 										</span>
-										<RelationTypeBadge type={invitation.relationType} class="text-xs" />
+										<RelationTypeBadge type={invitation.relation} class="text-xs" />
 									</div>
 								</div>
 								<Button

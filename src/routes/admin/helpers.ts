@@ -17,8 +17,8 @@ export function getRoleBadge(role: string): BadgeInfo {
 	}
 }
 
-export function getRelationTypeBadge(relationType: string): BadgeInfo {
-	switch (relationType) {
+export function getRelationTypeBadge(relation: string): BadgeInfo {
+	switch (relation) {
 		case 'EMPLOYEE':
 			return { variant: 'default', label: 'Empleado' };
 		case 'CONTRACTOR':
@@ -26,7 +26,7 @@ export function getRelationTypeBadge(relationType: string): BadgeInfo {
 		case 'GUEST':
 			return { variant: 'outline', label: 'Invitado' };
 		default:
-			return { variant: 'secondary', label: relationType };
+			return { variant: 'secondary', label: relation };
 	}
 }
 

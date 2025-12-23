@@ -27,16 +27,19 @@
 	let { open = $bindable(), request, action, onClose, onSuccess }: Props = $props();
 
 	let role = $state<UserRole>('WORKER');
-	let relationType = $state<RelationType>('EMPLOYEE');
+	let relation = $state<RelationType>('EMPLOYEE');
 	let reason = $state('');
 	let isSubmitting = $state(false);
 	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let options = $state<JoinRequestOptions | null>(null);
 
+	const isAuditor = $derived(role === 'AUDITOR');
+	const isWorker = $derived(role === 'WORKER');
+
 	const resetForm = () => {
 		role = 'WORKER';
-		relationType = 'EMPLOYEE';
+		relation = 'EMPLOYEE';
 		reason = '';
 		errorMessage = null;
 	};
@@ -66,7 +69,7 @@
 
 		try {
 			if (action === 'approve') {
-				await approveJoinRequest(request.id, { role, relationType });
+				await approveJoinRequest(request.id, { role, relation });
 			} else {
 				await rejectJoinRequest(request.id, { reason: reason.trim() || undefined });
 			}
@@ -90,7 +93,21 @@
 		}
 	});
 
+	$effect(() => {
+		if (role === 'AUDITOR') {
+			relation = 'GUEST';
+		} else if (role === 'WORKER') {
+			relation = 'EMPLOYEE';
+		}
+	});
+
 	const isApprove = $derived(action === 'approve');
+
+	const availableRelationTypes = $derived(
+		isWorker
+			? (options?.relationTypes.filter((r) => r.value !== 'GUEST') ?? [])
+			: (options?.relationTypes ?? [])
+	);
 </script>
 
 <AlertDialog.Root bind:open>
@@ -141,18 +158,18 @@
 
 				<Field>
 					<FieldLabel>
-						<Label for="approve-relation-type">Tipo de relación</Label>
+						<Label for="approve-relation-type">Relación</Label>
 					</FieldLabel>
 					{#if isLoadingOptions}
 						<Skeleton class="h-10 w-full" />
 					{:else}
-						<Select.Root type="single" bind:value={relationType}>
-							<Select.Trigger id="approve-relation-type" class="w-full">
-								{options?.relationTypes.find((r) => r.value === relationType)?.name ??
+						<Select.Root type="single" bind:value={relation} disabled={isAuditor}>
+							<Select.Trigger id="approve-relation-type" class="w-full" disabled={isAuditor}>
+								{options?.relationTypes.find((r) => r.value === relation)?.name ??
 									'Seleccionar tipo'}
 							</Select.Trigger>
 							<Select.Content>
-								{#each options?.relationTypes ?? [] as option (option.value)}
+								{#each availableRelationTypes as option (option.value)}
 									<Select.Item value={option.value}>{option.name}</Select.Item>
 								{/each}
 							</Select.Content>

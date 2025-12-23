@@ -65,7 +65,6 @@
 	let selectedDay = $state<CalendarDay | null>(null);
 	let dayDetailOpen = $state(false);
 
-	// Tab state
 	let activeTab = $state('historial');
 
 	const timeEntryTypeLookup = $derived(
@@ -242,7 +241,7 @@
 	<div class="grow flex flex-col gap-6 p-6">
 		<!-- Header -->
 		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(`${resolve('/admin')}?tab=equipo`)}>
+			<Button variant="ghost" size="sm" onclick={() => goto('/admin?tab=equipo')}>
 				<span class="material-symbols-rounded text-lg!">arrow_back</span>
 			</Button>
 			<span class="material-symbols-rounded text-3xl!">person</span>
@@ -267,7 +266,7 @@
 						<Button
 							variant="outline"
 							class="mt-4"
-							onclick={() => goto(`${resolve('/admin')}?tab=equipo`)}
+							onclick={() => goto('/admin?tab=equipo')}
 						>
 							Volver al equipo
 						</Button>

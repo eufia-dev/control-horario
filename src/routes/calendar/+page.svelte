@@ -43,8 +43,6 @@
 	let timeEntryTypes = $state<TimeEntryType[]>([]);
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
-	let loadingProjects = $state(true);
-	let loadingTypes = $state(true);
 
 	function formatLocalDateKey(date: Date): string {
 		const y = date.getFullYear();
@@ -89,24 +87,18 @@
 	}
 
 	async function loadProjects() {
-		loadingProjects = true;
 		try {
 			projects = await fetchProjects();
 		} catch (e) {
 			console.error('Error loading projects:', e);
-		} finally {
-			loadingProjects = false;
 		}
 	}
 
 	async function loadTypes() {
-		loadingTypes = true;
 		try {
 			timeEntryTypes = await fetchTimeEntryTypes();
 		} catch (e) {
 			console.error('Error loading time entry types:', e);
-		} finally {
-			loadingTypes = false;
 		}
 	}
 

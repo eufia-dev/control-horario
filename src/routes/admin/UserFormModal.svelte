@@ -31,9 +31,12 @@
 	let hourlyCost = $state(0);
 	let isActive = $state(true);
 	let role = $state<UserRole>('WORKER');
-	let relationType = $state<RelationType>('EMPLOYEE');
+	let relation = $state<RelationType>('EMPLOYEE');
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
+
+	const isAuditor = $derived(role === 'AUDITOR');
+	const isWorker = $derived(role === 'WORKER');
 
 	const roleOptions: { value: UserRole; label: string }[] = [
 		{ value: 'OWNER', label: 'Propietario' },
@@ -52,15 +55,17 @@
 		roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'
 	);
 
-	const selectedRelationTypeLabel = $derived(
-		relationTypeLabels[relationType] ?? 'Seleccionar tipo'
-	);
+	const selectedRelationTypeLabel = $derived(relationTypeLabels[relation] ?? 'Seleccionar tipo');
 
 	const relationTypeOptions: { value: RelationType; label: string }[] = [
 		{ value: 'EMPLOYEE', label: 'Empleado' },
 		{ value: 'CONTRACTOR', label: 'Autónomo' },
 		{ value: 'GUEST', label: 'Invitado' }
 	];
+
+	const availableRelationTypes = $derived(
+		isWorker ? relationTypeOptions.filter((r) => r.value !== 'GUEST') : relationTypeOptions
+	);
 
 	function resetForm() {
 		name = '';
@@ -69,7 +74,7 @@
 		hourlyCost = 0;
 		isActive = true;
 		role = 'WORKER';
-		relationType = 'EMPLOYEE';
+		relation = 'EMPLOYEE';
 		error = null;
 	}
 
@@ -81,7 +86,13 @@
 			hourlyCost = user.hourlyCost;
 			isActive = user.isActive;
 			role = user.role;
-			relationType = user.relationType;
+			if (user.role === 'AUDITOR') {
+				relation = 'GUEST';
+			} else if (user.role === 'WORKER') {
+				relation = 'EMPLOYEE';
+			} else {
+				relation = user.relation;
+			}
 		} else {
 			resetForm();
 		}
@@ -96,6 +107,14 @@
 	$effect(() => {
 		if (!open) {
 			resetForm();
+		}
+	});
+
+	$effect(() => {
+		if (role === 'AUDITOR') {
+			relation = 'GUEST';
+		} else if (role === 'WORKER') {
+			relation = 'EMPLOYEE';
 		}
 	});
 
@@ -139,7 +158,7 @@
 				hourlyCost,
 				isActive,
 				role,
-				relationType
+				relation
 			};
 			await updateUser(user.id, data);
 			onSuccess();
@@ -220,13 +239,13 @@
 				</div>
 
 				<div class="grid gap-2">
-					<Label>Tipo de relación</Label>
-					<Select type="single" bind:value={relationType} disabled={submitting}>
-						<SelectTrigger class="w-full">
+					<Label>Relación</Label>
+					<Select type="single" bind:value={relation} disabled={submitting || isAuditor}>
+						<SelectTrigger class="w-full" disabled={submitting || isAuditor}>
 							{selectedRelationTypeLabel}
 						</SelectTrigger>
 						<SelectContent>
-							{#each relationTypeOptions as option (option.value)}
+							{#each availableRelationTypes as option (option.value)}
 								<SelectItem value={option.value} label={option.label} />
 							{/each}
 						</SelectContent>

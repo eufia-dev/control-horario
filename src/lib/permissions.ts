@@ -7,7 +7,7 @@ import { auth } from '$lib/stores/auth';
  */
 export function canTrackTime(): boolean {
 	const state = get(auth);
-	return state.activeProfile?.relationType !== 'GUEST';
+	return state.activeProfile?.relation !== 'GUEST';
 }
 
 /**
@@ -102,5 +102,5 @@ export function canEditCompanySettings(): boolean {
  */
 export function isGuest(): boolean {
 	const state = get(auth);
-	return state.activeProfile?.relationType === 'GUEST';
+	return state.activeProfile?.relation === 'GUEST';
 }

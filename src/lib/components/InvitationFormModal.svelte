@@ -24,16 +24,19 @@
 
 	let email = $state('');
 	let role = $state<UserRole>('WORKER');
-	let relationType = $state<RelationType>('EMPLOYEE');
+	let relation = $state<RelationType>('EMPLOYEE');
 	let isSubmitting = $state(false);
 	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let options = $state<InvitationOptions | null>(null);
 
+	const isAuditor = $derived(role === 'AUDITOR');
+	const isWorker = $derived(role === 'WORKER');
+
 	const resetForm = () => {
 		email = '';
 		role = 'WORKER';
-		relationType = 'EMPLOYEE';
+		relation = 'EMPLOYEE';
 		errorMessage = null;
 	};
 
@@ -76,7 +79,7 @@
 			await createInvitation({
 				email: email.trim(),
 				role,
-				relationType
+				relation
 			});
 
 			resetForm();
@@ -95,6 +98,20 @@
 			loadOptions();
 		}
 	});
+
+	$effect(() => {
+		if (role === 'AUDITOR') {
+			relation = 'GUEST';
+		} else if (role === 'WORKER') {
+			relation = 'EMPLOYEE';
+		}
+	});
+
+	const availableRelationTypes = $derived(
+		isWorker
+			? (options?.relationTypes.filter((r) => r.value !== 'GUEST') ?? [])
+			: (options?.relationTypes ?? [])
+	);
 </script>
 
 <Dialog.Root
@@ -160,18 +177,17 @@
 
 			<Field>
 				<FieldLabel>
-					<Label for="invitation-relation-type">Tipo de relación</Label>
+					<Label for="invitation-relation-type">Relación</Label>
 				</FieldLabel>
 				{#if isLoadingOptions}
 					<Skeleton class="h-10 w-full" />
 				{:else}
-					<Select.Root type="single" bind:value={relationType}>
-						<Select.Trigger id="invitation-relation-type" class="w-full">
-							{options?.relationTypes.find((r) => r.value === relationType)?.name ??
-								'Seleccionar tipo'}
+					<Select.Root type="single" bind:value={relation} disabled={isAuditor}>
+						<Select.Trigger id="invitation-relation-type" class="w-full" disabled={isAuditor}>
+							{options?.relationTypes.find((r) => r.value === relation)?.name ?? 'Seleccionar tipo'}
 						</Select.Trigger>
 						<Select.Content>
-							{#each options?.relationTypes ?? [] as option (option.value)}
+							{#each availableRelationTypes as option (option.value)}
 								<Select.Item value={option.value}>{option.name}</Select.Item>
 							{/each}
 						</Select.Content>

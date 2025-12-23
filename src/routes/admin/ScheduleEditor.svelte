@@ -60,7 +60,7 @@
 
 	// Validation errors per day
 	const errors = $derived(
-		days.map((day, i) => {
+		days.map((day) => {
 			if (!day.enabled) return null;
 			if (!isValidTimeFormat(day.startTime)) {
 				return 'Hora de inicio inválida';

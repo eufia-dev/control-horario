@@ -37,7 +37,7 @@ export type OnboardingCheckResponse = {
 		email: string;
 		companyName: string;
 		role: UserRole;
-		relationType: RelationType;
+		relation: RelationType;
 		createdAt: string;
 	};
 	pendingInvitations?: PendingInvitation[];
@@ -81,7 +81,7 @@ export type AuthPendingInvitation = {
 	id: string;
 	token: string;
 	role: UserRole;
-	relationType: RelationType;
+	relation: RelationType;
 	expiresAt: string;
 	company: {
 		id: string;
@@ -96,7 +96,7 @@ export type AcceptInvitationResponse = {
 		name: string;
 		email: string;
 		role: UserRole;
-		relationType: RelationType;
+		relation: RelationType;
 		company: {
 			id: string;
 			name: string;

@@ -100,8 +100,8 @@
 							<span class="text-sm text-muted-foreground">
 								{roleLabels[profile.role] ?? profile.role}
 							</span>
-							<Badge variant={relationTypeConfig[profile.relationType]?.variant ?? 'outline'}>
-								{relationTypeConfig[profile.relationType]?.label ?? profile.relationType}
+							<Badge variant={relationTypeConfig[profile.relation]?.variant ?? 'outline'}>
+								{relationTypeConfig[profile.relation]?.label ?? profile.relation}
 							</Badge>
 						</div>
 					</div>

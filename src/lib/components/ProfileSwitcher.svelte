@@ -163,9 +163,9 @@
 							<span class="text-xs text-muted-foreground">
 								{roleLabels[profile.role] ?? profile.role}
 							</span>
-							{#if profile.relationType === 'GUEST'}
+							{#if profile.relation === 'GUEST'}
 								<Badge variant="outline" class="text-[10px] px-1 py-0">
-									{relationTypeConfig[profile.relationType]?.label}
+									{relationTypeConfig[profile.relation]?.label}
 								</Badge>
 							{/if}
 						</div>

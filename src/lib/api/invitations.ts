@@ -22,7 +22,7 @@ export type Invitation = {
 	companyId: string;
 	email: string;
 	role: UserRole;
-	relationType: RelationType;
+	relation: RelationType;
 	token: string;
 	expiresAt: string;
 	usedAt?: string;
@@ -32,7 +32,7 @@ export type Invitation = {
 export type CreateInvitationDto = {
 	email: string;
 	role: UserRole;
-	relationType: RelationType;
+	relation: RelationType;
 };
 
 export type AdminJoinRequest = {
@@ -54,7 +54,7 @@ export type JoinRequestOptions = {
 
 export type ApproveJoinRequestDto = {
 	role?: UserRole;
-	relationType?: RelationType;
+	relation?: RelationType;
 };
 
 export type RejectJoinRequestDto = {

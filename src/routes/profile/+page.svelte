@@ -397,7 +397,7 @@
 													{roleLabels[profile.role] ?? profile.role}
 												</span>
 												<RelationTypeBadge
-													type={profile.relationType}
+													type={profile.relation}
 													class="text-[10px] px-1.5 py-0"
 												/>
 											</div>

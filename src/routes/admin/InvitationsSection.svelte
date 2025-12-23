@@ -160,7 +160,7 @@
 						{#each invitations as invitation (invitation.id)}
 							{@const status = getInvitationStatus(invitation)}
 							{@const roleBadge = getRoleBadge(invitation.role)}
-							{@const relationBadge = getRelationTypeBadge(invitation.relationType)}
+							{@const relationBadge = getRelationTypeBadge(invitation.relation)}
 							<TableRow>
 								<TableCell class="font-medium">
 									<Tooltip>
