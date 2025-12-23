@@ -186,7 +186,7 @@
 								<TooltipTrigger>
 									<button
 										type="button"
-										class="w-full p-2 min-h-[72px] flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {isOutsideMonth
+										class="w-full p-2 min-h-20 flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {isOutsideMonth
 											? 'opacity-60'
 											: ''}"
 										onclick={() => onDayClick(day)}
