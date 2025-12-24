@@ -57,6 +57,16 @@
 	let loadingTypes = $state(true);
 	let entriesError = $state<string | null>(null);
 
+	// Month navigation state
+	let selectedMonth = $state(new Date());
+	const isCurrentMonth = $derived(() => {
+		const now = new Date();
+		return (
+			selectedMonth.getFullYear() === now.getFullYear() &&
+			selectedMonth.getMonth() === now.getMonth()
+		);
+	});
+
 	// Calendar data
 	let calendarData = $state<CalendarResponse | null>(null);
 	let loadingCalendar = $state(true);
@@ -77,6 +87,36 @@
 	function getEntryTypeName(value?: string, fallback?: string) {
 		if (!value) return fallback ?? '-';
 		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
+	}
+
+	function formatMonthYear(date: Date): string {
+		const now = new Date();
+		const isCurrentYear = date.getFullYear() === now.getFullYear();
+
+		if (isCurrentYear) {
+			// Only show month name for current year
+			const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+			return monthName.charAt(0).toUpperCase() + monthName.slice(1);
+		} else {
+			// Show month and year for other years
+			const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+			return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+		}
+	}
+
+	function goToPreviousMonth() {
+		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);
+		loadEntries();
+	}
+
+	function goToNextMonth() {
+		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1);
+		loadEntries();
+	}
+
+	function goToCurrentMonth() {
+		selectedMonth = new Date();
+		loadEntries();
 	}
 
 	function getSourceLabel(source?: string): string {
@@ -136,7 +176,9 @@
 		entriesError = null;
 		try {
 			if (!userId) return;
-			timeEntries = await fetchUserTimeEntries(userId);
+			const year = selectedMonth.getFullYear();
+			const month = selectedMonth.getMonth() + 1; // 1-12 for backend
+			timeEntries = await fetchUserTimeEntries(userId, year, month);
 		} catch (e) {
 			entriesError = e instanceof Error ? e.message : 'Error al cargar registros';
 		} finally {
@@ -285,11 +327,37 @@
 				<!-- Time Entries Tab -->
 				<TabsContent value="historial">
 					<Card>
-						<CardHeader>
+						<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
 							<CardTitle class="text-xl font-semibold tracking-tight flex items-center gap-2">
 								<span class="material-symbols-rounded text-2xl!">schedule</span>
 								Registros de tiempo
 							</CardTitle>
+							<!-- Month Navigation -->
+							<div class="flex items-center gap-1 bg-muted rounded-lg p-1">
+								<Button
+									variant="ghost"
+									size="sm"
+									class="h-8 w-8 p-0"
+									onclick={goToPreviousMonth}
+									disabled={loadingEntries}
+								>
+									<span class="material-symbols-rounded text-lg!">chevron_left</span>
+									<span class="sr-only">Mes anterior</span>
+								</Button>
+								<span class="px-2 text-sm font-medium min-w-[120px] text-center">
+									{formatMonthYear(selectedMonth)}
+								</span>
+								<Button
+									variant="ghost"
+									size="sm"
+									class="h-8 w-8 p-0"
+									onclick={goToNextMonth}
+									disabled={loadingEntries || isCurrentMonth()}
+								>
+									<span class="material-symbols-rounded text-lg!">chevron_right</span>
+									<span class="sr-only">Mes siguiente</span>
+								</Button>
+							</div>
 						</CardHeader>
 						<CardContent>
 							{#if loadingEntries || loadingTypes}

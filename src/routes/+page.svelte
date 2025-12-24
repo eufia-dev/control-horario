@@ -126,6 +126,46 @@
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
+	// Month navigation state
+	let selectedMonth = $state(new Date());
+	const isCurrentMonth = $derived(() => {
+		const now = new Date();
+		return (
+			selectedMonth.getFullYear() === now.getFullYear() &&
+			selectedMonth.getMonth() === now.getMonth()
+		);
+	});
+
+	function formatMonthYear(date: Date): string {
+		const now = new Date();
+		const isCurrentYear = date.getFullYear() === now.getFullYear();
+		
+		if (isCurrentYear) {
+			// Only show month name for current year
+			const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+			return monthName.charAt(0).toUpperCase() + monthName.slice(1);
+		} else {
+			// Show month and year for other years
+			const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+			return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+		}
+	}
+
+	function goToPreviousMonth() {
+		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);
+		loadEntries();
+	}
+
+	function goToNextMonth() {
+		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1);
+		loadEntries();
+	}
+
+	function goToCurrentMonth() {
+		selectedMonth = new Date();
+		loadEntries();
+	}
+
 	// Calendar and compliance data
 	let calendarData = $state<CalendarResponse | null>(null);
 	let absenceStats = $state<AbsenceStats | null>(null);
@@ -253,7 +293,9 @@
 		loadingEntries = true;
 		entriesError = null;
 		try {
-			timeEntries = await fetchMyTimeEntries();
+			const year = selectedMonth.getFullYear();
+			const month = selectedMonth.getMonth() + 1; // 1-12 for backend
+			timeEntries = await fetchMyTimeEntries(year, month);
 		} catch (e) {
 			entriesError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
@@ -794,26 +836,55 @@
 
 		<!-- Time Entries / External Hours Card -->
 		<Card class="w-full max-w-5xl mx-auto">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0">
+			<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
 				<CardTitle class="text-2xl font-semibold tracking-tight">Historial</CardTitle>
-				{#if isAdmin}
-					{#if activeTab === 'my-entries'}
+				<div class="flex items-center gap-2 flex-wrap">
+					<!-- Month Navigation -->
+					<div class="flex items-center gap-1 bg-muted rounded-lg p-1">
+						<Button
+							variant="ghost"
+							size="sm"
+							class="h-8 w-8 p-0"
+							onclick={goToPreviousMonth}
+							disabled={loadingEntries}
+						>
+							<span class="material-symbols-rounded text-lg!">chevron_left</span>
+							<span class="sr-only">Mes anterior</span>
+						</Button>
+						<span class="px-2 text-sm font-medium min-w-[120px] text-center">
+							{formatMonthYear(selectedMonth)}
+						</span>
+						<Button
+							variant="ghost"
+							size="sm"
+							class="h-8 w-8 p-0"
+							onclick={goToNextMonth}
+							disabled={loadingEntries || isCurrentMonth()}
+						>
+							<span class="material-symbols-rounded text-lg!">chevron_right</span>
+							<span class="sr-only">Mes siguiente</span>
+						</Button>
+					</div>
+					<!-- Add Button -->
+					{#if isAdmin}
+						{#if activeTab === 'my-entries'}
+							<Button onclick={handleCreateEntry}>
+								<span class="material-symbols-rounded text-lg!">add</span>
+								Añadir
+							</Button>
+						{:else}
+							<Button onclick={handleCreateExternalHours}>
+								<span class="material-symbols-rounded text-lg!">add</span>
+								Añadir externas
+							</Button>
+						{/if}
+					{:else}
 						<Button onclick={handleCreateEntry}>
 							<span class="material-symbols-rounded text-lg!">add</span>
 							Añadir
 						</Button>
-					{:else}
-						<Button onclick={handleCreateExternalHours}>
-							<span class="material-symbols-rounded text-lg!">add</span>
-							Añadir externas
-						</Button>
 					{/if}
-				{:else}
-					<Button onclick={handleCreateEntry}>
-						<span class="material-symbols-rounded text-lg!">add</span>
-						Añadir
-					</Button>
-				{/if}
+				</div>
 			</CardHeader>
 			<CardContent>
 				{#if isAdmin}

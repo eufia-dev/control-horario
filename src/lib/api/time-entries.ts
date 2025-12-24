@@ -132,13 +132,27 @@ export async function fetchTimeEntryTypes(): Promise<TimeEntryType[]> {
 	return handleJsonResponse<TimeEntryType[]>(response);
 }
 
-export async function fetchMyTimeEntries(): Promise<TimeEntry[]> {
-	const response = await fetchWithAuth(`${API_BASE}/time-entries/me`);
+export async function fetchMyTimeEntries(year?: number, month?: number): Promise<TimeEntry[]> {
+	const params = new URLSearchParams();
+	if (year !== undefined) params.append('year', year.toString());
+	if (month !== undefined) params.append('month', month.toString());
+	const query = params.toString();
+	const url = `${API_BASE}/time-entries/me${query ? `?${query}` : ''}`;
+	const response = await fetchWithAuth(url);
 	return handleJsonResponse<TimeEntry[]>(response);
 }
 
-export async function fetchUserTimeEntries(userId: string): Promise<TimeEntry[]> {
-	const response = await fetchWithAuth(`${API_BASE}/time-entries?userId=${userId}`);
+export async function fetchUserTimeEntries(
+	userId: string,
+	year?: number,
+	month?: number
+): Promise<TimeEntry[]> {
+	const params = new URLSearchParams();
+	params.append('userId', userId);
+	if (year !== undefined) params.append('year', year.toString());
+	if (month !== undefined) params.append('month', month.toString());
+	const url = `${API_BASE}/time-entries?${params.toString()}`;
+	const response = await fetchWithAuth(url);
 	return handleJsonResponse<TimeEntry[]>(response);
 }
 
