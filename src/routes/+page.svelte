@@ -139,7 +139,7 @@
 	function formatMonthYear(date: Date): string {
 		const now = new Date();
 		const isCurrentYear = date.getFullYear() === now.getFullYear();
-		
+
 		if (isCurrentYear) {
 			// Only show month name for current year
 			const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
@@ -158,11 +158,6 @@
 
 	function goToNextMonth() {
 		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1);
-		loadEntries();
-	}
-
-	function goToCurrentMonth() {
-		selectedMonth = new Date();
 		loadEntries();
 	}
 
@@ -836,7 +831,9 @@
 
 		<!-- Time Entries / External Hours Card -->
 		<Card class="w-full max-w-5xl mx-auto">
-			<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
+			<CardHeader
+				class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0"
+			>
 				<CardTitle class="text-2xl font-semibold tracking-tight">Historial</CardTitle>
 				<div class="flex items-center gap-2 flex-wrap">
 					<!-- Month Navigation -->
@@ -851,7 +848,7 @@
 							<span class="material-symbols-rounded text-lg!">chevron_left</span>
 							<span class="sr-only">Mes anterior</span>
 						</Button>
-						<span class="px-2 text-sm font-medium min-w-[120px] text-center">
+						<span class="px-2 text-sm font-medium min-w-22 text-center">
 							{formatMonthYear(selectedMonth)}
 						</span>
 						<Button

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import type { WithoutChildren } from 'bits-ui';
 	import { getEmblaContext } from './context.js';
 	import { cn } from '$lib/utils.js';
@@ -33,6 +32,6 @@
 	{...restProps}
 	bind:ref
 >
-	<ArrowLeftIcon class="size-4" />
+	<span class="material-symbols-rounded text-2xl!">chevron_left</span>
 	<span class="sr-only">Previous slide</span>
 </Button>

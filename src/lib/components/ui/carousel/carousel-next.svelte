@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import type { WithoutChildren } from 'bits-ui';
 	import { getEmblaContext } from './context.js';
 	import { cn } from '$lib/utils.js';
@@ -33,6 +32,6 @@
 	bind:ref
 	{...restProps}
 >
-	<ArrowRightIcon class="size-4" />
+	<span class="material-symbols-rounded text-2xl!">chevron_right</span>
 	<span class="sr-only">Next slide</span>
 </Button>

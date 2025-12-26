@@ -114,11 +114,6 @@
 		loadEntries();
 	}
 
-	function goToCurrentMonth() {
-		selectedMonth = new Date();
-		loadEntries();
-	}
-
 	function getSourceLabel(source?: string): string {
 		const sourceLabels: Record<string, string> = {
 			WEB: 'Web',
@@ -327,7 +322,9 @@
 				<!-- Time Entries Tab -->
 				<TabsContent value="historial">
 					<Card>
-						<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
+						<CardHeader
+							class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0"
+						>
 							<CardTitle class="text-xl font-semibold tracking-tight flex items-center gap-2">
 								<span class="material-symbols-rounded text-2xl!">schedule</span>
 								Registros de tiempo
@@ -344,7 +341,7 @@
 									<span class="material-symbols-rounded text-lg!">chevron_left</span>
 									<span class="sr-only">Mes anterior</span>
 								</Button>
-								<span class="px-2 text-sm font-medium min-w-[120px] text-center">
+								<span class="px-2 text-sm font-medium min-w-22 text-center">
 									{formatMonthYear(selectedMonth)}
 								</span>
 								<Button

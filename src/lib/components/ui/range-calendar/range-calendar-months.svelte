@@ -12,7 +12,7 @@
 
 <div
 	bind:this={ref}
-	class={cn('relative flex flex-col gap-4 md:flex-row', className)}
+	class={cn('relative flex flex-col gap-4 md:flex-row capitalize', className)}
 	{...restProps}
 >
 	{@render children?.()}

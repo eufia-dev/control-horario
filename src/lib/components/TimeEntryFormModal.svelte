@@ -14,12 +14,7 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Calendar } from '$lib/components/ui/calendar';
 	import * as Popover from '$lib/components/ui/popover';
-	import {
-		type DateValue,
-		DateFormatter,
-		getLocalTimeZone,
-		CalendarDate
-	} from '@internationalized/date';
+	import { type DateValue, getLocalTimeZone, CalendarDate } from '@internationalized/date';
 	import { cn, formatProjectLabel } from '$lib/utils';
 	import {
 		createTimeEntry,
@@ -54,10 +49,6 @@
 		onSuccess
 	}: Props = $props();
 
-	const df = new DateFormatter('es-ES', {
-		dateStyle: 'medium'
-	});
-
 	let projectId = $state<string | undefined>(undefined);
 	let entryType = $state<string | undefined>(undefined);
 	let startDateValue = $state<DateValue | undefined>(undefined);
@@ -68,6 +59,13 @@
 	let isInOffice = $state(true);
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
+
+	// Popover open states
+	let startDatePopoverOpen = $state(false);
+	let endDatePopoverOpen = $state(false);
+
+	// Track previous start date to detect changes
+	let previousStartDateValue = $state<DateValue | undefined>(undefined);
 
 	const isEditMode = $derived(entry !== null && entry !== undefined);
 	const dialogTitle = $derived(isEditMode ? 'Editar Registro' : 'Nuevo Registro');
@@ -121,6 +119,26 @@
 		}
 	});
 
+	$effect(() => {
+		if (startDateValue) {
+			const startChanged =
+				previousStartDateValue &&
+				(startDateValue.year !== previousStartDateValue.year ||
+					startDateValue.month !== previousStartDateValue.month ||
+					startDateValue.day !== previousStartDateValue.day);
+
+			if (startChanged) {
+				endDateValue = new CalendarDate(
+					startDateValue.year,
+					startDateValue.month,
+					startDateValue.day
+				);
+			}
+
+			previousStartDateValue = startDateValue;
+		}
+	});
+
 	function dateToDateValue(date: Date): DateValue {
 		return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 	}
@@ -147,6 +165,7 @@
 		durationMinutes = 0;
 		isInOffice = true;
 		error = null;
+		previousStartDateValue = undefined;
 	}
 
 	function populateForm() {
@@ -345,68 +364,98 @@
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				<div class="grid gap-2">
-					<Label>Fecha inicio</Label>
-					<Popover.Root>
-						<Popover.Trigger class="w-full justify-start">
+				<div class="flex flex-col gap-2">
+					<Label class="px-1">Fecha inicio</Label>
+					<Popover.Root bind:open={startDatePopoverOpen}>
+						<Popover.Trigger>
 							{#snippet child({ props })}
 								<Button
+									{...props}
 									variant="outline"
 									class={cn(
-										'w-full justify-start text-start font-normal',
+										'w-full justify-between font-normal',
 										!startDateValue && 'text-muted-foreground'
 									)}
 									disabled={submitting}
-									{...props}
 								>
-									<span class="material-symbols-rounded text-lg!">calendar_today</span>
 									{startDateValue
-										? df.format(startDateValue.toDate(getLocalTimeZone()))
+										? startDateValue.toDate(getLocalTimeZone()).toLocaleDateString('es-ES')
 										: 'Seleccionar fecha'}
+									<span class="material-symbols-rounded text-lg! opacity-50"
+										>keyboard_arrow_down</span
+									>
 								</Button>
 							{/snippet}
 						</Popover.Trigger>
-						<Popover.Content class="w-auto p-0">
-							<Calendar bind:value={startDateValue} type="single" initialFocus />
+						<Popover.Content class="w-auto overflow-hidden p-0" align="start">
+							<Calendar
+								type="single"
+								bind:value={startDateValue}
+								onValueChange={() => {
+									startDatePopoverOpen = false;
+								}}
+								captionLayout="dropdown"
+							/>
 						</Popover.Content>
 					</Popover.Root>
 				</div>
-				<div class="grid gap-2">
-					<Label for="startTime">Hora inicio</Label>
-					<Input type="time" bind:value={startTime} disabled={submitting} />
+				<div class="flex flex-col gap-2">
+					<Label for="startTime" class="px-1">Hora inicio</Label>
+					<Input
+						type="time"
+						id="startTime"
+						bind:value={startTime}
+						disabled={submitting}
+						class="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+					/>
 				</div>
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				<div class="grid gap-2">
-					<Label>Fecha fin</Label>
-					<Popover.Root>
-						<Popover.Trigger class="w-full justify-start">
+				<div class="flex flex-col gap-2">
+					<Label class="px-1">Fecha fin</Label>
+					<Popover.Root bind:open={endDatePopoverOpen}>
+						<Popover.Trigger>
 							{#snippet child({ props })}
 								<Button
+									{...props}
 									variant="outline"
 									class={cn(
-										'w-full justify-start text-start font-normal',
+										'w-full justify-between font-normal',
 										!endDateValue && 'text-muted-foreground'
 									)}
 									disabled={submitting}
-									{...props}
 								>
-									<span class="material-symbols-rounded text-lg!">calendar_today</span>
 									{endDateValue
-										? df.format(endDateValue.toDate(getLocalTimeZone()))
+										? endDateValue.toDate(getLocalTimeZone()).toLocaleDateString('es-ES')
 										: 'Seleccionar fecha'}
+									<span class="material-symbols-rounded text-lg! opacity-50"
+										>keyboard_arrow_down</span
+									>
 								</Button>
 							{/snippet}
 						</Popover.Trigger>
-						<Popover.Content class="w-auto p-0">
-							<Calendar bind:value={endDateValue} type="single" initialFocus />
+						<Popover.Content class="w-auto overflow-hidden p-0" align="start">
+							<Calendar
+								type="single"
+								bind:value={endDateValue}
+								onValueChange={() => {
+									endDatePopoverOpen = false;
+								}}
+								captionLayout="dropdown"
+							/>
 						</Popover.Content>
 					</Popover.Root>
 				</div>
-				<div class="grid gap-2">
-					<Label for="endTime">Hora fin</Label>
-					<Input type="time" bind:value={endTime} disabled={submitting} />
+				<div class="flex flex-col gap-2">
+					<Label for="endTime" class="px-1">Hora fin</Label>
+					<Input
+						type="time"
+						id="endTime"
+						bind:value={endTime}
+						disabled={submitting}
+						class="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+					/>
 				</div>
 			</div>
 

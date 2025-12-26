@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import { cn, type WithoutChildrenOrChild } from '$lib/utils.js';
 
@@ -16,5 +15,5 @@
 	class={cn('flex cursor-default items-center justify-center py-1', className)}
 	{...restProps}
 >
-	<ChevronUpIcon class="size-4" />
+	<span class="material-symbols-rounded text-lg! opacity-50">keyboard_arrow_up</span>
 </SelectPrimitive.ScrollUpButton>
