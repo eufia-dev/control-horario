@@ -32,7 +32,11 @@
 		type TimeEntry,
 		type TimeEntryType
 	} from '$lib/api/time-entries';
-	import { fetchCalendar, type CalendarDay, type CalendarResponse } from '$lib/api/calendar';
+	import {
+		fetchCalendarMonth,
+		type CalendarDay,
+		type CalendarMonthResponse
+	} from '$lib/api/calendar';
 
 	let isAdmin = $state(false);
 	$effect(() => {
@@ -68,7 +72,7 @@
 	});
 
 	// Calendar data
-	let calendarData = $state<CalendarResponse | null>(null);
+	let calendarData = $state<CalendarMonthResponse | null>(null);
 	let loadingCalendar = $state(true);
 	let calendarError = $state<string | null>(null);
 	let currentMonth = $state(new Date());
@@ -123,32 +127,6 @@
 		return sourceLabels[source ?? ''] ?? source ?? '-';
 	}
 
-	function formatLocalDateKey(date: Date): string {
-		const y = date.getFullYear();
-		const m = String(date.getMonth() + 1).padStart(2, '0');
-		const d = String(date.getDate()).padStart(2, '0');
-		return `${y}-${m}-${d}`;
-	}
-
-	function getMonthRange(date: Date): { from: string; to: string } {
-		const year = date.getFullYear();
-		const month = date.getMonth();
-		const firstDay = new Date(year, month, 1);
-		const lastDay = new Date(year, month + 1, 0);
-
-		const firstDowMon0 = (firstDay.getDay() + 6) % 7;
-		const start = new Date(firstDay);
-		start.setDate(firstDay.getDate() - firstDowMon0);
-
-		const lastDowMon0 = (lastDay.getDay() + 6) % 7;
-		const end = new Date(lastDay);
-		end.setDate(lastDay.getDate() + (6 - lastDowMon0));
-
-		return {
-			from: formatLocalDateKey(start),
-			to: formatLocalDateKey(end)
-		};
-	}
 
 	async function loadUser() {
 		loadingUser = true;
@@ -172,7 +150,7 @@
 		try {
 			if (!userId) return;
 			const year = selectedMonth.getFullYear();
-			const month = selectedMonth.getMonth() + 1; // 1-12 for backend
+			const month = selectedMonth.getMonth();
 			timeEntries = await fetchUserTimeEntries(userId, year, month);
 		} catch (e) {
 			entriesError = e instanceof Error ? e.message : 'Error al cargar registros';
@@ -197,8 +175,9 @@
 		calendarError = null;
 		try {
 			if (!userId) return;
-			const { from, to } = getMonthRange(currentMonth);
-			calendarData = await fetchCalendar(from, to, userId);
+			const year = currentMonth.getFullYear();
+			const month = currentMonth.getMonth(); // 0-indexed
+			calendarData = await fetchCalendarMonth(year, month, userId);
 		} catch (e) {
 			calendarError = e instanceof Error ? e.message : 'Error al cargar calendario';
 		} finally {
@@ -549,42 +528,6 @@
 							{/if}
 						</CardContent>
 					</Card>
-
-					<!-- Compliance Summary Card -->
-					{#if calendarData && !loadingCalendar}
-						<Card class="mt-6">
-							<CardHeader>
-								<CardTitle class="text-lg flex items-center gap-2">
-									<span class="material-symbols-rounded">analytics</span>
-									Resumen del período
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-									<div class="p-4 bg-muted rounded-lg text-center">
-										<p class="text-2xl font-bold">{calendarData.summary.workingDays}</p>
-										<p class="text-sm text-muted-foreground">Días laborables</p>
-									</div>
-									<div class="p-4 bg-success/10 rounded-lg text-center">
-										<p class="text-2xl font-bold text-success">{calendarData.summary.daysWorked}</p>
-										<p class="text-sm text-muted-foreground">Días trabajados</p>
-									</div>
-									{#if calendarData.summary.daysMissing > 0}
-										<div class="p-4 bg-destructive/10 rounded-lg text-center">
-											<p class="text-2xl font-bold text-destructive">
-												{calendarData.summary.daysMissing}
-											</p>
-											<p class="text-sm text-muted-foreground">Días sin registrar</p>
-										</div>
-									{/if}
-									<div class="p-4 bg-primary/10 rounded-lg text-center">
-										<p class="text-2xl font-bold">{calendarData.summary.compliancePercentage}%</p>
-										<p class="text-sm text-muted-foreground">Cumplimiento</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					{/if}
 				</TabsContent>
 			</Tabs>
 		{/if}

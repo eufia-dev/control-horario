@@ -38,6 +38,7 @@ export type CalendarDay = {
 	loggedMinutes: number;
 	entries: TimeEntryBrief[];
 	isOvertime?: boolean;
+	isOutsideMonth?: boolean; // true for padding days from previous/next month
 };
 
 export type CalendarSummary = {
@@ -51,6 +52,7 @@ export type CalendarSummary = {
 	compliancePercentage: number;
 };
 
+/** @deprecated Use CalendarMonthResponse instead */
 export type CalendarResponse = {
 	userId: string;
 	userName: string;
@@ -58,6 +60,17 @@ export type CalendarResponse = {
 	to: string;
 	days: CalendarDay[];
 	summary: CalendarSummary;
+};
+
+export type CalendarMonthResponse = {
+	userId: string;
+	userName: string;
+	year: number;
+	month: number; // 0-indexed (0 = January, 11 = December)
+	from: string; // Display range start (YYYY-MM-DD), includes padding days
+	to: string; // Display range end (YYYY-MM-DD), includes padding days
+	days: CalendarDay[]; // All days including padding from adjacent months
+	summary: CalendarSummary; // Only calculated for days within the target month
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {
@@ -80,28 +93,36 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 }
 
 /**
- * Get calendar with computed day statuses
+ * Get calendar month for the current user
+ * @param year Year (2000-2100)
+ * @param month Month, 0-indexed (0 = January, 11 = December)
  */
-export async function fetchCalendar(
-	from: string,
-	to: string,
-	userId: string
-): Promise<CalendarResponse> {
+export async function fetchMyCalendarMonth(
+	year: number,
+	month: number
+): Promise<CalendarMonthResponse> {
 	const params = new URLSearchParams();
-	params.set('from', from);
-	params.set('to', to);
-	params.set('userId', userId);
-	const response = await fetchWithAuth(`${API_BASE}/calendar?${params.toString()}`);
-	return handleJsonResponse<CalendarResponse>(response);
+	params.set('year', String(year));
+	params.set('month', String(month));
+	const response = await fetchWithAuth(`${API_BASE}/calendar/me/month?${params.toString()}`);
+	return handleJsonResponse<CalendarMonthResponse>(response);
 }
 
 /**
- * Shortcut for current user's calendar
+ * Get calendar month for a specific user (admin only)
+ * @param year Year (2000-2100)
+ * @param month Month, 0-indexed (0 = January, 11 = December)
+ * @param userId User ID (UUID)
  */
-export async function fetchMyCalendar(from: string, to: string): Promise<CalendarResponse> {
+export async function fetchCalendarMonth(
+	year: number,
+	month: number,
+	userId: string
+): Promise<CalendarMonthResponse> {
 	const params = new URLSearchParams();
-	params.set('from', from);
-	params.set('to', to);
-	const response = await fetchWithAuth(`${API_BASE}/calendar/me?${params.toString()}`);
-	return handleJsonResponse<CalendarResponse>(response);
+	params.set('year', String(year));
+	params.set('month', String(month));
+	params.set('userId', userId);
+	const response = await fetchWithAuth(`${API_BASE}/calendar/month?${params.toString()}`);
+	return handleJsonResponse<CalendarMonthResponse>(response);
 }

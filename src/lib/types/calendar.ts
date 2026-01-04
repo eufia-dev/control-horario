@@ -29,7 +29,8 @@ export type {
 	TimeEntryBrief,
 	CalendarDay,
 	CalendarSummary,
-	CalendarResponse
+	CalendarResponse,
+	CalendarMonthResponse
 } from '$lib/api/calendar';
 
 export type { LocationResponse, UpdateLocationDto } from '$lib/api/company-location';
@@ -63,6 +64,7 @@ export const DAY_STATUS_LABELS: Record<string, string> = {
 	WORKED: 'Trabajado',
 	PARTIALLY_WORKED: 'Parcialmente trabajado',
 	MISSING_LOGS: 'Sin registrar',
+	BEFORE_USER_CREATED: 'Antes de alta',
 	FUTURE: 'Futuro'
 };
 
@@ -101,6 +103,10 @@ export const DAY_STATUS_STYLES: Record<string, DayStatusStyle> = {
 	NON_WORKING_DAY: {
 		bgClass: 'bg-muted',
 		textClass: 'text-muted-foreground'
+	},
+	BEFORE_USER_CREATED: {
+		bgClass: 'bg-muted/30',
+		textClass: 'text-muted-foreground/50'
 	},
 	FUTURE: {
 		bgClass: 'bg-muted/50',

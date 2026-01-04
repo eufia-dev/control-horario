@@ -27,55 +27,28 @@
 		currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 	);
 
-	function formatLocalDateKey(date: Date): string {
-		const y = date.getFullYear();
-		const m = String(date.getMonth() + 1).padStart(2, '0');
-		const d = String(date.getDate()).padStart(2, '0');
-		return `${y}-${m}-${d}`;
-	}
-
 	function parseDateKey(dateKey: string): Date {
 		const [y, m, d] = dateKey.split('-').map(Number);
 		return new Date(y, (m ?? 1) - 1, d ?? 1);
 	}
 
-	function getVisibleRangeForMonth(month: Date): { start: Date; end: Date } {
-		const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-		const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-
-		// Monday-based index: 0=Mon .. 6=Sun
-		const firstDowMon0 = (firstDay.getDay() + 6) % 7;
-		const start = new Date(firstDay);
-		start.setDate(firstDay.getDate() - firstDowMon0);
-
-		const lastDowMon0 = (lastDay.getDay() + 6) % 7;
-		const end = new Date(lastDay);
-		end.setDate(lastDay.getDate() + (6 - lastDowMon0));
-
-		return { start, end };
-	}
-
-	// Build grid weeks for the full visible range (Mon..Sun), filling from API days when present.
+	// Build grid weeks from API days (already includes padding days with isOutsideMonth flag)
 	const weeksInMonth = $derived.by(() => {
-		const dayByDate = new Map<string, CalendarDay>();
-		for (const day of days) dayByDate.set(day.date, day);
+		const weeks: CalendarDay[][] = [];
+		let currentWeek: CalendarDay[] = [];
 
-		const { start, end } = getVisibleRangeForMonth(currentMonth);
-
-		const weeks: (CalendarDay | null)[][] = [];
-		let currentWeek: (CalendarDay | null)[] = [];
-
-		const cursor = new Date(start);
-		while (cursor <= end) {
-			const key = formatLocalDateKey(cursor);
-			currentWeek.push(dayByDate.get(key) ?? null);
+		for (const day of days) {
+			currentWeek.push(day);
 
 			if (currentWeek.length === 7) {
 				weeks.push(currentWeek);
 				currentWeek = [];
 			}
+		}
 
-			cursor.setDate(cursor.getDate() + 1);
+		// Handle any remaining days in the last week
+		if (currentWeek.length > 0) {
+			weeks.push(currentWeek);
 		}
 
 		return weeks;
@@ -174,62 +147,54 @@
 			<!-- Weeks -->
 			{#each weeksInMonth as week, weekIndex (weekIndex)}
 				<div class="grid grid-cols-7 border-t">
-					{#each week as day, dayIndex (day ? day.date : `empty-${weekIndex}-${dayIndex}`)}
-						{#if day}
-							{@const styles = getDayStyles(day.status)}
-							{@const dayDate = parseDateKey(day.date)}
-							{@const isOutsideMonth =
-								dayDate.getMonth() !== currentMonth.getMonth() ||
-								dayDate.getFullYear() !== currentMonth.getFullYear()}
-							{@const dayLabel = getDayLabel(day)}
-							<Tooltip>
-								<TooltipTrigger>
-									<button
-										type="button"
-										class="w-full p-2 min-h-20 flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {isOutsideMonth
-											? 'opacity-60'
-											: ''}"
-										onclick={() => onDayClick(day)}
-									>
-										<span class="text-sm font-medium {styles.textClass}">
-											{getDayNumber(day.date)}
+					{#each week as day, dayIndex (day.date)}
+						{@const styles = getDayStyles(day.status)}
+						{@const dayLabel = getDayLabel(day)}
+						<Tooltip>
+							<TooltipTrigger>
+								<button
+									type="button"
+									class="w-full p-2 min-h-20 flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {day.isOutsideMonth
+										? 'opacity-60'
+										: ''}"
+									onclick={() => onDayClick(day)}
+								>
+									<span class="text-sm font-medium {styles.textClass}">
+										{getDayNumber(day.date)}
+									</span>
+									{#if dayLabel}
+										<span class="text-xs truncate max-w-full px-1 {styles.textClass}">
+											{dayLabel}
 										</span>
-										{#if dayLabel}
-											<span class="text-xs truncate max-w-full px-1 {styles.textClass}">
-												{dayLabel}
-											</span>
-										{/if}
-										{#if day.isOvertime}
-											<span class="material-symbols-rounded text-yellow-500 text-sm!">
-												schedule
-											</span>
-										{/if}
-									</button>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									<div class="text-sm">
-										<p class="font-medium">{DAY_STATUS_LABELS[day.status]}</p>
-										{#if day.holidayName}
-											<p>{day.holidayName}</p>
-										{/if}
-										{#if day.absenceType}
-											<p>{ABSENCE_TYPE_LABELS[day.absenceType]}</p>
-										{/if}
-										{#if day.expectedMinutes > 0}
-											<p>Esperado: {formatMinutes(day.expectedMinutes)}</p>
-										{/if}
-										{#if day.loggedMinutes > 0}
-											<p>Registrado: {formatMinutes(day.loggedMinutes)}</p>
-										{/if}
-										{#if day.isOvertime}
-											<p class="text-yellow-500">Horas extra</p>
-										{/if}
-									</div>
-								</TooltipContent>
-							</Tooltip>
-						{:else}
-							<div class="p-2 min-h-[72px] bg-muted/30"></div>
-						{/if}
+									{/if}
+									{#if day.isOvertime}
+										<span class="material-symbols-rounded text-yellow-500 text-sm!">
+											schedule
+										</span>
+									{/if}
+								</button>
+							</TooltipTrigger>
+							<TooltipContent side="top">
+								<div class="text-sm">
+									<p class="font-medium">{DAY_STATUS_LABELS[day.status]}</p>
+									{#if day.holidayName}
+										<p>{day.holidayName}</p>
+									{/if}
+									{#if day.absenceType}
+										<p>{ABSENCE_TYPE_LABELS[day.absenceType]}</p>
+									{/if}
+									{#if day.expectedMinutes > 0}
+										<p>Esperado: {formatMinutes(day.expectedMinutes)}</p>
+									{/if}
+									{#if day.loggedMinutes > 0}
+										<p>Registrado: {formatMinutes(day.loggedMinutes)}</p>
+									{/if}
+									{#if day.isOvertime}
+										<p class="text-yellow-500">Horas extra</p>
+									{/if}
+								</div>
+							</TooltipContent>
+						</Tooltip>
 					{/each}
 				</div>
 			{/each}

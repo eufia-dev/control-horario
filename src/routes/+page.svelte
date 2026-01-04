@@ -47,7 +47,7 @@
 		type External,
 		type ExternalHours
 	} from '$lib/api/externals';
-	import { fetchMyCalendar, type CalendarResponse } from '$lib/api/calendar';
+	import { fetchMyCalendarMonth, type CalendarMonthResponse } from '$lib/api/calendar';
 	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
 	import {
 		isAdmin as isAdminStore,
@@ -162,7 +162,7 @@
 	}
 
 	// Calendar and compliance data
-	let calendarData = $state<CalendarResponse | null>(null);
+	let calendarData = $state<CalendarMonthResponse | null>(null);
 	let absenceStats = $state<AbsenceStats | null>(null);
 	let loadingCalendar = $state(true);
 	let loadingAbsenceStats = $state(true);
@@ -289,7 +289,7 @@
 		entriesError = null;
 		try {
 			const year = selectedMonth.getFullYear();
-			const month = selectedMonth.getMonth() + 1; // 1-12 for backend
+			const month = selectedMonth.getMonth();
 			timeEntries = await fetchMyTimeEntries(year, month);
 		} catch (e) {
 			entriesError = e instanceof Error ? e.message : 'Error desconocido';
@@ -341,11 +341,7 @@
 		loadingCalendar = true;
 		try {
 			const now = new Date();
-			const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-			const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-			const from = firstDay.toISOString().split('T')[0];
-			const to = lastDay.toISOString().split('T')[0];
-			calendarData = await fetchMyCalendar(from, to);
+			calendarData = await fetchMyCalendarMonth(now.getFullYear(), now.getMonth());
 		} catch (e) {
 			console.error('Error loading calendar data:', e);
 		} finally {

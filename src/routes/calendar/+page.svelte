@@ -9,7 +9,11 @@
 	import WorkingCalendar from './WorkingCalendar.svelte';
 	import CalendarDayDetail from './CalendarDayDetail.svelte';
 	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
-	import { fetchMyCalendar, type CalendarDay, type CalendarResponse } from '$lib/api/calendar';
+	import {
+		fetchMyCalendarMonth,
+		type CalendarDay,
+		type CalendarMonthResponse
+	} from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType } from '$lib/api/time-entries';
 	import { isGuest as isGuestStore } from '$lib/stores/auth';
@@ -30,7 +34,7 @@
 		}
 	});
 
-	let calendarData = $state<CalendarResponse | null>(null);
+	let calendarData = $state<CalendarMonthResponse | null>(null);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 
@@ -44,41 +48,13 @@
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
 
-	function formatLocalDateKey(date: Date): string {
-		const y = date.getFullYear();
-		const m = String(date.getMonth() + 1).padStart(2, '0');
-		const d = String(date.getDate()).padStart(2, '0');
-		return `${y}-${m}-${d}`;
-	}
-
-	function getMonthRange(date: Date): { from: string; to: string } {
-		const year = date.getFullYear();
-		const month = date.getMonth();
-		const firstDay = new Date(year, month, 1);
-		const lastDay = new Date(year, month + 1, 0);
-
-		// Expand to cover the full weeks visible in a typical month grid (Mon..Sun).
-		// JS Date#getDay(): 0=Sun .. 6=Sat. Convert to Monday-based index: 0=Mon .. 6=Sun.
-		const firstDowMon0 = (firstDay.getDay() + 6) % 7;
-		const start = new Date(firstDay);
-		start.setDate(firstDay.getDate() - firstDowMon0);
-
-		const lastDowMon0 = (lastDay.getDay() + 6) % 7;
-		const end = new Date(lastDay);
-		end.setDate(lastDay.getDate() + (6 - lastDowMon0));
-
-		return {
-			from: formatLocalDateKey(start),
-			to: formatLocalDateKey(end)
-		};
-	}
-
 	async function loadCalendar() {
 		loading = true;
 		error = null;
 		try {
-			const { from, to } = getMonthRange(currentMonth);
-			calendarData = await fetchMyCalendar(from, to);
+			const year = currentMonth.getFullYear();
+			const month = currentMonth.getMonth(); // 0-indexed
+			calendarData = await fetchMyCalendarMonth(year, month);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al cargar el calendario';
 		} finally {
@@ -203,40 +179,6 @@
 			{/if}
 		</CardContent>
 	</Card>
-
-	<!-- Compliance Summary Card -->
-	{#if calendarData && !loading}
-		<Card class="w-full max-w-5xl mx-auto">
-			<CardHeader>
-				<CardTitle class="text-lg flex items-center gap-2">
-					<span class="material-symbols-rounded">analytics</span>
-					Resumen del período
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-					<div class="p-4 bg-muted rounded-lg text-center">
-						<p class="text-2xl font-bold">{calendarData.summary.workingDays}</p>
-						<p class="text-sm text-muted-foreground">Días laborables</p>
-					</div>
-					<div class="p-4 bg-success/10 rounded-lg text-center">
-						<p class="text-2xl font-bold text-success">{calendarData.summary.daysWorked}</p>
-						<p class="text-sm text-muted-foreground">Días trabajados</p>
-					</div>
-					{#if calendarData.summary.daysMissing > 0}
-						<div class="p-4 bg-destructive/10 rounded-lg text-center">
-							<p class="text-2xl font-bold text-destructive">{calendarData.summary.daysMissing}</p>
-							<p class="text-sm text-muted-foreground">Días sin registrar</p>
-						</div>
-					{/if}
-					<div class="p-4 bg-primary/10 rounded-lg text-center">
-						<p class="text-2xl font-bold">{calendarData.summary.compliancePercentage}%</p>
-						<p class="text-sm text-muted-foreground">Cumplimiento</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
-	{/if}
 </div>
 
 <CalendarDayDetail
