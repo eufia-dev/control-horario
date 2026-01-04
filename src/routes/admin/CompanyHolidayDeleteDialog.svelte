@@ -73,11 +73,7 @@
 		{/if}
 		<AlertDialogFooter>
 			<AlertDialogCancel disabled={submitting} onclick={handleClose}>Cancelar</AlertDialogCancel>
-			<AlertDialogAction
-				onclick={handleDelete}
-				disabled={submitting}
-				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-			>
+			<AlertDialogAction onclick={handleDelete} disabled={submitting} variant="destructive">
 				{#if submitting}
 					<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
 				{/if}

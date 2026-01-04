@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { type Profile } from '$lib/stores/auth';
 	import { setActiveProfileId } from '$lib/auth';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle
+	} from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Switch } from '$lib/components/ui/switch';
@@ -57,17 +64,17 @@
 	});
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Content class="sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-		<Dialog.Header>
-			<Dialog.Title class="flex items-center gap-2">
+<Dialog bind:open>
+	<DialogContent class="sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+		<DialogHeader>
+			<DialogTitle class="flex items-center gap-2">
 				<span class="material-symbols-rounded text-primary">switch_account</span>
 				Selecciona tu perfil
-			</Dialog.Title>
-			<Dialog.Description>
+			</DialogTitle>
+			<DialogDescription>
 				Tienes acceso a varias empresas. Selecciona con cuál quieres trabajar.
-			</Dialog.Description>
-		</Dialog.Header>
+			</DialogDescription>
+		</DialogHeader>
 
 		<div class="space-y-3 py-4">
 			{#each profiles as profile (profile.id)}
@@ -118,10 +125,10 @@
 			<Label for="remember-profile" class="text-sm cursor-pointer">Recordar mi elección</Label>
 		</div>
 
-		<Dialog.Footer>
+		<DialogFooter>
 			<Button onclick={handleConfirm} disabled={!selectedProfileId} class="w-full sm:w-auto">
 				Continuar
 			</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+		</DialogFooter>
+	</DialogContent>
+</Dialog>

@@ -6,7 +6,14 @@
 		type InvitationOptions
 	} from '$lib/api/invitations';
 	import type { UserRole } from '$lib/stores/auth';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle
+	} from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
@@ -26,6 +33,7 @@
 	let role = $state<UserRole>('WORKER');
 	let relation = $state<RelationType>('EMPLOYEE');
 	let isSubmitting = $state(false);
+	let success = $state(false);
 	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let options = $state<InvitationOptions | null>(null);
@@ -38,6 +46,7 @@
 		role = 'WORKER';
 		relation = 'EMPLOYEE';
 		errorMessage = null;
+		success = false;
 	};
 
 	const loadOptions = async () => {
@@ -58,7 +67,7 @@
 	};
 
 	const handleSubmit = async () => {
-		if (isSubmitting) return;
+		if (isSubmitting || success) return;
 
 		errorMessage = null;
 
@@ -82,12 +91,17 @@
 				relation
 			});
 
-			resetForm();
-			open = false;
+			isSubmitting = false;
+			success = true;
 			onSuccess?.();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				resetForm();
+				onClose?.();
+			}, 800);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'Error al crear la invitación';
-		} finally {
 			isSubmitting = false;
 		}
 	};
@@ -114,7 +128,7 @@
 	);
 </script>
 
-<Dialog.Root
+<Dialog
 	bind:open
 	onOpenChange={(isOpen) => {
 		if (!isOpen) {
@@ -123,16 +137,16 @@
 		}
 	}}
 >
-	<Dialog.Content class="sm:max-w-md">
-		<Dialog.Header>
-			<Dialog.Title class="flex items-center gap-2">
+	<DialogContent class="sm:max-w-md">
+		<DialogHeader>
+			<DialogTitle class="flex items-center gap-2">
 				<span class="material-symbols-rounded text-primary">person_add</span>
 				Nueva invitación
-			</Dialog.Title>
-			<Dialog.Description>
+			</DialogTitle>
+			<DialogDescription>
 				Envía una invitación por correo electrónico para que un nuevo usuario se una a tu empresa
-			</Dialog.Description>
-		</Dialog.Header>
+			</DialogDescription>
+		</DialogHeader>
 
 		<form
 			class="space-y-6 py-4"
@@ -199,16 +213,34 @@
 				<FieldError class="text-sm text-destructive">{errorMessage}</FieldError>
 			{/if}
 
-			<Dialog.Footer>
-				<Button variant="outline" type="button" onclick={handleClose}>Cancelar</Button>
-				<Button type="submit" disabled={isSubmitting || isLoadingOptions}>
+			<DialogFooter>
+				<Button
+					variant="outline"
+					type="button"
+					onclick={handleClose}
+					disabled={isSubmitting || success}
+				>
+					Cancelar
+				</Button>
+				<Button
+					type="submit"
+					variant={success ? 'success' : 'default'}
+					disabled={isSubmitting || success || isLoadingOptions}
+					class="min-w-[140px] transition-all duration-300"
+				>
 					{#if isSubmitting}
+						<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
 						Enviando...
+					{:else if success}
+						<span class="material-symbols-rounded text-base animate-in zoom-in duration-200"
+							>check_circle</span
+						>
+						Enviada
 					{:else}
 						Crear invitación
 					{/if}
 				</Button>
-			</Dialog.Footer>
+			</DialogFooter>
 		</form>
-	</Dialog.Content>
-</Dialog.Root>
+	</DialogContent>
+</Dialog>

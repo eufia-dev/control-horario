@@ -58,6 +58,7 @@
 	let durationMinutes = $state(0);
 	let isInOffice = $state(true);
 	let submitting = $state(false);
+	let success = $state(false);
 	let error = $state<string | null>(null);
 
 	// Popover open states
@@ -165,6 +166,7 @@
 		durationMinutes = 0;
 		isInOffice = true;
 		error = null;
+		success = false;
 		previousStartDateValue = undefined;
 	}
 
@@ -231,6 +233,7 @@
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
+		if (submitting || success) return;
 		error = null;
 
 		if (!entryType) {
@@ -287,11 +290,16 @@
 				};
 				await createTimeEntry(data);
 			}
+			submitting = false;
+			success = true;
 			onSuccess();
-			handleClose();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				onClose();
+			}, 800);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al guardar el registro';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -478,14 +486,31 @@
 			{/if}
 
 			<DialogFooter class="gap-2">
-				<Button type="button" variant="outline" onclick={handleClose} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={handleClose}
+					disabled={submitting || success}
+				>
 					Cancelar
 				</Button>
-				<Button type="submit" disabled={submitting}>
+				<Button
+					type="submit"
+					variant={success ? 'success' : 'default'}
+					disabled={submitting || success}
+					class="min-w-[130px] transition-all duration-300"
+				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+						{submitLabel}
+					{:else if success}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
+						Guardado
+					{:else}
+						{submitLabel}
 					{/if}
-					{submitLabel}
 				</Button>
 			</DialogFooter>
 		</form>

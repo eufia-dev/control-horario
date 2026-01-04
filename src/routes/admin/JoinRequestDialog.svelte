@@ -8,9 +8,17 @@
 		type RelationType
 	} from '$lib/api/invitations';
 	import type { UserRole } from '$lib/stores/auth';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import {
+		AlertDialog,
+		AlertDialogAction,
+		AlertDialogCancel,
+		AlertDialogContent,
+		AlertDialogDescription,
+		AlertDialogFooter,
+		AlertDialogHeader,
+		AlertDialogTitle
+	} from '$lib/components/ui/alert-dialog';
 	import { Label } from '$lib/components/ui/label';
-	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel } from '$lib/components/ui/field';
 	import * as Select from '$lib/components/ui/select';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -30,6 +38,7 @@
 	let relation = $state<RelationType>('EMPLOYEE');
 	let reason = $state('');
 	let isSubmitting = $state(false);
+	let success = $state(false);
 	let isLoadingOptions = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let options = $state<JoinRequestOptions | null>(null);
@@ -42,6 +51,7 @@
 		relation = 'EMPLOYEE';
 		reason = '';
 		errorMessage = null;
+		success = false;
 	};
 
 	const loadOptions = async () => {
@@ -62,7 +72,7 @@
 	};
 
 	const handleSubmit = async () => {
-		if (isSubmitting || !request) return;
+		if (isSubmitting || success || !request) return;
 
 		errorMessage = null;
 		isSubmitting = true;
@@ -74,12 +84,17 @@
 				await rejectJoinRequest(request.id, { reason: reason.trim() || undefined });
 			}
 
-			resetForm();
-			open = false;
+			isSubmitting = false;
+			success = true;
 			onSuccess?.();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				resetForm();
+				onClose?.();
+			}, 800);
 		} catch (error) {
 			errorMessage = error instanceof Error ? error.message : 'Error al procesar la solicitud';
-		} finally {
 			isSubmitting = false;
 		}
 	};
@@ -110,10 +125,10 @@
 	);
 </script>
 
-<AlertDialog.Root bind:open>
-	<AlertDialog.Content>
-		<AlertDialog.Header>
-			<AlertDialog.Title class="flex items-center gap-2">
+<AlertDialog bind:open>
+	<AlertDialogContent>
+		<AlertDialogHeader>
+			<AlertDialogTitle class="flex items-center gap-2">
 				{#if isApprove}
 					<span class="material-symbols-rounded text-success">check_circle</span>
 					Aprobar solicitud
@@ -121,8 +136,8 @@
 					<span class="material-symbols-rounded text-destructive">cancel</span>
 					Rechazar solicitud
 				{/if}
-			</AlertDialog.Title>
-			<AlertDialog.Description>
+			</AlertDialogTitle>
+			<AlertDialogDescription>
 				{#if request}
 					{#if isApprove}
 						¿Aprobar la solicitud de <strong>{request.name}</strong> ({request.email}) para unirse a
@@ -131,8 +146,8 @@
 						¿Rechazar la solicitud de <strong>{request.name}</strong> ({request.email})?
 					{/if}
 				{/if}
-			</AlertDialog.Description>
-		</AlertDialog.Header>
+			</AlertDialogDescription>
+		</AlertDialogHeader>
 
 		<div class="py-4 space-y-4">
 			{#if isApprove}
@@ -195,21 +210,30 @@
 			{/if}
 		</div>
 
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel onclick={handleClose}>Cancelar</AlertDialog.Cancel>
-			<Button
+		<AlertDialogFooter>
+			<AlertDialogCancel onclick={handleClose} disabled={isSubmitting || success}
+				>Cancelar</AlertDialogCancel
+			>
+			<AlertDialogAction
 				onclick={handleSubmit}
-				disabled={isSubmitting || (isApprove && isLoadingOptions)}
-				variant={isApprove ? 'default' : 'destructive'}
+				disabled={isSubmitting || success || (isApprove && isLoadingOptions)}
+				variant={success ? 'success' : isApprove ? 'default' : 'destructive'}
+				class="min-w-[100px] transition-all duration-300"
 			>
 				{#if isSubmitting}
+					<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
 					Procesando...
+				{:else if success}
+					<span class="material-symbols-rounded text-base animate-in zoom-in duration-200"
+						>check_circle</span
+					>
+					{isApprove ? 'Aprobado' : 'Rechazado'}
 				{:else if isApprove}
 					Aprobar
 				{:else}
 					Rechazar
 				{/if}
-			</Button>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>
+			</AlertDialogAction>
+		</AlertDialogFooter>
+	</AlertDialogContent>
+</AlertDialog>

@@ -9,6 +9,7 @@
 	} from '$lib/components/ui/tooltip';
 	import type { CalendarDay, CalendarSummary, DayStatus } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
+	import { formatMonthYear } from '$lib/utils';
 
 	type Props = {
 		days: CalendarDay[];
@@ -23,9 +24,7 @@
 
 	const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-	const monthName = $derived(
-		currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-	);
+	const monthName = $derived(formatMonthYear(currentMonth));
 
 	function parseDateKey(dateKey: string): Date {
 		const [y, m, d] = dateKey.split('-').map(Number);
@@ -88,7 +87,7 @@
 		<Button variant="outline" size="sm" onclick={onPrevMonth}>
 			<span class="material-symbols-rounded text-lg!">chevron_left</span>
 		</Button>
-		<h2 class="text-lg font-semibold capitalize">{monthName}</h2>
+		<h2 class="text-lg font-semibold">{monthName}</h2>
 		<Button variant="outline" size="sm" onclick={onNextMonth}>
 			<span class="material-symbols-rounded text-lg!">chevron_right</span>
 		</Button>
@@ -147,7 +146,7 @@
 			<!-- Weeks -->
 			{#each weeksInMonth as week, weekIndex (weekIndex)}
 				<div class="grid grid-cols-7 border-t">
-					{#each week as day, dayIndex (day.date)}
+					{#each week as day (day.date)}
 						{@const styles = getDayStyles(day.status)}
 						{@const dayLabel = getDayLabel(day)}
 						<Tooltip>

@@ -25,6 +25,7 @@
 
 	let notes = $state('');
 	let submitting = $state(false);
+	let success = $state(false);
 	let error = $state<string | null>(null);
 	let action = $state<'APPROVED' | 'REJECTED' | null>(null);
 
@@ -34,6 +35,7 @@
 		notes = '';
 		error = null;
 		action = null;
+		success = false;
 	}
 
 	$effect(() => {
@@ -51,7 +53,7 @@
 	}
 
 	async function handleReview(status: 'APPROVED' | 'REJECTED') {
-		if (!absence) return;
+		if (!absence || submitting || success) return;
 
 		action = status;
 		submitting = true;
@@ -62,11 +64,16 @@
 				status,
 				notes: notes.trim() || undefined
 			});
+			submitting = false;
+			success = true;
 			onSuccess();
-			handleClose();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				onClose();
+			}, 800);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al procesar la solicitud';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -145,30 +152,47 @@
 			<DialogFooter class="gap-2 sm:gap-2">
 				<Button
 					type="button"
-					variant="destructive"
+					variant={success && action === 'REJECTED' ? 'success' : 'destructive'}
 					onclick={() => handleReview('REJECTED')}
-					disabled={submitting}
-					class="flex-1 sm:flex-none"
+					disabled={submitting || success}
+					class="flex-1 sm:flex-none min-w-[100px] transition-all duration-300"
 				>
 					{#if submitting && action === 'REJECTED'}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+					{:else if success && action === 'REJECTED'}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
 					{:else}
-						<span class="material-symbols-rounded text-lg! mr-2">close</span>
+						<span class="material-symbols-rounded text-lg!">close</span>
 					{/if}
-					Rechazar
+					{#if success && action === 'REJECTED'}
+						Rechazado
+					{:else}
+						Rechazar
+					{/if}
 				</Button>
 				<Button
 					type="button"
+					variant={success && action === 'APPROVED' ? 'success' : 'default'}
 					onclick={() => handleReview('APPROVED')}
-					disabled={submitting}
-					class="flex-1 sm:flex-none"
+					disabled={submitting || success}
+					class="flex-1 sm:flex-none min-w-[100px] transition-all duration-300"
 				>
 					{#if submitting && action === 'APPROVED'}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+					{:else if success && action === 'APPROVED'}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
 					{:else}
-						<span class="material-symbols-rounded text-lg! mr-2">check</span>
+						<span class="material-symbols-rounded text-lg!">check</span>
 					{/if}
-					Aprobar
+					{#if success && action === 'APPROVED'}
+						Aprobado
+					{:else}
+						Aprobar
+					{/if}
 				</Button>
 			</DialogFooter>
 		{/if}

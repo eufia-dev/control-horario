@@ -33,6 +33,7 @@
 	let role = $state<UserRole>('WORKER');
 	let relation = $state<RelationType>('EMPLOYEE');
 	let submitting = $state(false);
+	let success = $state(false);
 	let error = $state<string | null>(null);
 
 	const isAuditor = $derived(role === 'AUDITOR');
@@ -76,6 +77,7 @@
 		role = 'WORKER';
 		relation = 'EMPLOYEE';
 		error = null;
+		success = false;
 	}
 
 	function populateForm() {
@@ -120,6 +122,7 @@
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
+		if (submitting || success) return;
 		error = null;
 
 		if (!name.trim()) {
@@ -161,11 +164,16 @@
 				relation
 			};
 			await updateUser(user.id, data);
+			submitting = false;
+			success = true;
 			onSuccess();
-			handleClose();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				onClose();
+			}, 800);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al guardar el usuario';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -263,14 +271,31 @@
 			{/if}
 
 			<DialogFooter class="gap-2">
-				<Button type="button" variant="outline" onclick={handleClose} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={handleClose}
+					disabled={submitting || success}
+				>
 					Cancelar
 				</Button>
-				<Button type="submit" disabled={submitting}>
+				<Button
+					type="submit"
+					variant={success ? 'success' : 'default'}
+					disabled={submitting || success}
+					class="min-w-[140px] transition-all duration-300"
+				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+						Guardando...
+					{:else if success}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
+						Guardado
+					{:else}
+						Guardar cambios
 					{/if}
-					Guardar cambios
 				</Button>
 			</DialogFooter>
 		</form>

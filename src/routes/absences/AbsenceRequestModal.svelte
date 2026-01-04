@@ -42,6 +42,7 @@
 	let dateRange = $state<DateRange | undefined>(undefined);
 	let notes = $state('');
 	let submitting = $state(false);
+	let success = $state(false);
 	let error = $state<string | null>(null);
 
 	let dateRangePopoverOpen = $state(false);
@@ -67,6 +68,7 @@
 		dateRange = undefined;
 		notes = '';
 		error = null;
+		success = false;
 	}
 
 	$effect(() => {
@@ -101,6 +103,7 @@
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
+		if (submitting || success) return;
 		error = null;
 
 		if (!selectedType) {
@@ -128,11 +131,16 @@
 				notes: notes.trim() || undefined
 			});
 
+			submitting = false;
+			success = true;
 			onSuccess();
-			handleClose();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				onClose();
+			}, 800);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al solicitar la ausencia';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -218,14 +226,31 @@
 			{/if}
 
 			<DialogFooter class="gap-2">
-				<Button type="button" variant="outline" onclick={handleClose} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={handleClose}
+					disabled={submitting || success}
+				>
 					Cancelar
 				</Button>
-				<Button type="submit" disabled={submitting || loadingTypes}>
+				<Button
+					type="submit"
+					variant={success ? 'success' : 'default'}
+					disabled={submitting || success || loadingTypes}
+					class="min-w-[140px] transition-all duration-300"
+				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+						Enviando...
+					{:else if success}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
+						Enviada
+					{:else}
+						Enviar solicitud
 					{/if}
-					Enviar solicitud
 				</Button>
 			</DialogFooter>
 		</form>

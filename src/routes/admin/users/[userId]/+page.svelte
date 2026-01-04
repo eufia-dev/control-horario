@@ -37,6 +37,7 @@
 		type CalendarDay,
 		type CalendarMonthResponse
 	} from '$lib/api/calendar';
+	import { formatMonthYear } from '$lib/utils';
 
 	let isAdmin = $state(false);
 	$effect(() => {
@@ -93,21 +94,6 @@
 		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
 	}
 
-	function formatMonthYear(date: Date): string {
-		const now = new Date();
-		const isCurrentYear = date.getFullYear() === now.getFullYear();
-
-		if (isCurrentYear) {
-			// Only show month name for current year
-			const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
-			return monthName.charAt(0).toUpperCase() + monthName.slice(1);
-		} else {
-			// Show month and year for other years
-			const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-			return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-		}
-	}
-
 	function goToPreviousMonth() {
 		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);
 		loadEntries();
@@ -126,7 +112,6 @@
 		};
 		return sourceLabels[source ?? ''] ?? source ?? '-';
 	}
-
 
 	async function loadUser() {
 		loadingUser = true;

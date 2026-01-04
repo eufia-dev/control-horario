@@ -47,3 +47,22 @@ export function formatProjectLabel(project?: Project | null, fallback = 'Proyect
 	const code = project.code?.trim();
 	return code ? `${code} - ${project.name}` : (project.name ?? fallback);
 }
+
+/**
+ * Formats a date to show month name (and year if not current year)
+ * Returns capitalized month name for current year, or month + year for other years
+ */
+export function formatMonthYear(date: Date): string {
+	const now = new Date();
+	const isCurrentYear = date.getFullYear() === now.getFullYear();
+
+	if (isCurrentYear) {
+		// Only show month name for current year
+		const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+		return monthName.charAt(0).toUpperCase() + monthName.slice(1);
+	} else {
+		// Show month and year for other years
+		const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+		return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+	}
+}

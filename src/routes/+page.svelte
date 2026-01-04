@@ -56,7 +56,7 @@
 	} from '$lib/stores/auth';
 	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import GuestBanner from '$lib/components/GuestBanner.svelte';
-	import { formatProjectLabel } from '$lib/utils';
+	import { formatProjectLabel, formatMonthYear } from '$lib/utils';
 
 	let isAdmin = $state(false);
 	let isGuest = $state(false);
@@ -135,21 +135,6 @@
 			selectedMonth.getMonth() === now.getMonth()
 		);
 	});
-
-	function formatMonthYear(date: Date): string {
-		const now = new Date();
-		const isCurrentYear = date.getFullYear() === now.getFullYear();
-
-		if (isCurrentYear) {
-			// Only show month name for current year
-			const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
-			return monthName.charAt(0).toUpperCase() + monthName.slice(1);
-		} else {
-			// Show month and year for other years
-			const formatted = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-			return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-		}
-	}
 
 	function goToPreviousMonth() {
 		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);

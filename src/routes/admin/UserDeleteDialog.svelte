@@ -1,6 +1,15 @@
 <script lang="ts">
 	import { deleteUser, type User } from '$lib/api/users';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import {
+		AlertDialog,
+		AlertDialogAction,
+		AlertDialogCancel,
+		AlertDialogContent,
+		AlertDialogDescription,
+		AlertDialogFooter,
+		AlertDialogHeader,
+		AlertDialogTitle
+	} from '$lib/components/ui/alert-dialog';
 
 	type Props = {
 		open: boolean;
@@ -37,35 +46,31 @@
 	};
 </script>
 
-<AlertDialog.Root bind:open>
-	<AlertDialog.Content>
-		<AlertDialog.Header>
-			<AlertDialog.Title>¿Eliminar usuario?</AlertDialog.Title>
-			<AlertDialog.Description>
+<AlertDialog bind:open>
+	<AlertDialogContent>
+		<AlertDialogHeader>
+			<AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
+			<AlertDialogDescription>
 				{#if user}
 					Se eliminará el usuario <strong>{user.name}</strong> ({user.email}). Esta acción no se
 					puede deshacer y se eliminarán todos sus datos asociados.
 				{/if}
-			</AlertDialog.Description>
-		</AlertDialog.Header>
+			</AlertDialogDescription>
+		</AlertDialogHeader>
 
 		{#if errorMessage}
 			<p class="text-sm text-destructive py-2">{errorMessage}</p>
 		{/if}
 
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel onclick={handleClose}>Cancelar</AlertDialog.Cancel>
-			<AlertDialog.Action
-				onclick={handleDelete}
-				disabled={isDeleting}
-				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-			>
+		<AlertDialogFooter>
+			<AlertDialogCancel onclick={handleClose}>Cancelar</AlertDialogCancel>
+			<AlertDialogAction onclick={handleDelete} disabled={isDeleting} variant="destructive">
 				{#if isDeleting}
 					Eliminando...
 				{:else}
 					Eliminar
 				{/if}
-			</AlertDialog.Action>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>
+			</AlertDialogAction>
+		</AlertDialogFooter>
+	</AlertDialogContent>
+</AlertDialog>

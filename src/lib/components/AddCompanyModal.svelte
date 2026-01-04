@@ -20,7 +20,13 @@
 		isValidPostalCodeFormat,
 		isPostalCodeConsistentWithProvince
 	} from '$lib/data/spain-locations';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogHeader,
+		DialogTitle
+	} from '$lib/components/ui/dialog';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -421,7 +427,7 @@
 	});
 </script>
 
-<Dialog.Root
+<Dialog
 	bind:open
 	onOpenChange={(isOpen) => {
 		if (!isOpen) {
@@ -430,16 +436,16 @@
 		}
 	}}
 >
-	<Dialog.Content class="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-		<Dialog.Header>
-			<Dialog.Title class="flex items-center gap-2">
+	<DialogContent class="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+		<DialogHeader>
+			<DialogTitle class="flex items-center gap-2">
 				<span class="material-symbols-rounded text-primary">add_business</span>
 				Unirse a otra empresa
-			</Dialog.Title>
-			<Dialog.Description>
+			</DialogTitle>
+			<DialogDescription>
 				Acepta una invitación, busca una empresa para unirte o crea una nueva
-			</Dialog.Description>
-		</Dialog.Header>
+			</DialogDescription>
+		</DialogHeader>
 
 		<Tabs bind:value={activeTab} class="w-full">
 			<TabsList>
@@ -815,5 +821,5 @@
 				</form>
 			</TabsContent>
 		</Tabs>
-	</Dialog.Content>
-</Dialog.Root>
+	</DialogContent>
+</Dialog>

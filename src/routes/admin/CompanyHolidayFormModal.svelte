@@ -28,6 +28,7 @@
 	let selectedDate = $state<CalendarDate | undefined>(undefined);
 	let isRecurring = $state(false);
 	let submitting = $state(false);
+	let success = $state(false);
 	let error = $state<string | null>(null);
 	let datePopoverOpen = $state(false);
 
@@ -36,6 +37,7 @@
 		selectedDate = undefined;
 		isRecurring = false;
 		error = null;
+		success = false;
 	}
 
 	$effect(() => {
@@ -58,6 +60,7 @@
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
+		if (submitting || success) return;
 		error = null;
 
 		if (!name.trim()) {
@@ -78,11 +81,16 @@
 				date: toISODate(selectedDate),
 				isRecurring
 			});
+			submitting = false;
+			success = true;
 			onSuccess();
-			handleClose();
+			// Small delay to show success animation before closing
+			setTimeout(() => {
+				open = false;
+				onClose();
+			}, 800);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al crear el festivo';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -154,14 +162,31 @@
 			{/if}
 
 			<DialogFooter class="gap-2">
-				<Button type="button" variant="outline" onclick={handleClose} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={handleClose}
+					disabled={submitting || success}
+				>
 					Cancelar
 				</Button>
-				<Button type="submit" disabled={submitting}>
+				<Button
+					type="submit"
+					variant={success ? 'success' : 'default'}
+					disabled={submitting || success}
+					class="min-w-[130px] transition-all duration-300"
+				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+						Añadiendo...
+					{:else if success}
+						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
+							>check_circle</span
+						>
+						Añadido
+					{:else}
+						Añadir festivo
 					{/if}
-					Añadir festivo
 				</Button>
 			</DialogFooter>
 		</form>
