@@ -128,70 +128,68 @@
 
 	<!-- Calendar Grid -->
 	<div class="border rounded-lg overflow-hidden">
-			<!-- Header -->
-			<div class="grid grid-cols-7 bg-muted">
-				{#each weekDays as day (day)}
-					<div class="p-2 text-center text-sm font-medium text-muted-foreground">
-						{day}
-					</div>
-				{/each}
-			</div>
-
-			<!-- Weeks -->
-			{#each weeksInMonth as week, weekIndex (weekIndex)}
-				<div class="grid grid-cols-7 border-t">
-					{#each week as day (day.date)}
-						{@const styles = getDayStyles(day.status)}
-						{@const dayLabel = getDayLabel(day)}
-						<Tooltip>
-							<TooltipTrigger>
-								<button
-									type="button"
-									class="w-full p-2 min-h-20 flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {day.isOutsideMonth
-										? 'opacity-60'
-										: ''}"
-									onclick={() => onDayClick(day)}
-								>
-									<span class="text-sm font-medium {styles.textClass}">
-										{getDayNumber(day.date)}
-									</span>
-									{#if dayLabel}
-										<span class="text-xs truncate max-w-full px-1 {styles.textClass}">
-											{dayLabel}
-										</span>
-									{/if}
-									{#if day.isOvertime}
-										<span class="material-symbols-rounded text-yellow-500 text-sm!">
-											schedule
-										</span>
-									{/if}
-								</button>
-							</TooltipTrigger>
-							<TooltipContent side="top">
-								<div class="text-sm">
-									<p class="font-medium">{DAY_STATUS_LABELS[day.status]}</p>
-									{#if day.holidayName}
-										<p>{day.holidayName}</p>
-									{/if}
-									{#if day.absenceType}
-										<p>{ABSENCE_TYPE_LABELS[day.absenceType]}</p>
-									{/if}
-									{#if day.expectedMinutes > 0}
-										<p>Esperado: {formatMinutes(day.expectedMinutes)}</p>
-									{/if}
-									{#if day.loggedMinutes > 0}
-										<p>Registrado: {formatMinutes(day.loggedMinutes)}</p>
-									{/if}
-									{#if day.isOvertime}
-										<p class="text-yellow-500">Horas extra</p>
-									{/if}
-								</div>
-							</TooltipContent>
-						</Tooltip>
-					{/each}
+		<!-- Header -->
+		<div class="grid grid-cols-7 bg-muted">
+			{#each weekDays as day (day)}
+				<div class="p-2 text-center text-sm font-medium text-muted-foreground">
+					{day}
 				</div>
 			{/each}
 		</div>
+
+		<!-- Weeks -->
+		{#each weeksInMonth as week, weekIndex (weekIndex)}
+			<div class="grid grid-cols-7 border-t">
+				{#each week as day (day.date)}
+					{@const styles = getDayStyles(day.status)}
+					{@const dayLabel = getDayLabel(day)}
+					<Tooltip>
+						<TooltipTrigger>
+							<button
+								type="button"
+								class="w-full p-2 min-h-20 flex flex-col items-center justify-start gap-1 transition-colors hover:bg-accent/50 {styles.bgClass} {day.isOutsideMonth
+									? 'opacity-60'
+									: ''}"
+								onclick={() => onDayClick(day)}
+							>
+								<span class="text-sm font-medium {styles.textClass}">
+									{getDayNumber(day.date)}
+								</span>
+								{#if dayLabel}
+									<span class="text-xs truncate max-w-full px-1 {styles.textClass}">
+										{dayLabel}
+									</span>
+								{/if}
+								{#if day.isOvertime}
+									<span class="material-symbols-rounded text-yellow-500 text-sm!"> schedule </span>
+								{/if}
+							</button>
+						</TooltipTrigger>
+						<TooltipContent side="top">
+							<div class="text-sm">
+								<p class="font-medium">{DAY_STATUS_LABELS[day.status]}</p>
+								{#if day.holidayName}
+									<p>{day.holidayName}</p>
+								{/if}
+								{#if day.absenceType}
+									<p>{ABSENCE_TYPE_LABELS[day.absenceType]}</p>
+								{/if}
+								{#if day.expectedMinutes > 0}
+									<p>Esperado: {formatMinutes(day.expectedMinutes)}</p>
+								{/if}
+								{#if day.loggedMinutes > 0}
+									<p>Registrado: {formatMinutes(day.loggedMinutes)}</p>
+								{/if}
+								{#if day.isOvertime}
+									<p class="text-yellow-500">Horas extra</p>
+								{/if}
+							</div>
+						</TooltipContent>
+					</Tooltip>
+				{/each}
+			</div>
+		{/each}
+	</div>
 
 	<!-- Legend -->
 	<div class="flex flex-wrap gap-4 text-xs text-muted-foreground">

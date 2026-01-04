@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -11,16 +11,8 @@
 	} from '$lib/components/ui/table';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Label } from '$lib/components/ui/label';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
 	import TimeEntryDeleteDialog from './TimeEntryDeleteDialog.svelte';
 	import ExternalHoursFormModal from './ExternalHoursFormModal.svelte';
@@ -29,16 +21,12 @@
 	import MissingLogsAlert from './MissingLogsAlert.svelte';
 	import PendingAbsencesWidget from './PendingAbsencesWidget.svelte';
 	import TimeEntriesTable from '$lib/components/TimeEntriesTable.svelte';
+	import TimerCard from '$lib/components/TimerCard.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import {
 		fetchMyTimeEntries,
 		fetchTimeEntryTypes,
-		getActiveTimer,
-		startTimer,
-		stopTimer,
-		switchTimer,
 		type TimeEntry,
-		type ActiveTimer,
 		type TimeEntryType
 	} from '$lib/api/time-entries';
 	import {
@@ -54,9 +42,8 @@
 		isGuest as isGuestStore,
 		activeProfile
 	} from '$lib/stores/auth';
-	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import GuestBanner from '$lib/components/GuestBanner.svelte';
-	import { formatProjectLabel, formatMonthYear } from '$lib/utils';
+	import { formatMonthYear } from '$lib/utils';
 
 	let isAdmin = $state(false);
 	let isGuest = $state(false);
@@ -86,7 +73,6 @@
 	let projects = $state<Project[]>([]);
 	let timeEntryTypes = $state<TimeEntryType[]>([]);
 	let timeEntries = $state<TimeEntry[]>([]);
-	let activeTimer = $state<ActiveTimer | null>(null);
 
 	let externals = $state<External[]>([]);
 	let externalHours = $state<ExternalHours[]>([]);
@@ -94,24 +80,11 @@
 	let loadingProjects = $state(true);
 	let loadingTypes = $state(true);
 	let loadingEntries = $state(true);
-	let loadingTimer = $state(true);
 	let loadingExternals = $state(true);
 	let loadingExternalHours = $state(true);
 
 	let entriesError = $state<string | null>(null);
 	let externalHoursError = $state<string | null>(null);
-
-	let selectedProjectId = $state<string | undefined>(undefined);
-	let selectedEntryType = $state<string | undefined>(undefined);
-	let isInOffice = $state(true);
-	let startingTimer = $state(false);
-	let stoppingTimer = $state(false);
-
-	let showSwitchForm = $state(false);
-	let switchProjectId = $state<string | undefined>(undefined);
-	let switchEntryType = $state<string | undefined>(undefined);
-	let switchIsInOffice = $state(true);
-	let switchingTimer = $state(false);
 
 	let formModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
@@ -122,9 +95,6 @@
 	let selectedExternalHours = $state<ExternalHours | null>(null);
 
 	let activeTab = $state('my-entries');
-
-	let elapsedSeconds = $state(0);
-	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Month navigation state
 	let selectedMonth = $state(new Date());
@@ -154,14 +124,8 @@
 
 	const missingDays = $derived(calendarData?.days.filter((d) => d.status === 'MISSING_LOGS') ?? []);
 
-	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
-	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
-	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
-	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
-	const isWorkType = $derived(selectedType?.name === 'Trabajo');
-	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
 
 	// Find the latest project from time entries (skip entries without projectId like pauses)
 	const latestProjectId = $derived.by(() => {
@@ -176,60 +140,6 @@
 		}
 		return null;
 	});
-
-	// Get the default project (latest or first active)
-	const defaultProjectId = $derived.by(() => {
-		if (latestProjectId) return latestProjectId;
-		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
-	});
-
-	// Handle project selection when switching entry types for timer form
-	$effect(() => {
-		if (
-			isWorkType &&
-			hasProjects &&
-			!selectedProjectId &&
-			!loadingEntries &&
-			!loadingProjects &&
-			defaultProjectId
-		) {
-			// Switching to work type or initial load: set default project
-			selectedProjectId = defaultProjectId;
-		} else if ((!isWorkType || !hasProjects) && selectedProjectId) {
-			// Switching away from work type or no projects: clear project
-			selectedProjectId = undefined;
-		}
-	});
-
-	// Handle project selection when switching entry types for switch form
-	$effect(() => {
-		if (isSwitchWorkType && hasProjects && !switchProjectId && showSwitchForm && defaultProjectId) {
-			// Switching to work type: set default project
-			switchProjectId = defaultProjectId;
-		} else if ((!isSwitchWorkType || !hasProjects) && switchProjectId) {
-			// Switching away from work type or no projects: clear project
-			switchProjectId = undefined;
-		}
-	});
-
-	const canStartTimer = $derived(
-		selectedEntryType &&
-			(isWorkType && hasProjects ? selectedProjectId : true) &&
-			!startingTimer &&
-			!activeTimer
-	);
-
-	const timeEntryTypeLookup = $derived(
-		timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
-			acc[type.value] = type;
-			return acc;
-		}, {})
-	);
-
-	function getEntryTypeName(value?: string, fallback?: string) {
-		if (!value) return fallback ?? '-';
-		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
-	}
 
 	const enrichedExternalHours = $derived(
 		externalHours.map((h) => ({
@@ -253,15 +163,6 @@
 		loadingTypes = true;
 		try {
 			timeEntryTypes = await fetchTimeEntryTypes();
-
-			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
-			if (!selectedEntryType) {
-				if (trabajoType) {
-					selectedEntryType = trabajoType.value;
-				} else if (timeEntryTypes.length > 0) {
-					selectedEntryType = timeEntryTypes[0].value;
-				}
-			}
 		} catch (e) {
 			console.error('Error loading time entry types:', e);
 		} finally {
@@ -280,20 +181,6 @@
 			entriesError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
 			loadingEntries = false;
-		}
-	}
-
-	async function loadActiveTimer() {
-		loadingTimer = true;
-		try {
-			activeTimer = await getActiveTimer();
-			if (activeTimer) {
-				startElapsedTimer();
-			}
-		} catch (e) {
-			console.error('Error loading active timer:', e);
-		} finally {
-			loadingTimer = false;
 		}
 	}
 
@@ -346,37 +233,6 @@
 		}
 	}
 
-	function startElapsedTimer() {
-		if (timerInterval) {
-			clearInterval(timerInterval);
-		}
-		if (activeTimer) {
-			const startTime = new Date(activeTimer.startTime).getTime();
-			elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-			timerInterval = setInterval(() => {
-				if (activeTimer) {
-					const startTime = new Date(activeTimer.startTime).getTime();
-					elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-				}
-			}, 1000);
-		}
-	}
-
-	function stopElapsedTimer() {
-		if (timerInterval) {
-			clearInterval(timerInterval);
-			timerInterval = null;
-		}
-		elapsedSeconds = 0;
-	}
-
-	function formatElapsedTime(seconds: number): string {
-		const hours = Math.floor(seconds / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-		const secs = seconds % 60;
-		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-	}
-
 	function formatDuration(minutes: number): string {
 		const hours = Math.floor(minutes / 60);
 		const mins = minutes % 60;
@@ -394,81 +250,13 @@
 		});
 	}
 
-	function formatTime(dateString: string): string {
-		return new Date(dateString).toLocaleTimeString('es-ES', {
-			hour: '2-digit',
-			minute: '2-digit'
-		});
+
+	function handleTimerStop() {
+		loadEntries();
 	}
 
-	async function handleStartTimer() {
-		if (!selectedEntryType) return;
-		if (isWorkType && hasProjects && !selectedProjectId) return;
-
-		startingTimer = true;
-		try {
-			activeTimer = await startTimer({
-				projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
-				entryType: selectedEntryType,
-				isInOffice
-			});
-			startElapsedTimer();
-		} catch (e) {
-			console.error('Error starting timer:', e);
-		} finally {
-			startingTimer = false;
-		}
-	}
-
-	async function handleStopTimer() {
-		stoppingTimer = true;
-		try {
-			await stopTimer();
-			activeTimer = null;
-			stopElapsedTimer();
-			await loadEntries();
-		} catch (e) {
-			console.error('Error stopping timer:', e);
-		} finally {
-			stoppingTimer = false;
-		}
-	}
-
-	function handleShowSwitchForm() {
-		if (activeTimer) {
-			switchEntryType = activeTimer.entryType;
-			switchIsInOffice = activeTimer.isInOffice;
-		}
-		switchProjectId = undefined;
-		showSwitchForm = true;
-	}
-
-	function handleCancelSwitch() {
-		showSwitchForm = false;
-		switchProjectId = undefined;
-		switchEntryType = undefined;
-	}
-
-	async function handleSwitchTimer() {
-		if (!switchEntryType) return;
-		if (isSwitchWorkType && hasProjects && !switchProjectId) return;
-
-		switchingTimer = true;
-		try {
-			const result = await switchTimer({
-				projectId: isSwitchWorkType ? switchProjectId : undefined,
-				entryType: switchEntryType,
-				isInOffice: switchIsInOffice
-			});
-			activeTimer = result.activeTimer;
-			startElapsedTimer();
-			showSwitchForm = false;
-			await loadEntries();
-		} catch (e) {
-			console.error('Error switching timer:', e);
-		} finally {
-			switchingTimer = false;
-		}
+	function handleTimerSwitch() {
+		loadEntries();
 	}
 
 	function handleCreateEntry() {
@@ -523,16 +311,11 @@
 		// Only load personal data for non-GUEST users
 		if (!isGuest) {
 			loadEntries();
-			loadActiveTimer();
 			loadCalendarData();
 		}
 		loadExternals();
 		loadExternalHours();
 		loadAbsenceStats();
-	});
-
-	onDestroy(() => {
-		stopElapsedTimer();
 	});
 </script>
 
@@ -572,243 +355,27 @@
 		</Card>
 	{:else}
 		<!-- Non-GUEST user: show personal widgets -->
-		<div class="w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
-			<div class="flex-1 flex flex-col">
+		<!-- Main row: Timer (primary) + Compliance (secondary) -->
+		<div class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-stretch gap-4">
+			<!-- Timer Card - Primary focus, takes more space -->
+			<TimerCard
+				{projects}
+				{timeEntryTypes}
+				{latestProjectId}
+				{loadingProjects}
+				{loadingTypes}
+				onTimerStop={handleTimerStop}
+				onTimerSwitch={handleTimerSwitch}
+			/>
+
+			<!-- Compliance Widget - Secondary, narrower on larger screens -->
+			<div class="flex-2 flex flex-col gap-4 min-w-0">
 				<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
-			</div>
-			{#if missingDays.length > 0}
-				<div class="flex-1 flex flex-col">
+				{#if missingDays.length > 0}
 					<MissingLogsAlert {missingDays} loading={loadingCalendar} />
-				</div>
-			{/if}
-		</div>
-
-		<Card class="w-full max-w-6xl mx-auto">
-			<CardHeader>
-				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
-					<span class="material-symbols-rounded text-3xl!">timer</span>
-					Temporizador
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				{#if loadingTimer || loadingProjects || loadingTypes}
-					<div class="flex flex-col gap-4">
-						<Skeleton class="h-10 w-full" />
-						<div class="flex gap-4">
-							<Skeleton class="h-10 w-48" />
-							<Skeleton class="h-10 w-32" />
-						</div>
-					</div>
-				{:else if activeTimer}
-					<div class="flex flex-col gap-6">
-						<div class="flex items-center justify-between flex-wrap gap-4">
-							<div class="flex flex-col gap-1">
-								<div class="flex items-center gap-2">
-									<span class="relative flex h-3 w-3">
-										<span
-											class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success"
-										></span>
-										<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-									</span>
-									<span class="text-sm font-medium text-success">En curso</span>
-								</div>
-								<div class="text-4xl font-mono font-bold tracking-tight">
-									{formatElapsedTime(elapsedSeconds)}
-								</div>
-							</div>
-							<div class="flex flex-col gap-1 text-right">
-								{#if activeTimer.project}
-									<div class="text-lg font-semibold">{activeTimer.project.name}</div>
-								{/if}
-								<div class="flex items-center gap-2 justify-end">
-									<Badge variant="secondary">
-										{getEntryTypeName(
-											activeTimer.entryType,
-											activeTimer.timeEntryType?.name ?? activeTimer.entryTypeName ?? 'Tipo'
-										)}
-									</Badge>
-									<Badge variant={activeTimer.isInOffice ? 'default' : 'outline'}>
-										{activeTimer.isInOffice ? 'Oficina' : 'Remoto'}
-									</Badge>
-								</div>
-							</div>
-						</div>
-
-						{#if showSwitchForm}
-							<!-- Switch Task Form -->
-							<div class="border rounded-lg p-4 bg-muted/30 space-y-4">
-								<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-									<span class="material-symbols-rounded text-lg!">swap_horiz</span>
-									Cambiar a otra tarea
-								</div>
-								<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-									<div class="grid gap-2">
-										<Label>Tipo</Label>
-										<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
-											<SelectTrigger class="w-full">
-												{#if switchType}
-													{switchType.name}
-												{:else}
-													<span class="text-muted-foreground">Seleccionar tipo</span>
-												{/if}
-											</SelectTrigger>
-											<SelectContent>
-												{#each timeEntryTypes as type (type.value)}
-													<SelectItem value={type.value} label={type.name} />
-												{/each}
-											</SelectContent>
-										</Select>
-									</div>
-									{#if isSwitchWorkType && hasProjects}
-										<div class="grid gap-2">
-											<Label>Proyecto</Label>
-											<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
-												<SelectTrigger class="w-full min-w-0">
-													<div class="flex min-w-0 items-center">
-														{#if switchProject}
-															<ProjectLabel project={switchProject} />
-														{:else}
-															<span class="text-muted-foreground">Seleccionar proyecto</span>
-														{/if}
-													</div>
-												</SelectTrigger>
-												<SelectContent>
-													{#each activeProjects as project (project.id)}
-														<SelectItem value={project.id} label={formatProjectLabel(project)}>
-															<ProjectLabel {project} className="flex-1 min-w-0" />
-														</SelectItem>
-													{/each}
-												</SelectContent>
-											</Select>
-										</div>
-									{/if}
-								</div>
-								<div class="flex items-center gap-3">
-									<Switch
-										id="switchIsInOffice"
-										bind:checked={switchIsInOffice}
-										disabled={switchingTimer}
-									/>
-									<Label for="switchIsInOffice" class="cursor-pointer">
-										{switchIsInOffice ? 'Oficina' : 'Remoto'}
-									</Label>
-								</div>
-								<div class="flex gap-2 justify-end">
-									<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
-										Cancelar
-									</Button>
-									<Button
-										onclick={handleSwitchTimer}
-										disabled={!switchEntryType ||
-											(isSwitchWorkType && hasProjects && !switchProjectId) ||
-											switchingTimer}
-									>
-										{#if switchingTimer}
-											<span class="material-symbols-rounded animate-spin text-base"
-												>progress_activity</span
-											>
-										{/if}
-										Cambiar tarea
-									</Button>
-								</div>
-							</div>
-						{:else}
-							<!-- Timer Actions -->
-							<div class="flex gap-3 flex-wrap">
-								<Button
-									variant="destructive"
-									onclick={handleStopTimer}
-									disabled={stoppingTimer}
-									class="flex-1 sm:flex-none"
-								>
-									{#if stoppingTimer}
-										<span class="material-symbols-rounded mr-2 animate-spin text-base"
-											>progress_activity</span
-										>
-									{:else}
-										<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
-									{/if}
-									Detener
-								</Button>
-								<Button
-									variant="outline"
-									onclick={handleShowSwitchForm}
-									disabled={stoppingTimer}
-									class="flex-1 sm:flex-none"
-								>
-									<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
-									Cambiar tarea
-								</Button>
-							</div>
-						{/if}
-					</div>
-				{:else}
-					<!-- Start Timer Form -->
-					<div class="flex flex-col gap-4">
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-							<div class="grid gap-2">
-								<Label>Tipo</Label>
-								<Select type="single" bind:value={selectedEntryType} disabled={startingTimer}>
-									<SelectTrigger class="w-full">
-										{#if selectedType}
-											{selectedType.name}
-										{:else}
-											<span class="text-muted-foreground">Seleccionar tipo</span>
-										{/if}
-									</SelectTrigger>
-									<SelectContent>
-										{#each timeEntryTypes as type (type.value)}
-											<SelectItem value={type.value} label={type.name} />
-										{/each}
-									</SelectContent>
-								</Select>
-							</div>
-							{#if isWorkType && hasProjects}
-								<div class="grid gap-2">
-									<Label>Proyecto</Label>
-									<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
-										<SelectTrigger class="w-full min-w-0">
-											<div class="flex min-w-0 items-center">
-												{#if selectedProject}
-													<ProjectLabel project={selectedProject} />
-												{:else}
-													<span class="text-muted-foreground">Seleccionar proyecto</span>
-												{/if}
-											</div>
-										</SelectTrigger>
-										<SelectContent>
-											{#each activeProjects as project (project.id)}
-												<SelectItem value={project.id} label={formatProjectLabel(project)}>
-													<ProjectLabel {project} className="flex-1 min-w-0" />
-												</SelectItem>
-											{/each}
-										</SelectContent>
-									</Select>
-								</div>
-							{/if}
-						</div>
-						<div class="flex items-center justify-between flex-wrap gap-4">
-							<div class="flex items-center gap-3">
-								<Switch id="isInOffice" bind:checked={isInOffice} disabled={startingTimer} />
-								<Label for="isInOffice" class="cursor-pointer">
-									{isInOffice ? 'Oficina' : 'Remoto'}
-								</Label>
-							</div>
-							<Button onclick={handleStartTimer} disabled={!canStartTimer}>
-								{#if startingTimer}
-									<span class="material-symbols-rounded animate-spin text-base"
-										>progress_activity</span
-									>
-								{:else}
-									<span class="material-symbols-rounded text-lg!">play_arrow</span>
-								{/if}
-								Iniciar temporizador
-							</Button>
-						</div>
-					</div>
 				{/if}
-			</CardContent>
-		</Card>
+			</div>
+		</div>
 
 		<!-- Time Entries / External Hours Card -->
 		<Card class="w-full max-w-6xl mx-auto">
@@ -931,70 +498,70 @@
 								</div>
 							{:else}
 								<Table>
-										<TableHeader>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Fecha</TableHead>
+											<TableHead>Externo</TableHead>
+											<TableHead>Proyecto</TableHead>
+											<TableHead>Duración</TableHead>
+											<TableHead class="w-[100px]">Acciones</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{#each enrichedExternalHours as entry (entry.id)}
 											<TableRow>
-												<TableHead>Fecha</TableHead>
-												<TableHead>Externo</TableHead>
-												<TableHead>Proyecto</TableHead>
-												<TableHead>Duración</TableHead>
-												<TableHead class="w-[100px]">Acciones</TableHead>
+												<TableCell class="font-medium">
+													{formatDate(entry.date)}
+												</TableCell>
+												<TableCell>
+													<Tooltip>
+														<TooltipTrigger class="max-w-[150px] truncate">
+															{entry.external?.name ?? '-'}
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{entry.external?.name ?? '-'}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell>
+													<Tooltip>
+														<TooltipTrigger class="max-w-[150px] truncate">
+															{entry.project?.name ?? '-'}
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{entry.project?.name ?? '-'}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell class="font-medium">
+													{formatDuration(entry.minutes)}
+												</TableCell>
+												<TableCell>
+													<div class="flex items-center gap-1">
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0"
+															onclick={() => handleEditExternalHours(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">edit</span>
+															<span class="sr-only">Editar</span>
+														</Button>
+														<Button
+															variant="ghost"
+															size="sm"
+															class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+															onclick={() => handleDeleteExternalHours(entry)}
+														>
+															<span class="material-symbols-rounded text-xl!">delete</span>
+															<span class="sr-only">Eliminar</span>
+														</Button>
+													</div>
+												</TableCell>
 											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{#each enrichedExternalHours as entry (entry.id)}
-												<TableRow>
-													<TableCell class="font-medium">
-														{formatDate(entry.date)}
-													</TableCell>
-													<TableCell>
-														<Tooltip>
-															<TooltipTrigger class="max-w-[150px] truncate">
-																{entry.external?.name ?? '-'}
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>{entry.external?.name ?? '-'}</p>
-															</TooltipContent>
-														</Tooltip>
-													</TableCell>
-													<TableCell>
-														<Tooltip>
-															<TooltipTrigger class="max-w-[150px] truncate">
-																{entry.project?.name ?? '-'}
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>{entry.project?.name ?? '-'}</p>
-															</TooltipContent>
-														</Tooltip>
-													</TableCell>
-													<TableCell class="font-medium">
-														{formatDuration(entry.minutes)}
-													</TableCell>
-													<TableCell>
-														<div class="flex items-center gap-1">
-															<Button
-																variant="ghost"
-																size="sm"
-																class="h-8 w-8 p-0"
-																onclick={() => handleEditExternalHours(entry)}
-															>
-																<span class="material-symbols-rounded text-xl!">edit</span>
-																<span class="sr-only">Editar</span>
-															</Button>
-															<Button
-																variant="ghost"
-																size="sm"
-																class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-																onclick={() => handleDeleteExternalHours(entry)}
-															>
-																<span class="material-symbols-rounded text-xl!">delete</span>
-																<span class="sr-only">Eliminar</span>
-															</Button>
-														</div>
-													</TableCell>
-												</TableRow>
-											{/each}
-										</TableBody>
-									</Table>
+										{/each}
+									</TableBody>
+								</Table>
 							{/if}
 						</TabsContent>
 					</Tabs>

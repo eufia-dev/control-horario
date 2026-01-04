@@ -12,11 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import JoinRequestDialog from './JoinRequestDialog.svelte';
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import { formatDate } from './helpers';
@@ -123,84 +119,84 @@
 						<TableHead>Solicitado</TableHead>
 						<TableHead class="w-[120px]">Acciones</TableHead>
 					</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each joinRequests as request (request.id)}
-							{@const isPending = request.status === 'PENDING'}
-							<TableRow>
-								<TableCell class="font-medium">
-									<Tooltip>
-										<TooltipTrigger class="max-w-[150px] truncate">
-											{request.name}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{request.name}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>
-									<Tooltip>
-										<TooltipTrigger class="max-w-[200px] truncate">
-											{request.email}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{request.email}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>
-									{#if request.status === 'PENDING'}
-										<Badge variant="secondary">Pendiente</Badge>
-									{:else if request.status === 'APPROVED'}
-										<Badge variant="success">Aprobado</Badge>
-									{:else}
-										<Badge variant="destructive">Rechazado</Badge>
-									{/if}
-								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(request.createdAt)}</TableCell>
-								<TableCell>
-									{#if isPending}
-										<div class="flex items-center gap-1">
-											<Tooltip>
-												<TooltipTrigger>
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0 text-success hover:text-success hover:bg-success/10"
-														onclick={() => handleApproveJoinRequest(request)}
-													>
-														<span class="material-symbols-rounded text-xl!">check</span>
-														<span class="sr-only">Aprobar</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Aprobar solicitud</p>
-												</TooltipContent>
-											</Tooltip>
-											<Tooltip>
-												<TooltipTrigger>
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-														onclick={() => handleRejectJoinRequest(request)}
-													>
-														<span class="material-symbols-rounded text-xl!">close</span>
-														<span class="sr-only">Rechazar</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Rechazar solicitud</p>
-												</TooltipContent>
-											</Tooltip>
-										</div>
-									{:else}
-										<span class="text-sm text-muted-foreground">-</span>
-									{/if}
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
+				</TableHeader>
+				<TableBody>
+					{#each joinRequests as request (request.id)}
+						{@const isPending = request.status === 'PENDING'}
+						<TableRow>
+							<TableCell class="font-medium">
+								<Tooltip>
+									<TooltipTrigger class="max-w-[150px] truncate">
+										{request.name}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{request.name}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Tooltip>
+									<TooltipTrigger class="max-w-[200px] truncate">
+										{request.email}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{request.email}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								{#if request.status === 'PENDING'}
+									<Badge variant="secondary">Pendiente</Badge>
+								{:else if request.status === 'APPROVED'}
+									<Badge variant="success">Aprobado</Badge>
+								{:else}
+									<Badge variant="destructive">Rechazado</Badge>
+								{/if}
+							</TableCell>
+							<TableCell class="text-muted-foreground">{formatDate(request.createdAt)}</TableCell>
+							<TableCell>
+								{#if isPending}
+									<div class="flex items-center gap-1">
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0 text-success hover:text-success hover:bg-success/10"
+													onclick={() => handleApproveJoinRequest(request)}
+												>
+													<span class="material-symbols-rounded text-xl!">check</span>
+													<span class="sr-only">Aprobar</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Aprobar solicitud</p>
+											</TooltipContent>
+										</Tooltip>
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+													onclick={() => handleRejectJoinRequest(request)}
+												>
+													<span class="material-symbols-rounded text-xl!">close</span>
+													<span class="sr-only">Rechazar</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Rechazar solicitud</p>
+											</TooltipContent>
+										</Tooltip>
+									</div>
+								{:else}
+									<span class="text-sm text-muted-foreground">-</span>
+								{/if}
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
 			</Table>
 		{/if}
 	</CardContent>

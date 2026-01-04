@@ -12,11 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ExternalFormModal from './ExternalFormModal.svelte';
 	import ExternalDeleteDialog from './ExternalDeleteDialog.svelte';
 	import { fetchExternals, type External } from '$lib/api/externals';
@@ -126,55 +122,54 @@
 						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each externals as external (external.id)}
-							<TableRow>
-								<TableCell class="font-medium">
-									<Tooltip>
-										<TooltipTrigger class="max-w-[250px] truncate">
-											{external.name}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{external.name}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>{formatCurrency(external.hourlyCost)}</TableCell>
-								<TableCell>
-									{#if external.isActive}
-										<Badge variant="success">Activo</Badge>
-									{:else}
-										<Badge variant="destructive">Inactivo</Badge>
-									{/if}
-								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell
-								>
-								<TableCell>
-									<div class="flex items-center gap-1">
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0"
-											onclick={() => handleEditExternal(external)}
-										>
-											<span class="material-symbols-rounded text-xl!">edit</span>
-											<span class="sr-only">Editar</span>
-										</Button>
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-											onclick={() => handleDeleteExternal(external)}
-										>
-											<span class="material-symbols-rounded text-xl!">delete</span>
-											<span class="sr-only">Eliminar</span>
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
+				</TableHeader>
+				<TableBody>
+					{#each externals as external (external.id)}
+						<TableRow>
+							<TableCell class="font-medium">
+								<Tooltip>
+									<TooltipTrigger class="max-w-[250px] truncate">
+										{external.name}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{external.name}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>{formatCurrency(external.hourlyCost)}</TableCell>
+							<TableCell>
+								{#if external.isActive}
+									<Badge variant="success">Activo</Badge>
+								{:else}
+									<Badge variant="destructive">Inactivo</Badge>
+								{/if}
+							</TableCell>
+							<TableCell class="text-muted-foreground">{formatDate(external.createdAt)}</TableCell>
+							<TableCell>
+								<div class="flex items-center gap-1">
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 w-8 p-0"
+										onclick={() => handleEditExternal(external)}
+									>
+										<span class="material-symbols-rounded text-xl!">edit</span>
+										<span class="sr-only">Editar</span>
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+										onclick={() => handleDeleteExternal(external)}
+									>
+										<span class="material-symbols-rounded text-xl!">delete</span>
+										<span class="sr-only">Eliminar</span>
+									</Button>
+								</div>
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
 			</Table>
 		{/if}
 	</CardContent>

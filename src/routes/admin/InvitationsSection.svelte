@@ -12,11 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
 	import InvitationDeleteDialog from './InvitationDeleteDialog.svelte';
 	import { fetchInvitations, type Invitation } from '$lib/api/invitations';
@@ -144,81 +140,79 @@
 		{:else}
 			<Table>
 				<TableHeader>
+					<TableRow>
+						<TableHead>Email</TableHead>
+						<TableHead>Rol</TableHead>
+						<TableHead>Relación</TableHead>
+						<TableHead>Estado</TableHead>
+						<TableHead>Creado</TableHead>
+						<TableHead>Expira</TableHead>
+						<TableHead class="w-[120px]">Acciones</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each invitations as invitation (invitation.id)}
+						{@const status = getInvitationStatus(invitation)}
+						{@const roleBadge = getRoleBadge(invitation.role)}
+						{@const relationBadge = getRelationTypeBadge(invitation.relation)}
 						<TableRow>
-							<TableHead>Email</TableHead>
-							<TableHead>Rol</TableHead>
-							<TableHead>Relación</TableHead>
-							<TableHead>Estado</TableHead>
-							<TableHead>Creado</TableHead>
-							<TableHead>Expira</TableHead>
-							<TableHead class="w-[120px]">Acciones</TableHead>
+							<TableCell class="font-medium">
+								<Tooltip>
+									<TooltipTrigger class="max-w-[200px] truncate">
+										{invitation.email}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{invitation.email}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
+							</TableCell>
+							<TableCell>
+								<Badge variant={relationBadge.variant}>{relationBadge.label}</Badge>
+							</TableCell>
+							<TableCell>
+								<Badge variant={status.variant}>{status.label}</Badge>
+							</TableCell>
+							<TableCell class="text-muted-foreground">{formatDate(invitation.createdAt)}</TableCell
+							>
+							<TableCell class="text-muted-foreground">{formatDate(invitation.expiresAt)}</TableCell
+							>
+							<TableCell>
+								<div class="flex items-center gap-1">
+									{#if !invitation.usedAt && new Date(invitation.expiresAt) >= new Date()}
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0"
+													onclick={() => copyInviteLink(invitation.token)}
+												>
+													<span class="material-symbols-rounded text-xl!">content_copy</span>
+													<span class="sr-only">Copiar enlace</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Copiar enlace de invitación</p>
+											</TooltipContent>
+										</Tooltip>
+									{/if}
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+										onclick={() => handleDeleteInvitation(invitation)}
+									>
+										<span class="material-symbols-rounded text-xl!">delete</span>
+										<span class="sr-only">Eliminar</span>
+									</Button>
+								</div>
+							</TableCell>
 						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each invitations as invitation (invitation.id)}
-							{@const status = getInvitationStatus(invitation)}
-							{@const roleBadge = getRoleBadge(invitation.role)}
-							{@const relationBadge = getRelationTypeBadge(invitation.relation)}
-							<TableRow>
-								<TableCell class="font-medium">
-									<Tooltip>
-										<TooltipTrigger class="max-w-[200px] truncate">
-											{invitation.email}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{invitation.email}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>
-									<Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
-								</TableCell>
-								<TableCell>
-									<Badge variant={relationBadge.variant}>{relationBadge.label}</Badge>
-								</TableCell>
-								<TableCell>
-									<Badge variant={status.variant}>{status.label}</Badge>
-								</TableCell>
-								<TableCell class="text-muted-foreground"
-									>{formatDate(invitation.createdAt)}</TableCell
-								>
-								<TableCell class="text-muted-foreground"
-									>{formatDate(invitation.expiresAt)}</TableCell
-								>
-								<TableCell>
-									<div class="flex items-center gap-1">
-										{#if !invitation.usedAt && new Date(invitation.expiresAt) >= new Date()}
-											<Tooltip>
-												<TooltipTrigger>
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0"
-														onclick={() => copyInviteLink(invitation.token)}
-													>
-														<span class="material-symbols-rounded text-xl!">content_copy</span>
-														<span class="sr-only">Copiar enlace</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Copiar enlace de invitación</p>
-												</TooltipContent>
-											</Tooltip>
-										{/if}
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-											onclick={() => handleDeleteInvitation(invitation)}
-										>
-											<span class="material-symbols-rounded text-xl!">delete</span>
-											<span class="sr-only">Eliminar</span>
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
+					{/each}
+				</TableBody>
 			</Table>
 		{/if}
 	</CardContent>

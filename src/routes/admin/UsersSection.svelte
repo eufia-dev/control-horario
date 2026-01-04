@@ -123,117 +123,117 @@
 			</div>
 		{:else}
 			<Table>
-					<TableHeader>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Nombre</TableHead>
+						<TableHead>Email</TableHead>
+						<TableHead>Relación</TableHead>
+						<TableHead>Coste/hora</TableHead>
+						<TableHead>Estado</TableHead>
+						<TableHead>Rol</TableHead>
+						<TableHead>Creado</TableHead>
+						<TableHead class="w-[100px]">Acciones</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each users as user (user.id)}
+						{@const roleBadge = getRoleBadge(user.role)}
+						{@const relationBadge = getRelationTypeBadge(user.relation)}
+						{@const isOwner = user.role === 'OWNER'}
 						<TableRow>
-							<TableHead>Nombre</TableHead>
-							<TableHead>Email</TableHead>
-							<TableHead>Relación</TableHead>
-							<TableHead>Coste/hora</TableHead>
-							<TableHead>Estado</TableHead>
-							<TableHead>Rol</TableHead>
-							<TableHead>Creado</TableHead>
-							<TableHead class="w-[100px]">Acciones</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each users as user (user.id)}
-							{@const roleBadge = getRoleBadge(user.role)}
-							{@const relationBadge = getRelationTypeBadge(user.relation)}
-							{@const isOwner = user.role === 'OWNER'}
-							<TableRow>
-								<TableCell class="font-medium">
+							<TableCell class="font-medium">
+								<Tooltip>
+									<TooltipTrigger class="max-w-[150px] truncate">
+										{user.name}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{user.name}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Tooltip>
+									<TooltipTrigger class="max-w-[200px] truncate">
+										{user.email}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{user.email}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Badge variant={relationBadge.variant}>{relationBadge.label}</Badge>
+							</TableCell>
+							<TableCell>{formatCurrency(user.hourlyCost)}</TableCell>
+							<TableCell>
+								{#if user.isActive}
+									<Badge variant="success">Activo</Badge>
+								{:else}
+									<Badge variant="destructive">Inactivo</Badge>
+								{/if}
+							</TableCell>
+							<TableCell>
+								<Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
+							</TableCell>
+							<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+							<TableCell>
+								<div class="flex items-center gap-1">
 									<Tooltip>
-										<TooltipTrigger class="max-w-[150px] truncate">
-											{user.name}
+										<TooltipTrigger>
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0"
+												onclick={() => goto(resolve(`/admin/users/${user.id}`))}
+											>
+												<span class="material-symbols-rounded text-xl!">schedule</span>
+												<span class="sr-only">Ver registros</span>
+											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{user.name}</p>
+											<p>Ver registros</p>
 										</TooltipContent>
 									</Tooltip>
-								</TableCell>
-								<TableCell>
 									<Tooltip>
-										<TooltipTrigger class="max-w-[200px] truncate">
-											{user.email}
+										<TooltipTrigger>
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0"
+												onclick={() => handleEditUser(user)}
+											>
+												<span class="material-symbols-rounded text-xl!">edit</span>
+												<span class="sr-only">Editar</span>
+											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{user.email}</p>
+											<p>Editar usuario</p>
 										</TooltipContent>
 									</Tooltip>
-								</TableCell>
-								<TableCell>
-									<Badge variant={relationBadge.variant}>{relationBadge.label}</Badge>
-								</TableCell>
-								<TableCell>{formatCurrency(user.hourlyCost)}</TableCell>
-								<TableCell>
-									{#if user.isActive}
-										<Badge variant="success">Activo</Badge>
-									{:else}
-										<Badge variant="destructive">Inactivo</Badge>
+									{#if !isOwner}
+										<Tooltip>
+											<TooltipTrigger>
+												<Button
+													variant="ghost"
+													size="sm"
+													class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+													onclick={() => handleDeleteUser(user)}
+												>
+													<span class="material-symbols-rounded text-xl!">delete</span>
+													<span class="sr-only">Eliminar</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>Eliminar usuario</p>
+											</TooltipContent>
+										</Tooltip>
 									{/if}
-								</TableCell>
-								<TableCell>
-									<Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
-								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
-								<TableCell>
-									<div class="flex items-center gap-1">
-										<Tooltip>
-											<TooltipTrigger>
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0"
-													onclick={() => goto(resolve(`/admin/users/${user.id}`))}
-												>
-													<span class="material-symbols-rounded text-xl!">schedule</span>
-													<span class="sr-only">Ver registros</span>
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Ver registros</p>
-											</TooltipContent>
-										</Tooltip>
-										<Tooltip>
-											<TooltipTrigger>
-												<Button
-													variant="ghost"
-													size="sm"
-													class="h-8 w-8 p-0"
-													onclick={() => handleEditUser(user)}
-												>
-													<span class="material-symbols-rounded text-xl!">edit</span>
-													<span class="sr-only">Editar</span>
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Editar usuario</p>
-											</TooltipContent>
-										</Tooltip>
-										{#if !isOwner}
-											<Tooltip>
-												<TooltipTrigger>
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-														onclick={() => handleDeleteUser(user)}
-													>
-														<span class="material-symbols-rounded text-xl!">delete</span>
-														<span class="sr-only">Eliminar</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Eliminar usuario</p>
-												</TooltipContent>
-											</Tooltip>
-										{/if}
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
+								</div>
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
+			</Table>
 		{/if}
 	</CardContent>
 </Card>

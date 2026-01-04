@@ -240,227 +240,227 @@
 <TooltipProvider>
 	<div class="min-h-screen flex flex-col">
 		{#if showHeader}
-		<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
-			<div class="flex items-center gap-4">
-				<a href={resolve('/')} class="flex items-center gap-2">
-					<span>Control horario</span>
-					{#if isAuthed && (hasMultiProfiles ? $activeProfile?.company.name : user?.companyName)}
-						<span class="hidden sm:inline">-</span>
-						<span class="hidden sm:inline font-semibold tracking-tight">
-							{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
-						</span>
-					{/if}
-				</a>
-
-				{#if isAuthed}
-					<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
-						{#if !isUserGuest}
-							<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">schedule</span>
-								<span>Fichajes</span>
-							</Button>
-							<Button href={resolve('/calendar')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">calendar_month</span>
-								<span>Calendario</span>
-							</Button>
-							<Button href={resolve('/absences')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">beach_access</span>
-								<span>Ausencias</span>
-							</Button>
+			<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
+				<div class="flex items-center gap-4">
+					<a href={resolve('/')} class="flex items-center gap-2">
+						<span>Control horario</span>
+						{#if isAuthed && (hasMultiProfiles ? $activeProfile?.company.name : user?.companyName)}
+							<span class="hidden sm:inline">-</span>
+							<span class="hidden sm:inline font-semibold tracking-tight">
+								{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
+							</span>
 						{/if}
-						{#if isUserAdmin}
-							<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">settings</span>
-								<span>Configuración</span>
-							</Button>
-							<Button href={resolve('/analytics')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">analytics</span>
-								<span>Analíticas</span>
-							</Button>
-						{/if}
-					</nav>
-				{/if}
-			</div>
+					</a>
 
-			{#if signedIn}
-				<div class="flex items-center gap-2">
-					{#if isAuthed && hasMultiProfiles}
-						<div class="hidden md:block">
-							<ProfileSwitcher />
-						</div>
-					{/if}
-					{#if isAuthed && isUserGuest}
-						<Badge variant="outline" class="hidden md:flex gap-1">
-							<span class="material-symbols-rounded text-sm!">visibility</span>
-							<span>Invitado</span>
-						</Badge>
-					{/if}
 					{#if isAuthed}
-						<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
-							<Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">bug_report</span>
+						<nav class="hidden md:flex items-center gap-1 ml-4 border-l border-border pl-4">
+							{#if !isUserGuest}
+								<Button href={resolve('/')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">schedule</span>
+									<span>Fichajes</span>
+								</Button>
+								<Button href={resolve('/calendar')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">calendar_month</span>
+									<span>Calendario</span>
+								</Button>
+								<Button href={resolve('/absences')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">beach_access</span>
+									<span>Ausencias</span>
+								</Button>
+							{/if}
+							{#if isUserAdmin}
+								<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">settings</span>
+									<span>Configuración</span>
+								</Button>
+								<Button href={resolve('/analytics')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">analytics</span>
+									<span>Analíticas</span>
+								</Button>
+							{/if}
+						</nav>
+					{/if}
+				</div>
+
+				{#if signedIn}
+					<div class="flex items-center gap-2">
+						{#if isAuthed && hasMultiProfiles}
+							<div class="hidden md:block">
+								<ProfileSwitcher />
+							</div>
+						{/if}
+						{#if isAuthed && isUserGuest}
+							<Badge variant="outline" class="hidden md:flex gap-1">
+								<span class="material-symbols-rounded text-sm!">visibility</span>
+								<span>Invitado</span>
+							</Badge>
+						{/if}
+						{#if isAuthed}
+							<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
+								<Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">bug_report</span>
+									<span>Reportar error</span>
+								</Button>
+								<Button href={resolve('/contact')} variant="ghost" size="sm" class="gap-1.5">
+									<span class="material-symbols-rounded text-lg!">mail</span>
+									<span>Contacto</span>
+								</Button>
+							</nav>
+						{/if}
+						{#if user}
+							<a
+								href={resolve('/profile')}
+								class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
+								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
+								style="background-color: {avatarColor}"
+								title={user.name}
+							>
+								{initials}
+							</a>
+						{/if}
+						<Button
+							type="button"
+							onclick={handleLogout}
+							variant="ghost"
+							size="sm"
+							class={user ? 'hidden md:flex' : 'flex'}
+						>
+							<span class="material-symbols-rounded text-lg!">logout</span>
+						</Button>
+						{#if isAuthed && user}
+							<Button
+								type="button"
+								onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
+								variant="ghost"
+								size="sm"
+								class="md:hidden"
+							>
+								<span class="material-symbols-rounded text-lg!">
+									{mobileMenuOpen ? 'close' : 'menu'}
+								</span>
+							</Button>
+						{/if}
+					</div>
+				{/if}
+
+				{#if isAuthed && mobileMenuOpen}
+					<div
+						class="fixed inset-0 top-[57px] md:hidden bg-background z-50 flex flex-col"
+						transition:slide={{ duration: 200 }}
+					>
+						<nav class="flex flex-col p-4 gap-2 flex-1">
+							{#if hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
+								<div
+									class="px-4 py-3 text-base text-muted-foreground font-medium border-b border-border mb-2 flex items-center justify-between"
+								>
+									<span class="flex items-center gap-2">
+										{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
+										{#if hasMultiProfiles}
+											<ProfileSwitcher />
+										{/if}
+									</span>
+									{#if isUserGuest}
+										<Badge variant="outline" class="gap-1">
+											<span class="material-symbols-rounded text-sm!">visibility</span>
+											<span>Invitado</span>
+										</Badge>
+									{/if}
+								</div>
+							{/if}
+							{#if !isUserGuest}
+								<Button
+									href={resolve('/')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">schedule</span>
+									<span>Fichajes</span>
+								</Button>
+								<Button
+									href={resolve('/calendar')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">calendar_month</span>
+									<span>Calendario</span>
+								</Button>
+								<Button
+									href={resolve('/absences')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">beach_access</span>
+									<span>Ausencias</span>
+								</Button>
+							{/if}
+							{#if isUserAdmin}
+								<Button
+									href={resolve('/admin')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">settings</span>
+									<span>Configuración</span>
+								</Button>
+								<Button
+									href={resolve('/analytics')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">analytics</span>
+									<span>Analíticas</span>
+								</Button>
+							{/if}
+							<Button
+								href={resolve('/bug-report')}
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">bug_report</span>
 								<span>Reportar error</span>
 							</Button>
-							<Button href={resolve('/contact')} variant="ghost" size="sm" class="gap-1.5">
-								<span class="material-symbols-rounded text-lg!">mail</span>
+							<Button
+								href={resolve('/contact')}
+								variant="ghost"
+								size="lg"
+								class="justify-start gap-4 h-14 text-lg"
+								onclick={() => (mobileMenuOpen = false)}
+							>
+								<span class="material-symbols-rounded text-2xl!">mail</span>
 								<span>Contacto</span>
 							</Button>
 						</nav>
-					{/if}
-					{#if user}
-						<a
-							href={resolve('/profile')}
-							class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
-								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
-							style="background-color: {avatarColor}"
-							title={user.name}
-						>
-							{initials}
-						</a>
-					{/if}
-					<Button
-						type="button"
-						onclick={handleLogout}
-						variant="ghost"
-						size="sm"
-						class={user ? 'hidden md:flex' : 'flex'}
-					>
-						<span class="material-symbols-rounded text-lg!">logout</span>
-					</Button>
-					{#if isAuthed && user}
-						<Button
-							type="button"
-							onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
-							variant="ghost"
-							size="sm"
-							class="md:hidden"
-						>
-							<span class="material-symbols-rounded text-lg!">
-								{mobileMenuOpen ? 'close' : 'menu'}
-							</span>
-						</Button>
-					{/if}
-				</div>
-			{/if}
-
-			{#if isAuthed && mobileMenuOpen}
-				<div
-					class="fixed inset-0 top-[57px] md:hidden bg-background z-50 flex flex-col"
-					transition:slide={{ duration: 200 }}
-				>
-					<nav class="flex flex-col p-4 gap-2 flex-1">
-						{#if hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
-							<div
-								class="px-4 py-3 text-base text-muted-foreground font-medium border-b border-border mb-2 flex items-center justify-between"
-							>
-								<span class="flex items-center gap-2">
-									{hasMultiProfiles ? $activeProfile?.company.name : user?.companyName}
-									{#if hasMultiProfiles}
-										<ProfileSwitcher />
-									{/if}
-								</span>
-								{#if isUserGuest}
-									<Badge variant="outline" class="gap-1">
-										<span class="material-symbols-rounded text-sm!">visibility</span>
-										<span>Invitado</span>
-									</Badge>
-								{/if}
-							</div>
-						{/if}
-						{#if !isUserGuest}
+						<div class="p-4 border-t border-border mt-auto">
 							<Button
-								href={resolve('/')}
+								type="button"
+								onclick={() => {
+									mobileMenuOpen = false;
+									handleLogout();
+								}}
 								variant="ghost"
 								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
+								class="justify-start gap-4 w-full h-14 text-lg text-destructive hover:text-destructive"
 							>
-								<span class="material-symbols-rounded text-2xl!">schedule</span>
-								<span>Fichajes</span>
+								<span class="material-symbols-rounded text-2xl!">logout</span>
+								<span>Cerrar sesión</span>
 							</Button>
-							<Button
-								href={resolve('/calendar')}
-								variant="ghost"
-								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
-							>
-								<span class="material-symbols-rounded text-2xl!">calendar_month</span>
-								<span>Calendario</span>
-							</Button>
-							<Button
-								href={resolve('/absences')}
-								variant="ghost"
-								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
-							>
-								<span class="material-symbols-rounded text-2xl!">beach_access</span>
-								<span>Ausencias</span>
-							</Button>
-						{/if}
-						{#if isUserAdmin}
-							<Button
-								href={resolve('/admin')}
-								variant="ghost"
-								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
-							>
-								<span class="material-symbols-rounded text-2xl!">settings</span>
-								<span>Configuración</span>
-							</Button>
-							<Button
-								href={resolve('/analytics')}
-								variant="ghost"
-								size="lg"
-								class="justify-start gap-4 h-14 text-lg"
-								onclick={() => (mobileMenuOpen = false)}
-							>
-								<span class="material-symbols-rounded text-2xl!">analytics</span>
-								<span>Analíticas</span>
-							</Button>
-						{/if}
-						<Button
-							href={resolve('/bug-report')}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">bug_report</span>
-							<span>Reportar error</span>
-						</Button>
-						<Button
-							href={resolve('/contact')}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 h-14 text-lg"
-							onclick={() => (mobileMenuOpen = false)}
-						>
-							<span class="material-symbols-rounded text-2xl!">mail</span>
-							<span>Contacto</span>
-						</Button>
-					</nav>
-					<div class="p-4 border-t border-border mt-auto">
-						<Button
-							type="button"
-							onclick={() => {
-								mobileMenuOpen = false;
-								handleLogout();
-							}}
-							variant="ghost"
-							size="lg"
-							class="justify-start gap-4 w-full h-14 text-lg text-destructive hover:text-destructive"
-						>
-							<span class="material-symbols-rounded text-2xl!">logout</span>
-							<span>Cerrar sesión</span>
-						</Button>
+						</div>
 					</div>
-				</div>
-			{/if}
-		</header>
-	{/if}
+				{/if}
+			</header>
+		{/if}
 
 		<main class="grow flex flex-col">
 			{#if isInitializing && !isAuthCallbackPage}

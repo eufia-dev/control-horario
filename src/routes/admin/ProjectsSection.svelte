@@ -12,11 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ProjectFormModal from './ProjectFormModal.svelte';
 	import ProjectDeleteDialog from './ProjectDeleteDialog.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
@@ -126,63 +122,63 @@
 						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each projects as project (project.id)}
-							<TableRow>
-								<TableCell class="font-medium">
-									<Tooltip>
-										<TooltipTrigger class="max-w-[120px] truncate">
-											{project.code}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{project.code}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>
-									<Tooltip>
-										<TooltipTrigger class="max-w-[400px] truncate">
-											{project.name}
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{project.name}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableCell>
-								<TableCell>
-									{#if project.isActive}
-										<Badge variant="success">Activo</Badge>
-									{:else}
-										<Badge variant="destructive">Inactivo</Badge>
-									{/if}
-								</TableCell>
-								<TableCell class="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
-								<TableCell>
-									<div class="flex items-center gap-1">
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0"
-											onclick={() => handleEditProject(project)}
-										>
-											<span class="material-symbols-rounded text-xl!">edit</span>
-											<span class="sr-only">Editar</span>
-										</Button>
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-											onclick={() => handleDeleteProject(project)}
-										>
-											<span class="material-symbols-rounded text-xl!">delete</span>
-											<span class="sr-only">Eliminar</span>
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
+				</TableHeader>
+				<TableBody>
+					{#each projects as project (project.id)}
+						<TableRow>
+							<TableCell class="font-medium">
+								<Tooltip>
+									<TooltipTrigger class="max-w-[120px] truncate">
+										{project.code}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{project.code}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Tooltip>
+									<TooltipTrigger class="max-w-[400px] truncate">
+										{project.name}
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>{project.name}</p>
+									</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								{#if project.isActive}
+									<Badge variant="success">Activo</Badge>
+								{:else}
+									<Badge variant="destructive">Inactivo</Badge>
+								{/if}
+							</TableCell>
+							<TableCell class="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
+							<TableCell>
+								<div class="flex items-center gap-1">
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 w-8 p-0"
+										onclick={() => handleEditProject(project)}
+									>
+										<span class="material-symbols-rounded text-xl!">edit</span>
+										<span class="sr-only">Editar</span>
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+										onclick={() => handleDeleteProject(project)}
+									>
+										<span class="material-symbols-rounded text-xl!">delete</span>
+										<span class="sr-only">Eliminar</span>
+									</Button>
+								</div>
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
 			</Table>
 		{/if}
 	</CardContent>

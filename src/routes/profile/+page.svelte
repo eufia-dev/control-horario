@@ -466,27 +466,27 @@
 
 								<div class="flex justify-between gap-2">
 									<Tooltip>
-											<TooltipTrigger>
-												<Button
-													variant="outline"
-													size="sm"
-													onclick={handleResetSchedule}
-													disabled={savingSchedule || deletingOverrides}
-												>
-													{#if deletingOverrides}
-														<span class="material-symbols-rounded animate-spin text-lg!"
-															>progress_activity</span
-														>
-													{:else}
-														<span class="material-symbols-rounded text-lg! mr-1">restart_alt</span>
-													{/if}
-													Restablecer
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Usar el horario por defecto de la empresa</p>
-											</TooltipContent>
-										</Tooltip>
+										<TooltipTrigger>
+											<Button
+												variant="outline"
+												size="sm"
+												onclick={handleResetSchedule}
+												disabled={savingSchedule || deletingOverrides}
+											>
+												{#if deletingOverrides}
+													<span class="material-symbols-rounded animate-spin text-lg!"
+														>progress_activity</span
+													>
+												{:else}
+													<span class="material-symbols-rounded text-lg! mr-1">restart_alt</span>
+												{/if}
+												Restablecer
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Usar el horario por defecto de la empresa</p>
+										</TooltipContent>
+									</Tooltip>
 
 									<Button
 										size="sm"
