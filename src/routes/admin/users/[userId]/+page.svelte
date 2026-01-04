@@ -4,26 +4,13 @@
 	import { page } from '$app/stores';
 	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import {
-		Table,
-		TableHeader,
-		TableBody,
-		TableRow,
-		TableHead,
-		TableCell
-	} from '$lib/components/ui/table';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipProvider,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
 	import WorkingCalendar from '../../../calendar/WorkingCalendar.svelte';
 	import CalendarDayDetail from '../../../calendar/CalendarDayDetail.svelte';
+	import TimeEntriesCard from '$lib/components/TimeEntriesCard.svelte';
 	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 	import { fetchUsers, type User } from '$lib/api/users';
 	import {
@@ -37,7 +24,6 @@
 		type CalendarDay,
 		type CalendarMonthResponse
 	} from '$lib/api/calendar';
-	import { formatMonthYear } from '$lib/utils';
 
 	let isAdmin = $state(false);
 	$effect(() => {
@@ -64,13 +50,6 @@
 
 	// Month navigation state
 	let selectedMonth = $state(new Date());
-	const isCurrentMonth = $derived(() => {
-		const now = new Date();
-		return (
-			selectedMonth.getFullYear() === now.getFullYear() &&
-			selectedMonth.getMonth() === now.getMonth()
-		);
-	});
 
 	// Calendar data
 	let calendarData = $state<CalendarMonthResponse | null>(null);
@@ -82,18 +61,6 @@
 
 	let activeTab = $state('historial');
 
-	const timeEntryTypeLookup = $derived(
-		timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
-			acc[type.value] = type;
-			return acc;
-		}, {})
-	);
-
-	function getEntryTypeName(value?: string, fallback?: string) {
-		if (!value) return fallback ?? '-';
-		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
-	}
-
 	function goToPreviousMonth() {
 		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);
 		loadEntries();
@@ -102,15 +69,6 @@
 	function goToNextMonth() {
 		selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1);
 		loadEntries();
-	}
-
-	function getSourceLabel(source?: string): string {
-		const sourceLabels: Record<string, string> = {
-			WEB: 'Web',
-			APP: 'App',
-			WHATSAPP: 'WhatsApp'
-		};
-		return sourceLabels[source ?? ''] ?? source ?? '-';
 	}
 
 	async function loadUser() {
@@ -187,30 +145,6 @@
 		selectedDay = null;
 	}
 
-	function formatDuration(minutes: number): string {
-		const hours = Math.floor(minutes / 60);
-		const mins = minutes % 60;
-		if (hours > 0) {
-			return `${hours}h ${mins}m`;
-		}
-		return `${mins}m`;
-	}
-
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('es-ES', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric'
-		});
-	}
-
-	function formatTime(dateString: string): string {
-		return new Date(dateString).toLocaleTimeString('es-ES', {
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
-
 	// Reload calendar when month changes
 	$effect(() => {
 		if (userId) {
@@ -259,7 +193,7 @@
 		</div>
 
 		{#if userError}
-			<Card class="w-full max-w-5xl mx-auto">
+			<Card class="w-full max-w-6xl mx-auto">
 				<CardContent class="py-12">
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-4xl! mb-2">error</span>
@@ -271,7 +205,7 @@
 				</CardContent>
 			</Card>
 		{:else}
-			<Tabs bind:value={activeTab} class="w-full max-w-5xl mx-auto">
+			<Tabs bind:value={activeTab} class="w-full max-w-6xl mx-auto">
 				<TabsList class="mb-4">
 					<TabsTrigger value="historial" class="gap-1.5">
 						<span class="material-symbols-rounded text-lg!">history</span>
@@ -285,190 +219,21 @@
 
 				<!-- Time Entries Tab -->
 				<TabsContent value="historial">
-					<Card>
-						<CardHeader
-							class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0"
-						>
-							<CardTitle class="text-xl font-semibold tracking-tight flex items-center gap-2">
-								<span class="material-symbols-rounded text-2xl!">schedule</span>
-								Registros de tiempo
-							</CardTitle>
-							<!-- Month Navigation -->
-							<div class="flex items-center gap-1 bg-muted rounded-lg p-1">
-								<Button
-									variant="ghost"
-									size="sm"
-									class="h-8 w-8 p-0"
-									onclick={goToPreviousMonth}
-									disabled={loadingEntries}
-								>
-									<span class="material-symbols-rounded text-lg!">chevron_left</span>
-									<span class="sr-only">Mes anterior</span>
-								</Button>
-								<span class="px-2 text-sm font-medium min-w-22 text-center">
-									{formatMonthYear(selectedMonth)}
-								</span>
-								<Button
-									variant="ghost"
-									size="sm"
-									class="h-8 w-8 p-0"
-									onclick={goToNextMonth}
-									disabled={loadingEntries || isCurrentMonth()}
-								>
-									<span class="material-symbols-rounded text-lg!">chevron_right</span>
-									<span class="sr-only">Mes siguiente</span>
-								</Button>
-							</div>
-						</CardHeader>
-						<CardContent>
-							{#if loadingEntries || loadingTypes}
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Fecha</TableHead>
-											<TableHead>Proyecto</TableHead>
-											<TableHead>Tipo</TableHead>
-											<TableHead>Inicio</TableHead>
-											<TableHead>Fin</TableHead>
-											<TableHead>Duración</TableHead>
-											<TableHead>Lugar</TableHead>
-											<TableHead>Origen</TableHead>
-											<TableHead>Estado</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-											<TableRow data-placeholder-index={i}>
-												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-												<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-												<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
-											</TableRow>
-										{/each}
-									</TableBody>
-								</Table>
-							{:else if entriesError}
-								<div class="flex items-center justify-center py-8 text-destructive">
-									<span class="material-symbols-rounded mr-2">error</span>
-									{entriesError}
-								</div>
-							{:else if timeEntries.length === 0}
-								<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-									<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-									<p>No hay registros de tiempo para este usuario</p>
-								</div>
-							{:else}
-								<TooltipProvider>
-									<Table>
-										<TableHeader>
-											<TableRow>
-												<TableHead>Fecha</TableHead>
-												<TableHead>Proyecto</TableHead>
-												<TableHead>Tipo</TableHead>
-												<TableHead>Inicio</TableHead>
-												<TableHead>Fin</TableHead>
-												<TableHead>Duración</TableHead>
-												<TableHead>Lugar</TableHead>
-												<TableHead>Origen</TableHead>
-												<TableHead>Estado</TableHead>
-											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{#each timeEntries as entry (entry.id)}
-												<TableRow>
-													<TableCell class="font-medium">
-														{formatDate(entry.startTime)}
-													</TableCell>
-													<TableCell>
-														<Tooltip>
-															<TooltipTrigger class="max-w-[150px] truncate">
-																{entry.project?.name ?? '-'}
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>{entry.project?.name ?? '-'}</p>
-															</TooltipContent>
-														</Tooltip>
-													</TableCell>
-													<TableCell>
-														<Badge variant="secondary">
-															{getEntryTypeName(
-																entry.entryType,
-																entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-															)}
-														</Badge>
-													</TableCell>
-													<TableCell class="text-muted-foreground">
-														{formatTime(entry.startTime)}
-													</TableCell>
-													<TableCell class="text-muted-foreground">
-														{formatTime(entry.endTime)}
-													</TableCell>
-													<TableCell class="font-medium">
-														{formatDuration(entry.durationMinutes)}
-													</TableCell>
-													<TableCell>
-														<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
-															{entry.isInOffice ? 'Oficina' : 'Remoto'}
-														</Badge>
-													</TableCell>
-													<TableCell>
-														<Badge variant="outline">
-															{getSourceLabel(entry.source)}
-														</Badge>
-													</TableCell>
-													<TableCell>
-														<div class="flex items-center gap-1 flex-wrap">
-															{#if entry.isManual}
-																<Tooltip>
-																	<TooltipTrigger>
-																		<Badge variant="secondary" class="text-xs">
-																			<span class="material-symbols-rounded text-sm! mr-0.5"
-																				>edit</span
-																			>
-																			Manual
-																		</Badge>
-																	</TooltipTrigger>
-																	<TooltipContent>
-																		<p>Registro creado manualmente</p>
-																	</TooltipContent>
-																</Tooltip>
-															{/if}
-															{#if entry.isModified}
-																<Tooltip>
-																	<TooltipTrigger>
-																		<Badge
-																			variant="outline"
-																			class="text-xs text-yellow-600 border-yellow-600"
-																		>
-																			<span class="material-symbols-rounded text-sm! mr-0.5"
-																				>sync</span
-																			>
-																			Modificado
-																		</Badge>
-																	</TooltipTrigger>
-																	<TooltipContent>
-																		<p>Registro modificado después de su creación</p>
-																	</TooltipContent>
-																</Tooltip>
-															{/if}
-															{#if !entry.isManual && !entry.isModified}
-																<span class="text-muted-foreground text-xs">-</span>
-															{/if}
-														</div>
-													</TableCell>
-												</TableRow>
-											{/each}
-										</TableBody>
-									</Table>
-								</TooltipProvider>
-							{/if}
-						</CardContent>
-					</Card>
+					<TimeEntriesCard
+						title="Registros de tiempo"
+						{timeEntries}
+						{timeEntryTypes}
+						loading={loadingEntries || loadingTypes}
+						error={entriesError}
+						{selectedMonth}
+						hasProjects={true}
+						showSourceColumn={true}
+						showStatusColumn={true}
+						showActions={false}
+						showAddButton={false}
+						onPreviousMonth={goToPreviousMonth}
+						onNextMonth={goToNextMonth}
+					/>
 				</TabsContent>
 
 				<!-- Calendar Tab -->

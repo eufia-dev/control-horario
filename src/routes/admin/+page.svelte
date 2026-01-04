@@ -72,7 +72,7 @@
 			<h1 class="text-2xl font-semibold tracking-tight">Configuración</h1>
 		</div>
 
-		<Tabs bind:value={activeTab} class="w-full">
+		<Tabs bind:value={activeTab} class="w-full max-w-6xl mx-auto">
 			<div class="mb-4 overflow-x-auto">
 				<TabsList class="w-fit">
 					<TabsTrigger value="empresa" class="gap-1.5">

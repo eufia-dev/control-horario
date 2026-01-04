@@ -8,7 +8,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import CompanyHolidayFormModal from './CompanyHolidayFormModal.svelte';
@@ -114,7 +113,7 @@
 	});
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0 flex-wrap gap-4">
 		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 			<span class="material-symbols-rounded text-2xl!">calendar_month</span>
@@ -142,20 +141,18 @@
 					<span class="material-symbols-rounded text-lg!">chevron_right</span>
 				</Button>
 			</div>
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger>
-						<Button variant="outline" size="sm" onclick={handleSync} disabled={syncing || loading}>
-							<span class="material-symbols-rounded text-lg! {syncing ? 'animate-spin' : ''}">
-								{syncing ? 'progress_activity' : 'sync'}
-							</span>
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent>
-						<p>Sincronizar festivos desde API</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger>
+					<Button variant="outline" size="sm" onclick={handleSync} disabled={syncing || loading}>
+						<span class="material-symbols-rounded text-lg! {syncing ? 'animate-spin' : ''}">
+							{syncing ? 'progress_activity' : 'sync'}
+						</span>
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Sincronizar festivos desde API</p>
+				</TooltipContent>
+			</Tooltip>
 		</div>
 	</CardHeader>
 	<CardContent>
@@ -210,26 +207,24 @@
 									</h3>
 									<div class="grid gap-2">
 										{#each nationalHolidays as holiday (holiday.id)}
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger class="w-full">
-														<div
-															class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-														>
-															<div class="flex items-center gap-3">
-																<Badge variant="secondary" class="bg-blue-500/20 text-blue-600">
-																	{formatDate(holiday.date)}
-																</Badge>
-																<span>{holiday.localName || holiday.name}</span>
-															</div>
-															<Badge variant="outline">Nacional</Badge>
+											<Tooltip>
+												<TooltipTrigger class="w-full">
+													<div
+														class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+													>
+														<div class="flex items-center gap-3">
+															<Badge variant="secondary" class="bg-blue-500/20 text-blue-600">
+																{formatDate(holiday.date)}
+															</Badge>
+															<span>{holiday.localName || holiday.name}</span>
 														</div>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p class="capitalize">{formatFullDate(holiday.date)}</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+														<Badge variant="outline">Nacional</Badge>
+													</div>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p class="capitalize">{formatFullDate(holiday.date)}</p>
+												</TooltipContent>
+											</Tooltip>
 										{/each}
 									</div>
 								</div>
@@ -246,28 +241,26 @@
 									</h3>
 									<div class="grid gap-2">
 										{#each regionalHolidays as holiday (holiday.id)}
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger class="w-full">
-														<div
-															class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-														>
-															<div class="flex items-center gap-3">
-																<Badge variant="secondary" class="bg-purple-500/20 text-purple-600">
-																	{formatDate(holiday.date)}
-																</Badge>
-																<span>{holiday.localName || holiday.name}</span>
-															</div>
-															{#if holiday.regionCode}
-																<Badge variant="outline">{holiday.regionCode}</Badge>
-															{/if}
+											<Tooltip>
+												<TooltipTrigger class="w-full">
+													<div
+														class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+													>
+														<div class="flex items-center gap-3">
+															<Badge variant="secondary" class="bg-purple-500/20 text-purple-600">
+																{formatDate(holiday.date)}
+															</Badge>
+															<span>{holiday.localName || holiday.name}</span>
 														</div>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p class="capitalize">{formatFullDate(holiday.date)}</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+														{#if holiday.regionCode}
+															<Badge variant="outline">{holiday.regionCode}</Badge>
+														{/if}
+													</div>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p class="capitalize">{formatFullDate(holiday.date)}</p>
+												</TooltipContent>
+											</Tooltip>
 										{/each}
 									</div>
 								</div>

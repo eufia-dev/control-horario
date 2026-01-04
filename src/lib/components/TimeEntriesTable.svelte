@@ -1,0 +1,299 @@
+<script lang="ts">
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+	import type { TimeEntry, TimeEntryType } from '$lib/api/time-entries';
+	import ProjectLabel from './ProjectLabel.svelte';
+
+	type Props = {
+		timeEntries: TimeEntry[];
+		timeEntryTypes: TimeEntryType[];
+		loading?: boolean;
+		error?: string | null;
+		hasProjects?: boolean;
+		showSourceColumn?: boolean;
+		showStatusColumn?: boolean;
+		showActions?: boolean;
+		emptyMessage?: string;
+		emptyButtonLabel?: string;
+		onEdit?: (entry: TimeEntry) => void;
+		onDelete?: (entry: TimeEntry) => void;
+		onCreate?: () => void;
+	};
+
+	let {
+		timeEntries,
+		timeEntryTypes,
+		loading = false,
+		error = null,
+		hasProjects = false,
+		showSourceColumn = false,
+		showStatusColumn = false,
+		showActions = true,
+		emptyMessage = 'No hay registros de tiempo',
+		emptyButtonLabel = 'Crear primer registro',
+		onEdit,
+		onDelete,
+		onCreate
+	}: Props = $props();
+
+	const timeEntryTypeLookup = $derived(
+		timeEntryTypes.reduce<Record<string, TimeEntryType>>((acc, type) => {
+			acc[type.value] = type;
+			return acc;
+		}, {})
+	);
+
+	type GroupedEntries = {
+		dateKey: string;
+		dayNumber: number;
+		dayOfWeek: string;
+		entries: TimeEntry[];
+		totalMinutes: number;
+	};
+
+	const groupedByDay = $derived.by(() => {
+		const groups: Record<string, GroupedEntries> = {};
+
+		for (const entry of timeEntries) {
+			const date = new Date(entry.startTime);
+			const dateKey = date.toISOString().split('T')[0];
+
+			if (!groups[dateKey]) {
+				groups[dateKey] = {
+					dateKey,
+					dayNumber: date.getDate(),
+					dayOfWeek: date.toLocaleDateString('es-ES', { weekday: 'short' }),
+					entries: [],
+					totalMinutes: 0
+				};
+			}
+
+			groups[dateKey].entries.push(entry);
+			groups[dateKey].totalMinutes += entry.durationMinutes;
+		}
+
+		return Object.values(groups).sort(
+			(a, b) => new Date(b.dateKey).getTime() - new Date(a.dateKey).getTime()
+		);
+	});
+
+	function getEntryTypeName(value?: string, fallback?: string) {
+		if (!value) return fallback ?? '-';
+		return timeEntryTypeLookup[value]?.name ?? fallback ?? '-';
+	}
+
+	function getSourceLabel(source?: string): string {
+		const sourceLabels: Record<string, string> = {
+			WEB: 'Web',
+			APP: 'App',
+			WHATSAPP: 'WhatsApp'
+		};
+		return sourceLabels[source ?? ''] ?? source ?? '-';
+	}
+
+	function formatDuration(minutes: number): string {
+		const hours = Math.floor(minutes / 60);
+		const mins = minutes % 60;
+		if (hours > 0 && mins > 0) {
+			return `${hours}h ${mins}m`;
+		}
+		if (hours > 0) {
+			return `${hours}h`;
+		}
+		return `${mins}m`;
+	}
+
+	function formatTime(dateString: string): string {
+		return new Date(dateString).toLocaleTimeString('es-ES', {
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
+</script>
+
+<style>
+	.time-table {
+		--row-border: color-mix(in srgb, var(--color-border) 50%, transparent);
+	}
+</style>
+
+{#if loading}
+	<div class="space-y-6">
+		{#each Array.from({ length: 3 }, (_, i) => i) as dayIndex (dayIndex)}
+			<div>
+				<Skeleton class="h-5 w-24 mb-3" />
+				<div class="space-y-0 border border-border rounded-lg overflow-hidden">
+					{#each Array.from({ length: 2 }, (_, j) => j) as entryIndex (`${dayIndex}-${entryIndex}`)}
+						<div class="flex items-center gap-4 px-4 py-3 border-b border-border last:border-b-0">
+							<Skeleton class="h-4 w-24" />
+							<Skeleton class="h-4 w-14" />
+							<Skeleton class="h-5 w-16 rounded-full" />
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/each}
+	</div>
+{:else if error}
+	<div class="flex items-center justify-center py-8 text-destructive">
+		<span class="material-symbols-rounded mr-2">error</span>
+		{error}
+	</div>
+{:else if timeEntries.length === 0}
+	<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+		<span class="material-symbols-rounded text-4xl! mb-2">history</span>
+		<p>{emptyMessage}</p>
+		{#if onCreate}
+			<Button variant="outline" class="mt-4" onclick={onCreate}>
+				<span class="material-symbols-rounded mr-2 text-lg!">add</span>
+				{emptyButtonLabel}
+			</Button>
+		{/if}
+	</div>
+{:else}
+	<div class="time-table space-y-6">
+			{#each groupedByDay as day (day.dateKey)}
+				<div>
+					<!-- Day header -->
+					<div class="flex items-center gap-3 mb-2">
+						<div class="flex items-baseline gap-1.5">
+							<span class="text-2xl font-semibold tabular-nums text-foreground">
+								{day.dayNumber}
+							</span>
+							<span class="text-sm font-medium text-muted-foreground uppercase">
+								{day.dayOfWeek}
+							</span>
+						</div>
+						<div class="h-px flex-1 bg-border"></div>
+						<span class="text-sm font-semibold text-primary tabular-nums">
+							{formatDuration(day.totalMinutes)}
+						</span>
+					</div>
+
+					<!-- Entries table -->
+					<div class="border border-border rounded-lg overflow-hidden bg-card">
+						{#each day.entries as entry, idx (entry.id)}
+							<div
+								class="group/entry flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-muted/50"
+								class:border-t={idx > 0}
+								class:border-border={idx > 0}
+							>
+								<!-- Time range -->
+								<div class="flex items-center gap-1 text-sm tabular-nums shrink-0 min-w-[100px]">
+									<span class="font-medium text-foreground">{formatTime(entry.startTime)}</span>
+									<span class="text-muted-foreground/60">→</span>
+									<span class="font-medium text-foreground">{formatTime(entry.endTime)}</span>
+								</div>
+
+								<!-- Duration -->
+								<span
+									class="text-sm font-semibold tabular-nums text-primary bg-primary/8 px-2 py-0.5 rounded shrink-0"
+								>
+									{formatDuration(entry.durationMinutes)}
+								</span>
+
+								<!-- Entry Type -->
+								<span class="text-sm text-muted-foreground shrink-0">
+									{getEntryTypeName(
+										entry.entryType,
+										entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+									)}
+								</span>
+
+								<!-- Project -->
+								{#if hasProjects && entry.project}
+									<ProjectLabel project={entry.project} className="text-sm max-w-80" />
+								{/if}
+
+								<!-- Location indicator -->
+								<span
+									class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full shrink-0"
+									class:bg-foreground={entry.isInOffice}
+									class:text-background={entry.isInOffice}
+									class:bg-muted={!entry.isInOffice}
+									class:text-muted-foreground={!entry.isInOffice}
+								>
+									<span class="material-symbols-rounded text-xs!">
+										{entry.isInOffice ? 'apartment' : 'home'}
+									</span>
+									{entry.isInOffice ? 'Oficina' : 'Remoto'}
+								</span>
+
+								<!-- Source -->
+								{#if showSourceColumn}
+									<span class="text-xs text-muted-foreground shrink-0">
+										{getSourceLabel(entry.source)}
+									</span>
+								{/if}
+
+								<!-- Status indicators -->
+								{#if showStatusColumn}
+									<div class="flex items-center gap-1">
+										{#if entry.isManual}
+											<Tooltip>
+												<TooltipTrigger>
+													<span
+														class="material-symbols-rounded text-sm! text-muted-foreground/60"
+														>edit_note</span
+													>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Registro creado manualmente</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
+										{#if entry.isModified}
+											<Tooltip>
+												<TooltipTrigger>
+													<span class="material-symbols-rounded text-sm! text-amber-500"
+														>history</span
+													>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Registro modificado después de su creación</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
+									</div>
+								{/if}
+
+								<div class="flex-1"></div>
+
+								<!-- Actions -->
+								{#if showActions}
+									<div
+										class="flex items-center gap-1 opacity-0 group-hover/entry:opacity-100 transition-opacity"
+									>
+										{#if onEdit}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+												onclick={() => onEdit(entry)}
+											>
+												<span class="material-symbols-rounded text-lg!">edit</span>
+												<span class="sr-only">Editar</span>
+											</Button>
+										{/if}
+										{#if onDelete}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+												onclick={() => onDelete(entry)}
+											>
+												<span class="material-symbols-rounded text-lg!">delete</span>
+												<span class="sr-only">Eliminar</span>
+											</Button>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
+	</div>
+{/if}

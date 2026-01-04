@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipProvider,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import type { CalendarDay, CalendarSummary, DayStatus } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
 	import { formatMonthYear } from '$lib/utils';
@@ -132,8 +127,7 @@
 	</div>
 
 	<!-- Calendar Grid -->
-	<TooltipProvider>
-		<div class="border rounded-lg overflow-hidden">
+	<div class="border rounded-lg overflow-hidden">
 			<!-- Header -->
 			<div class="grid grid-cols-7 bg-muted">
 				{#each weekDays as day (day)}
@@ -198,7 +192,6 @@
 				</div>
 			{/each}
 		</div>
-	</TooltipProvider>
 
 	<!-- Legend -->
 	<div class="flex flex-wrap gap-4 text-xs text-muted-foreground">

@@ -15,7 +15,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import JoinRequestDialog from './JoinRequestDialog.svelte';
@@ -71,7 +70,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<div class="flex items-center gap-2">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de acceso</CardTitle>
@@ -115,16 +114,15 @@
 				<p>No hay solicitudes de acceso</p>
 			</div>
 		{:else}
-			<TooltipProvider>
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Nombre</TableHead>
-							<TableHead>Email</TableHead>
-							<TableHead>Estado</TableHead>
-							<TableHead>Solicitado</TableHead>
-							<TableHead class="w-[120px]">Acciones</TableHead>
-						</TableRow>
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Nombre</TableHead>
+						<TableHead>Email</TableHead>
+						<TableHead>Estado</TableHead>
+						<TableHead>Solicitado</TableHead>
+						<TableHead class="w-[120px]">Acciones</TableHead>
+					</TableRow>
 					</TableHeader>
 					<TableBody>
 						{#each joinRequests as request (request.id)}
@@ -203,8 +201,7 @@
 							</TableRow>
 						{/each}
 					</TableBody>
-				</Table>
-			</TooltipProvider>
+			</Table>
 		{/if}
 	</CardContent>
 </Card>

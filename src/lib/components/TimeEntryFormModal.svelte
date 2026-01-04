@@ -353,7 +353,7 @@
 							<SelectTrigger class="w-full min-w-0">
 								<div class="flex min-w-0 items-center">
 									{#if selectedProject}
-										<ProjectLabel project={selectedProject} truncate />
+										<ProjectLabel project={selectedProject} />
 									{:else}
 										<span class="text-muted-foreground">Seleccionar proyecto</span>
 									{/if}

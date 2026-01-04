@@ -139,7 +139,7 @@
 		</Button>
 	</div>
 
-	<Card class="w-full max-w-5xl mx-auto">
+	<Card class="w-full max-w-6xl mx-auto">
 		<CardHeader>
 			<CardTitle class="sr-only">Calendario del mes</CardTitle>
 		</CardHeader>

@@ -26,6 +26,7 @@
 
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import { TooltipProvider } from '$lib/components/ui/tooltip';
 	import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import type { OnboardingStatusType } from '$lib/api/onboarding';
@@ -236,8 +237,9 @@
 	const showHeader = $derived(onboardingStatus === 'ACTIVE' || (!isInitializing && !isAuthed));
 </script>
 
-<div class="min-h-screen flex flex-col">
-	{#if showHeader}
+<TooltipProvider>
+	<div class="min-h-screen flex flex-col">
+		{#if showHeader}
 		<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
 			<div class="flex items-center gap-4">
 				<a href={resolve('/')} class="flex items-center gap-2">
@@ -460,13 +462,14 @@
 		</header>
 	{/if}
 
-	<main class="grow flex flex-col">
-		{#if isInitializing && !isAuthCallbackPage}
-			<div class="min-h-[60vh] flex items-center justify-center text-sm text-muted-foreground">
-				Comprobando sesión...
-			</div>
-		{:else}
-			{@render children()}
-		{/if}
-	</main>
-</div>
+		<main class="grow flex flex-col">
+			{#if isInitializing && !isAuthCallbackPage}
+				<div class="min-h-[60vh] flex items-center justify-center text-sm text-muted-foreground">
+					Comprobando sesión...
+				</div>
+			{:else}
+				{@render children()}
+			{/if}
+		</main>
+	</div>
+</TooltipProvider>

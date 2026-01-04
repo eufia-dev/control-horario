@@ -1,31 +1,32 @@
 <script lang="ts">
-	import type { Project } from '$lib/api/projects';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import { cn } from '$lib/utils';
 
-	export let project: Project | null | undefined;
+	type ProjectLike = {
+		name?: string;
+		code?: string;
+	};
+
+	export let project: ProjectLike | null | undefined;
 	export let fallback = 'Proyecto';
-	export let truncate = false;
 	export let className: string | undefined = undefined;
 
 	$: code = project?.code?.trim();
 	$: name = project?.name ?? fallback;
+	$: fullLabel = code ? `${code} - ${name}` : name;
 </script>
 
-<span
-	class={cn(
-		'inline-flex items-center gap-1 text-left',
-		truncate ? 'min-w-0' : 'flex-wrap',
-		className
-	)}
->
-	{#if code}
-		<span
-			class={cn('font-semibold shrink-0', truncate ? 'whitespace-normal' : 'whitespace-normal')}
-		>
-			{code}
-		</span>
-		<span class="text-muted-foreground">-</span>
-	{/if}
-	<span class={cn(truncate ? 'truncate min-w-0' : 'whitespace-normal wrap-break-word')}>{name}</span
+<Tooltip>
+	<TooltipTrigger
+		class={cn('inline-flex items-center gap-1 text-left min-w-0 cursor-default', className)}
 	>
-</span>
+		{#if code}
+			<span class="font-semibold shrink-0">{code}</span>
+			<span class="text-muted-foreground">-</span>
+		{/if}
+		<span class="truncate min-w-0">{name}</span>
+	</TooltipTrigger>
+	<TooltipContent>
+		<p>{fullLabel}</p>
+	</TooltipContent>
+</Tooltip>

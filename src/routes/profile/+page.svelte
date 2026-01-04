@@ -26,12 +26,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipProvider,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ScheduleEditor from '../admin/ScheduleEditor.svelte';
 	import AddCompanyModal from '$lib/components/AddCompanyModal.svelte';
 	import RelationTypeBadge from '$lib/components/RelationTypeBadge.svelte';
@@ -470,8 +465,7 @@
 								{/if}
 
 								<div class="flex justify-between gap-2">
-									<TooltipProvider>
-										<Tooltip>
+									<Tooltip>
 											<TooltipTrigger>
 												<Button
 													variant="outline"
@@ -493,7 +487,6 @@
 												<p>Usar el horario por defecto de la empresa</p>
 											</TooltipContent>
 										</Tooltip>
-									</TooltipProvider>
 
 									<Button
 										size="sm"

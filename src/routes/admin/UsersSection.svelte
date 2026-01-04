@@ -14,12 +14,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		Tooltip,
-		TooltipContent,
-		TooltipProvider,
-		TooltipTrigger
-	} from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import UserFormModal from './UserFormModal.svelte';
 	import UserDeleteDialog from './UserDeleteDialog.svelte';
 	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
@@ -74,7 +69,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Usuarios</CardTitle>
 		<Button onclick={handleInviteUser}>
@@ -127,8 +122,7 @@
 				</Button>
 			</div>
 		{:else}
-			<TooltipProvider>
-				<Table>
+			<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead>Nombre</TableHead>
@@ -240,7 +234,6 @@
 						{/each}
 					</TableBody>
 				</Table>
-			</TooltipProvider>
 		{/if}
 	</CardContent>
 </Card>

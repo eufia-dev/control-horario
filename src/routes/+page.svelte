@@ -19,7 +19,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
@@ -29,6 +28,7 @@
 	import ComplianceWidget from './ComplianceWidget.svelte';
 	import MissingLogsAlert from './MissingLogsAlert.svelte';
 	import PendingAbsencesWidget from './PendingAbsencesWidget.svelte';
+	import TimeEntriesTable from '$lib/components/TimeEntriesTable.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import {
 		fetchMyTimeEntries,
@@ -538,7 +538,7 @@
 
 <div class="grow p-6 space-y-6">
 	{#if isAdmin && absenceStats && absenceStats.pending > 0}
-		<div class="w-full max-w-5xl mx-auto">
+		<div class="w-full max-w-6xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}
 				loading={loadingAbsenceStats}
@@ -548,7 +548,7 @@
 
 	{#if isGuest}
 		<!-- GUEST user welcome message -->
-		<Card class="w-full max-w-5xl mx-auto">
+		<Card class="w-full max-w-6xl mx-auto">
 			<CardHeader>
 				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 					<span class="material-symbols-rounded text-3xl!">waving_hand</span>
@@ -572,7 +572,7 @@
 		</Card>
 	{:else}
 		<!-- Non-GUEST user: show personal widgets -->
-		<div class="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
+		<div class="w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-stretch gap-4">
 			<div class="flex-1 flex flex-col">
 				<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} />
 			</div>
@@ -583,7 +583,7 @@
 			{/if}
 		</div>
 
-		<Card class="w-full max-w-5xl mx-auto">
+		<Card class="w-full max-w-6xl mx-auto">
 			<CardHeader>
 				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 					<span class="material-symbols-rounded text-3xl!">timer</span>
@@ -666,7 +666,7 @@
 												<SelectTrigger class="w-full min-w-0">
 													<div class="flex min-w-0 items-center">
 														{#if switchProject}
-															<ProjectLabel project={switchProject} truncate />
+															<ProjectLabel project={switchProject} />
 														{:else}
 															<span class="text-muted-foreground">Seleccionar proyecto</span>
 														{/if}
@@ -770,7 +770,7 @@
 										<SelectTrigger class="w-full min-w-0">
 											<div class="flex min-w-0 items-center">
 												{#if selectedProject}
-													<ProjectLabel project={selectedProject} truncate />
+													<ProjectLabel project={selectedProject} />
 												{:else}
 													<span class="text-muted-foreground">Seleccionar proyecto</span>
 												{/if}
@@ -811,7 +811,7 @@
 		</Card>
 
 		<!-- Time Entries / External Hours Card -->
-		<Card class="w-full max-w-5xl mx-auto">
+		<Card class="w-full max-w-6xl mx-auto">
 			<CardHeader
 				class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0"
 			>
@@ -879,138 +879,16 @@
 						</TabsList>
 
 						<TabsContent value="my-entries">
-							{#if loadingEntries}
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Fecha</TableHead>
-											{#if hasProjects}
-												<TableHead>Proyecto</TableHead>
-											{/if}
-											<TableHead>Tipo</TableHead>
-											<TableHead>Inicio</TableHead>
-											<TableHead>Fin</TableHead>
-											<TableHead>Duración</TableHead>
-											<TableHead>Lugar</TableHead>
-											<TableHead class="w-[100px]">Acciones</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-											<TableRow data-placeholder-index={i}>
-												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-												{#if hasProjects}
-													<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-												{/if}
-												<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-												<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-												<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-												<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-											</TableRow>
-										{/each}
-									</TableBody>
-								</Table>
-							{:else if entriesError}
-								<div class="flex items-center justify-center py-8 text-destructive">
-									<span class="material-symbols-rounded mr-2">error</span>
-									{entriesError}
-								</div>
-							{:else if timeEntries.length === 0}
-								<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-									<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-									<p>No hay registros de tiempo</p>
-									<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
-										<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-										Crear primer registro
-									</Button>
-								</div>
-							{:else}
-								<TooltipProvider>
-									<Table>
-										<TableHeader>
-											<TableRow>
-												<TableHead>Fecha</TableHead>
-												{#if hasProjects}
-													<TableHead>Proyecto</TableHead>
-												{/if}
-												<TableHead>Tipo</TableHead>
-												<TableHead>Inicio</TableHead>
-												<TableHead>Fin</TableHead>
-												<TableHead>Duración</TableHead>
-												<TableHead>Lugar</TableHead>
-												<TableHead class="w-[100px]">Acciones</TableHead>
-											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{#each timeEntries as entry (entry.id)}
-												<TableRow>
-													<TableCell class="font-medium">
-														{formatDate(entry.startTime)}
-													</TableCell>
-													{#if hasProjects}
-														<TableCell>
-															<Tooltip>
-																<TooltipTrigger class="max-w-[150px] truncate">
-																	{entry.project?.name ?? '-'}
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{entry.project?.name ?? '-'}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-													{/if}
-													<TableCell>
-														<Badge variant="secondary">
-															{getEntryTypeName(
-																entry.entryType,
-																entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-															)}
-														</Badge>
-													</TableCell>
-													<TableCell class="text-muted-foreground">
-														{formatTime(entry.startTime)}
-													</TableCell>
-													<TableCell class="text-muted-foreground">
-														{formatTime(entry.endTime)}
-													</TableCell>
-													<TableCell class="font-medium">
-														{formatDuration(entry.durationMinutes)}
-													</TableCell>
-													<TableCell>
-														<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
-															{entry.isInOffice ? 'Oficina' : 'Remoto'}
-														</Badge>
-													</TableCell>
-													<TableCell>
-														<div class="flex items-center gap-1">
-															<Button
-																variant="ghost"
-																size="sm"
-																class="h-8 w-8 p-0"
-																onclick={() => handleEditEntry(entry)}
-															>
-																<span class="material-symbols-rounded text-xl!">edit</span>
-																<span class="sr-only">Editar</span>
-															</Button>
-															<Button
-																variant="ghost"
-																size="sm"
-																class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-																onclick={() => handleDeleteEntry(entry)}
-															>
-																<span class="material-symbols-rounded text-xl!">delete</span>
-																<span class="sr-only">Eliminar</span>
-															</Button>
-														</div>
-													</TableCell>
-												</TableRow>
-											{/each}
-										</TableBody>
-									</Table>
-								</TooltipProvider>
-							{/if}
+							<TimeEntriesTable
+								{timeEntries}
+								{timeEntryTypes}
+								loading={loadingEntries}
+								error={entriesError}
+								{hasProjects}
+								onEdit={handleEditEntry}
+								onDelete={handleDeleteEntry}
+								onCreate={handleCreateEntry}
+							/>
 						</TabsContent>
 
 						<TabsContent value="external-hours">
@@ -1052,8 +930,7 @@
 									</Button>
 								</div>
 							{:else}
-								<TooltipProvider>
-									<Table>
+								<Table>
 										<TableHeader>
 											<TableRow>
 												<TableHead>Fecha</TableHead>
@@ -1118,144 +995,21 @@
 											{/each}
 										</TableBody>
 									</Table>
-								</TooltipProvider>
 							{/if}
 						</TabsContent>
 					</Tabs>
 				{:else}
 					<!-- Non-admin view: just the time entries table -->
-					{#if loadingEntries}
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Fecha</TableHead>
-									{#if hasProjects}
-										<TableHead>Proyecto</TableHead>
-									{/if}
-									<TableHead>Tipo</TableHead>
-									<TableHead>Inicio</TableHead>
-									<TableHead>Fin</TableHead>
-									<TableHead>Duración</TableHead>
-									<TableHead>Lugar</TableHead>
-									<TableHead class="w-[100px]">Acciones</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
-									<TableRow data-placeholder-index={i}>
-										<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-										{#if hasProjects}
-											<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-										{/if}
-										<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-										<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-										<TableCell><Skeleton class="h-4 w-14" /></TableCell>
-										<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-										<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-										<TableCell><Skeleton class="h-8 w-20" /></TableCell>
-									</TableRow>
-								{/each}
-							</TableBody>
-						</Table>
-					{:else if entriesError}
-						<div class="flex items-center justify-center py-8 text-destructive">
-							<span class="material-symbols-rounded mr-2">error</span>
-							{entriesError}
-						</div>
-					{:else if timeEntries.length === 0}
-						<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-							<span class="material-symbols-rounded text-4xl! mb-2">history</span>
-							<p>No hay registros de tiempo</p>
-							<Button variant="outline" class="mt-4" onclick={handleCreateEntry}>
-								<span class="material-symbols-rounded mr-2 text-lg!">add</span>
-								Crear primer registro
-							</Button>
-						</div>
-					{:else}
-						<TooltipProvider>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Fecha</TableHead>
-										{#if hasProjects}
-											<TableHead>Proyecto</TableHead>
-										{/if}
-										<TableHead>Tipo</TableHead>
-										<TableHead>Inicio</TableHead>
-										<TableHead>Fin</TableHead>
-										<TableHead>Duración</TableHead>
-										<TableHead>Lugar</TableHead>
-										<TableHead class="w-[100px]">Acciones</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{#each timeEntries as entry (entry.id)}
-										<TableRow>
-											<TableCell class="font-medium">
-												{formatDate(entry.startTime)}
-											</TableCell>
-											{#if hasProjects}
-												<TableCell>
-													<Tooltip>
-														<TooltipTrigger class="max-w-[150px] truncate">
-															{entry.project?.name ?? '-'}
-														</TooltipTrigger>
-														<TooltipContent>
-															<p>{entry.project?.name ?? '-'}</p>
-														</TooltipContent>
-													</Tooltip>
-												</TableCell>
-											{/if}
-											<TableCell>
-												<Badge variant="secondary">
-													{getEntryTypeName(
-														entry.entryType,
-														entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-													)}
-												</Badge>
-											</TableCell>
-											<TableCell class="text-muted-foreground">
-												{formatTime(entry.startTime)}
-											</TableCell>
-											<TableCell class="text-muted-foreground">
-												{formatTime(entry.endTime)}
-											</TableCell>
-											<TableCell class="font-medium">
-												{formatDuration(entry.durationMinutes)}
-											</TableCell>
-											<TableCell>
-												<Badge variant={entry.isInOffice ? 'default' : 'outline'}>
-													{entry.isInOffice ? 'Oficina' : 'Remoto'}
-												</Badge>
-											</TableCell>
-											<TableCell>
-												<div class="flex items-center gap-1">
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0"
-														onclick={() => handleEditEntry(entry)}
-													>
-														<span class="material-symbols-rounded text-xl!">edit</span>
-														<span class="sr-only">Editar</span>
-													</Button>
-													<Button
-														variant="ghost"
-														size="sm"
-														class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-														onclick={() => handleDeleteEntry(entry)}
-													>
-														<span class="material-symbols-rounded text-xl!">delete</span>
-														<span class="sr-only">Eliminar</span>
-													</Button>
-												</div>
-											</TableCell>
-										</TableRow>
-									{/each}
-								</TableBody>
-							</Table>
-						</TooltipProvider>
-					{/if}
+					<TimeEntriesTable
+						{timeEntries}
+						{timeEntryTypes}
+						loading={loadingEntries}
+						error={entriesError}
+						{hasProjects}
+						onEdit={handleEditEntry}
+						onDelete={handleDeleteEntry}
+						onCreate={handleCreateEntry}
+					/>
 				{/if}
 			</CardContent>
 		</Card>

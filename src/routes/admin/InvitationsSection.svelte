@@ -15,7 +15,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
@@ -87,7 +86,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<div class="flex items-center gap-2">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Invitaciones</CardTitle>
@@ -143,9 +142,8 @@
 				</Button>
 			</div>
 		{:else}
-			<TooltipProvider>
-				<Table>
-					<TableHeader>
+			<Table>
+				<TableHeader>
 						<TableRow>
 							<TableHead>Email</TableHead>
 							<TableHead>Rol</TableHead>
@@ -221,8 +219,7 @@
 							</TableRow>
 						{/each}
 					</TableBody>
-				</Table>
-			</TooltipProvider>
+			</Table>
 		{/if}
 	</CardContent>
 </Card>

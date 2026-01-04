@@ -151,14 +151,14 @@
 
 	<!-- Admin pending absences widget -->
 	{#if isAdmin}
-		<div class="max-w-5xl mx-auto w-full">
+		<div class="max-w-6xl mx-auto w-full">
 			<PendingAbsencesWidget pendingCount={adminPendingCount} loading={loadingAdminStats} />
 		</div>
 	{/if}
 
 	<!-- Quick Stats -->
 	{#if !loading && !error}
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto w-full">
+		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto w-full">
 			<div class="p-4 bg-muted rounded-lg text-center">
 				<p class="text-2xl font-bold">{absences.length}</p>
 				<p class="text-sm text-muted-foreground">Total solicitudes</p>
@@ -176,7 +176,7 @@
 		</div>
 	{/if}
 
-	<Card class="w-full max-w-5xl mx-auto">
+	<Card class="w-full max-w-6xl mx-auto">
 		<CardContent>
 			{#if loading}
 				<div class="space-y-4">

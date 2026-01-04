@@ -10,7 +10,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import ScheduleEditor from './ScheduleEditor.svelte';
@@ -184,33 +183,31 @@
 	});
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0 flex-wrap gap-4">
 		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 			<span class="material-symbols-rounded text-2xl!">schedule</span>
 			Horarios de Trabajo
 		</CardTitle>
 		{#if !loadingCompany && company}
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger>
-						<div class="flex items-center gap-2">
-							<Switch
-								id="allowUserEdit"
-								checked={company.allowUserEditSchedule}
-								onCheckedChange={handleToggleAllowUserEdit}
-								disabled={savingSettings}
-							/>
-							<Label for="allowUserEdit" class="cursor-pointer text-sm">
-								Permitir a empleados personalizar horario
-							</Label>
-						</div>
-					</TooltipTrigger>
-					<TooltipContent>
-						<p>Si está activado, los empleados pueden definir su propio horario</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger>
+					<div class="flex items-center gap-2">
+						<Switch
+							id="allowUserEdit"
+							checked={company.allowUserEditSchedule}
+							onCheckedChange={handleToggleAllowUserEdit}
+							disabled={savingSettings}
+						/>
+						<Label for="allowUserEdit" class="cursor-pointer text-sm">
+							Permitir a empleados personalizar horario
+						</Label>
+					</div>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Si está activado, los empleados pueden definir su propio horario</p>
+				</TooltipContent>
+			</Tooltip>
 		{/if}
 	</CardHeader>
 	<CardContent>
@@ -339,29 +336,27 @@
 							{/if}
 
 							<div class="flex justify-between">
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger>
-											<Button
-												variant="outline"
-												onclick={handleResetUserSchedule}
-												disabled={savingUserSchedule || deletingUserOverrides}
-											>
-												{#if deletingUserOverrides}
-													<span class="material-symbols-rounded animate-spin text-lg!"
-														>progress_activity</span
-													>
-												{:else}
-													<span class="material-symbols-rounded text-lg! mr-2">restart_alt</span>
-												{/if}
-												Restablecer a valores por defecto
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>Elimina las personalizaciones y usa el horario de empresa</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger>
+										<Button
+											variant="outline"
+											onclick={handleResetUserSchedule}
+											disabled={savingUserSchedule || deletingUserOverrides}
+										>
+											{#if deletingUserOverrides}
+												<span class="material-symbols-rounded animate-spin text-lg!"
+													>progress_activity</span
+												>
+											{:else}
+												<span class="material-symbols-rounded text-lg! mr-2">restart_alt</span>
+											{/if}
+											Restablecer a valores por defecto
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Elimina las personalizaciones y usa el horario de empresa</p>
+									</TooltipContent>
+								</Tooltip>
 
 								<Button
 									onclick={handleSaveUserSchedule}

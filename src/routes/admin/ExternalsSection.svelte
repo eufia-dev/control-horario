@@ -15,7 +15,6 @@
 	import {
 		Tooltip,
 		TooltipContent,
-		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
 	import ExternalFormModal from './ExternalFormModal.svelte';
@@ -71,7 +70,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-5xl mx-auto">
+<Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
 		<Button onclick={handleCreateExternal}>
@@ -118,16 +117,15 @@
 				</Button>
 			</div>
 		{:else}
-			<TooltipProvider>
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Nombre</TableHead>
-							<TableHead>Coste/hora</TableHead>
-							<TableHead>Estado</TableHead>
-							<TableHead>Creado</TableHead>
-							<TableHead class="w-[100px]">Acciones</TableHead>
-						</TableRow>
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Nombre</TableHead>
+						<TableHead>Coste/hora</TableHead>
+						<TableHead>Estado</TableHead>
+						<TableHead>Creado</TableHead>
+						<TableHead class="w-[100px]">Acciones</TableHead>
+					</TableRow>
 					</TableHeader>
 					<TableBody>
 						{#each externals as external (external.id)}
@@ -177,8 +175,7 @@
 							</TableRow>
 						{/each}
 					</TableBody>
-				</Table>
-			</TooltipProvider>
+			</Table>
 		{/if}
 	</CardContent>
 </Card>
