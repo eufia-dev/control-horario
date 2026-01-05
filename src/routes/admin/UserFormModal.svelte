@@ -130,17 +130,6 @@
 			return;
 		}
 
-		if (!email.trim()) {
-			error = 'El email es obligatorio';
-			return;
-		}
-
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email.trim())) {
-			error = 'El formato del email no es válido';
-			return;
-		}
-
 		if (hourlyCost < 0) {
 			error = 'El coste por hora debe ser mayor o igual a 0';
 			return;
@@ -156,7 +145,6 @@
 		try {
 			const data: UpdateUserDto = {
 				name: name.trim(),
-				email: email.trim(),
 				phone: phone.trim() || undefined,
 				hourlyCost,
 				isActive,
@@ -202,10 +190,14 @@
 				<Input
 					id="email"
 					type="email"
-					bind:value={email}
+					value={email}
 					placeholder="usuario@ejemplo.com"
-					disabled={submitting}
+					disabled
+					class="bg-muted cursor-not-allowed"
 				/>
+				<p class="text-xs text-muted-foreground">
+					El email solo puede ser modificado por el propio usuario
+				</p>
 			</div>
 
 			<div class="grid gap-2">
