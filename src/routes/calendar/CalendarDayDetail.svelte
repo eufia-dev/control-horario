@@ -9,7 +9,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
-	import type { CalendarDay, EntryType } from '$lib/api/calendar';
+	import type { CalendarDay, EntryType, TimeEntryBrief } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
 
 	type Props = {
@@ -17,9 +17,12 @@
 		day: CalendarDay | null;
 		onClose: () => void;
 		onAddEntry?: () => void;
+		onAddAbsence?: () => void;
+		onEditEntry?: (entry: TimeEntryBrief) => void;
+		onDeleteEntry?: (entry: TimeEntryBrief) => void;
 	};
 
-	let { open = $bindable(), day, onClose, onAddEntry }: Props = $props();
+	let { open = $bindable(), day, onClose, onAddEntry, onAddAbsence, onEditEntry, onDeleteEntry }: Props = $props();
 
 	function formatDate(dateString: string): string {
 		return new Date(dateString).toLocaleDateString('es-ES', {
@@ -84,7 +87,7 @@
 				</DialogDescription>
 			</DialogHeader>
 
-			<div class="space-y-4 py-4">
+			<div class="space-y-4 py-2">
 				<!-- Holiday/Absence Info -->
 				{#if day.holidayName}
 					<div class="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg">
@@ -127,24 +130,10 @@
 								{@const isPause = isPauseEntry(entry.entryType)}
 								<div
 									class="flex items-center justify-between p-3 border rounded-lg transition-opacity {isPause
-										? 'opacity-60 bg-muted/30'
+										? 'opacity-60 hover:opacity-80 bg-muted/30'
 										: ''}"
 								>
 									<div class="flex items-center gap-3">
-										{#if isPause}
-											<Tooltip>
-												<TooltipTrigger>
-													<span class="material-symbols-rounded text-base text-muted-foreground"
-														>pause_circle</span
-													>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>
-														{ENTRY_TYPE_LABELS[entry.entryType]} - No cuenta como tiempo trabajado
-													</p>
-												</TooltipContent>
-											</Tooltip>
-										{/if}
 										<div class="text-sm">
 											<span class="font-medium">{formatTime(entry.startTime)}</span>
 											<span class="text-muted-foreground"> - </span>
@@ -158,9 +147,31 @@
 											<Badge variant="secondary">{entry.projectName}</Badge>
 										{/if}
 									</div>
-									<span class="text-sm font-medium {isPause ? 'text-muted-foreground' : ''}"
-										>{formatMinutes(entry.durationMinutes)}</span
-									>
+									<div class="flex items-center gap-1">
+										<span class="text-sm font-medium {isPause ? 'text-muted-foreground' : ''}"
+											>{formatMinutes(entry.durationMinutes)}</span
+										>
+										{#if onEditEntry}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0"
+												onclick={() => onEditEntry(entry)}
+											>
+												<span class="material-symbols-rounded text-base!">edit</span>
+											</Button>
+										{/if}
+										{#if onDeleteEntry}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+												onclick={() => onDeleteEntry(entry)}
+											>
+												<span class="material-symbols-rounded text-base!">delete</span>
+											</Button>
+										{/if}
+									</div>
 								</div>
 							{/each}
 						</div>
@@ -169,10 +180,22 @@
 					<div class="flex flex-col items-center justify-center py-6 text-muted-foreground">
 						<span class="material-symbols-rounded text-4xl! mb-2">history</span>
 						<p class="text-sm">No hay registros para este día</p>
+					</div>
+				{/if}
+
+				<!-- Action buttons -->
+				{#if onAddEntry || onAddAbsence}
+					<div class="flex flex-wrap gap-2 pt-4 border-t">
 						{#if onAddEntry}
-							<Button variant="outline" class="mt-4" onclick={onAddEntry}>
+							<Button variant="outline" size="sm" onclick={onAddEntry}>
 								<span class="material-symbols-rounded text-lg! mr-2">add</span>
 								Añadir registro
+							</Button>
+						{/if}
+						{#if onAddAbsence && !day.absenceType && !day.holidayName}
+							<Button variant="outline" size="sm" onclick={onAddAbsence}>
+								<span class="material-symbols-rounded text-lg! mr-2">beach_access</span>
+								Solicitar ausencia
 							</Button>
 						{/if}
 					</div>

@@ -248,7 +248,7 @@
 	});
 </script>
 
-<Card class="flex-3 min-w-0">
+<Card class="flex-1 min-w-0">
 	<CardHeader>
 		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 			<span class="material-symbols-rounded text-3xl!">timer</span>

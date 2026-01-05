@@ -20,7 +20,7 @@
 		type AbsenceTypeOption
 	} from '$lib/api/absences';
 	import { onMount } from 'svelte';
-	import { today, getLocalTimeZone, type DateValue } from '@internationalized/date';
+	import { today, getLocalTimeZone, CalendarDate, type DateValue } from '@internationalized/date';
 
 	type DateRange = {
 		start: DateValue | undefined;
@@ -31,9 +31,15 @@
 		open: boolean;
 		onClose: () => void;
 		onSuccess: () => void;
+		initialDate?: string | null; // ISO date string (YYYY-MM-DD)
 	};
 
-	let { open = $bindable(), onClose, onSuccess }: Props = $props();
+	let { open = $bindable(), onClose, onSuccess, initialDate = null }: Props = $props();
+
+	function parseISODate(isoDate: string): DateValue {
+		const [year, month, day] = isoDate.split('-').map(Number);
+		return new CalendarDate(year, month, day);
+	}
 
 	let absenceTypes = $state<AbsenceTypeOption[]>([]);
 	let loadingTypes = $state(true);
@@ -65,7 +71,13 @@
 
 	function resetForm() {
 		selectedType = absenceTypes.length > 0 ? absenceTypes[0].value : undefined;
-		dateRange = undefined;
+		// If initialDate is provided, pre-fill the date range
+		if (initialDate) {
+			const startDate = parseISODate(initialDate);
+			dateRange = { start: startDate, end: startDate };
+		} else {
+			dateRange = undefined;
+		}
 		notes = '';
 		error = null;
 		success = false;

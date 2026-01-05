@@ -9,13 +9,16 @@
 	import WorkingCalendar from './WorkingCalendar.svelte';
 	import CalendarDayDetail from './CalendarDayDetail.svelte';
 	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
+	import TimeEntryDeleteDialog from '../TimeEntryDeleteDialog.svelte';
+	import AbsenceRequestModal from '../absences/AbsenceRequestModal.svelte';
 	import {
 		fetchMyCalendarMonth,
 		type CalendarDay,
-		type CalendarMonthResponse
+		type CalendarMonthResponse,
+		type TimeEntryBrief
 	} from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
-	import { fetchTimeEntryTypes, type TimeEntryType } from '$lib/api/time-entries';
+	import { fetchTimeEntryTypes, type TimeEntryType, type TimeEntry } from '$lib/api/time-entries';
 	import {
 		fetchMyEffectiveSchedule,
 		type WorkScheduleDay,
@@ -54,6 +57,15 @@
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
 	let dayScheduleForModal = $state<WorkScheduleDay | null>(null);
+	let entryToEdit = $state<TimeEntry | null>(null);
+
+	// For time entry delete dialog
+	let deleteDialogOpen = $state(false);
+	let entryToDelete = $state<TimeEntry | null>(null);
+
+	// For absence request modal
+	let absenceModalOpen = $state(false);
+	let initialDateForAbsence = $state<string | null>(null);
 
 	async function loadCalendar() {
 		loading = true;
@@ -123,9 +135,14 @@
 
 	function handleAddEntry() {
 		dayDetailOpen = false;
-		// Store the selected day's date and schedule to pass to the modal
+		// Store the selected day's date to pass to the modal
 		initialDateForModal = selectedDay?.date ?? null;
-		dayScheduleForModal = initialDateForModal ? getScheduleForDate(initialDateForModal) : null;
+		// Only pass schedule if the day has no existing entries (to pre-fill with schedule times)
+		// If entries already exist, show basic modal without schedule pre-fill
+		const hasExistingEntries = selectedDay && selectedDay.entries.length > 0;
+		dayScheduleForModal = initialDateForModal && !hasExistingEntries 
+			? getScheduleForDate(initialDateForModal) 
+			: null;
 		timeEntryModalOpen = true;
 	}
 
@@ -134,9 +151,64 @@
 	}
 
 	function handleTimeEntryModalClose() {
-		// Clear the initial date and schedule when modal closes
+		// Clear the initial date, schedule, and entry when modal closes
 		initialDateForModal = null;
 		dayScheduleForModal = null;
+		entryToEdit = null;
+	}
+
+	function briefToTimeEntry(briefEntry: TimeEntryBrief): TimeEntry {
+		// Convert TimeEntryBrief to TimeEntry
+		// Note: isInOffice defaults to true since it's not in the brief data
+		return {
+			id: briefEntry.id,
+			userId: '', // Not needed for editing/deleting
+			companyId: '', // Not needed for editing/deleting
+			projectId: briefEntry.projectId ?? '',
+			entryType: briefEntry.entryType,
+			startTime: briefEntry.startTime,
+			endTime: briefEntry.endTime,
+			durationMinutes: briefEntry.durationMinutes,
+			isInOffice: true, // Default value since not in TimeEntryBrief
+			createdAt: '', // Not needed for editing/deleting
+			project: briefEntry.projectName ? { id: briefEntry.projectId ?? '', name: briefEntry.projectName, code: '' } : undefined
+		};
+	}
+
+	function handleEditEntry(briefEntry: TimeEntryBrief) {
+		dayDetailOpen = false;
+		entryToEdit = briefToTimeEntry(briefEntry);
+		timeEntryModalOpen = true;
+	}
+
+	function handleDeleteEntry(briefEntry: TimeEntryBrief) {
+		dayDetailOpen = false;
+		entryToDelete = briefToTimeEntry(briefEntry);
+		deleteDialogOpen = true;
+	}
+
+	function handleDeleteSuccess() {
+		loadCalendar();
+	}
+
+	function handleDeleteDialogClose() {
+		entryToDelete = null;
+	}
+
+	function handleAddAbsence() {
+		dayDetailOpen = false;
+		// Store the selected day's date to pass to the absence modal
+		initialDateForAbsence = selectedDay?.date ?? null;
+		absenceModalOpen = true;
+	}
+
+	function handleAbsenceSuccess() {
+		loadCalendar();
+	}
+
+	function handleAbsenceModalClose() {
+		// Clear the initial date when modal closes
+		initialDateForAbsence = null;
 	}
 
 	// Reload calendar when month changes
@@ -215,11 +287,14 @@
 	day={selectedDay}
 	onClose={handleDayDetailClose}
 	onAddEntry={handleAddEntry}
+	onAddAbsence={handleAddAbsence}
+	onEditEntry={handleEditEntry}
+	onDeleteEntry={handleDeleteEntry}
 />
 
 <TimeEntryFormModal
 	bind:open={timeEntryModalOpen}
-	entry={null}
+	entry={entryToEdit}
 	{projects}
 	{timeEntryTypes}
 	latestProjectId={null}
@@ -227,4 +302,18 @@
 	daySchedule={dayScheduleForModal}
 	onClose={handleTimeEntryModalClose}
 	onSuccess={handleEntrySuccess}
+/>
+
+<AbsenceRequestModal
+	bind:open={absenceModalOpen}
+	initialDate={initialDateForAbsence}
+	onClose={handleAbsenceModalClose}
+	onSuccess={handleAbsenceSuccess}
+/>
+
+<TimeEntryDeleteDialog
+	bind:open={deleteDialogOpen}
+	entry={entryToDelete}
+	onClose={handleDeleteDialogClose}
+	onSuccess={handleDeleteSuccess}
 />

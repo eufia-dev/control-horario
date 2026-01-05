@@ -41,6 +41,13 @@ export type CalendarDay = {
 	isOutsideMonth?: boolean; // true for padding days from previous/next month
 };
 
+export type ProjectBreakdownItem = {
+	projectId: string;
+	projectName: string;
+	projectCode: string;
+	minutesWorked: number;
+};
+
 export type CalendarSummary = {
 	workingDays: number;
 	daysWorked: number;
@@ -51,6 +58,7 @@ export type CalendarSummary = {
 	totalLoggedMinutes: number;
 	minutesDifference: number;
 	compliancePercentage: number;
+	projectBreakdown?: ProjectBreakdownItem[];
 };
 
 /** @deprecated Use CalendarMonthResponse instead */
