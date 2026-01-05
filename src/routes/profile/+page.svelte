@@ -509,6 +509,7 @@
 							<div class="space-y-3">
 								{#each Array.from({ length: 7 }, (_, i) => i) as dayIndex (dayIndex)}
 									{@const daySchedule = mySchedule.find((d) => d.dayOfWeek === dayIndex)}
+									{@const hasBreak = !!(daySchedule?.breakStartTime && daySchedule?.breakEndTime)}
 									<div
 										class="flex items-center justify-between p-3 border rounded-lg {daySchedule
 											? 'bg-background'
@@ -518,9 +519,16 @@
 											{DAY_NAMES[dayIndex]}
 										</span>
 										{#if daySchedule}
-											<span class="text-sm">
-												{daySchedule.startTime} – {daySchedule.endTime}
-											</span>
+											<div class="flex flex-col items-end gap-0.5">
+												<span class="text-sm">
+													{daySchedule.startTime} – {daySchedule.endTime}
+												</span>
+												{#if hasBreak}
+													<span class="text-xs text-muted-foreground">
+														descanso: {daySchedule.breakStartTime} – {daySchedule.breakEndTime}
+													</span>
+												{/if}
+											</div>
 										{:else}
 											<span class="text-sm text-muted-foreground italic">No laborable</span>
 										{/if}

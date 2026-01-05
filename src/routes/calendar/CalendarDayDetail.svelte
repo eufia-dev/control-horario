@@ -8,7 +8,8 @@
 	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import type { CalendarDay } from '$lib/api/calendar';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+	import type { CalendarDay, EntryType } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
 
 	type Props = {
@@ -49,6 +50,17 @@
 		open = false;
 		onClose();
 	}
+
+	function isPauseEntry(entryType: EntryType): boolean {
+		return entryType.startsWith('PAUSE');
+	}
+
+	const ENTRY_TYPE_LABELS: Record<EntryType, string> = {
+		WORK: 'Trabajo',
+		PAUSE_COFFEE: 'Pausa café',
+		PAUSE_LUNCH: 'Pausa comida',
+		PAUSE_PERSONAL: 'Pausa personal'
+	};
 
 	const styles = $derived(day ? DAY_STATUS_STYLES[day.status] : null);
 	const statusLabel = $derived(day ? DAY_STATUS_LABELS[day.status] : '');
@@ -112,18 +124,43 @@
 						<h4 class="text-sm font-medium mb-2">Registros del día</h4>
 						<div class="space-y-2">
 							{#each day.entries as entry (entry.id)}
-								<div class="flex items-center justify-between p-3 border rounded-lg">
+								{@const isPause = isPauseEntry(entry.entryType)}
+								<div
+									class="flex items-center justify-between p-3 border rounded-lg transition-opacity {isPause
+										? 'opacity-60 bg-muted/30'
+										: ''}"
+								>
 									<div class="flex items-center gap-3">
+										{#if isPause}
+											<Tooltip>
+												<TooltipTrigger>
+													<span class="material-symbols-rounded text-base text-muted-foreground"
+														>pause_circle</span
+													>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>
+														{ENTRY_TYPE_LABELS[entry.entryType]} - No cuenta como tiempo trabajado
+													</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
 										<div class="text-sm">
 											<span class="font-medium">{formatTime(entry.startTime)}</span>
 											<span class="text-muted-foreground"> - </span>
 											<span class="font-medium">{formatTime(entry.endTime)}</span>
 										</div>
-										{#if entry.projectName}
+										{#if isPause}
+											<Badge variant="outline" class="text-xs text-muted-foreground">
+												{ENTRY_TYPE_LABELS[entry.entryType]}
+											</Badge>
+										{:else if entry.projectName}
 											<Badge variant="secondary">{entry.projectName}</Badge>
 										{/if}
 									</div>
-									<span class="text-sm font-medium">{formatMinutes(entry.durationMinutes)}</span>
+									<span class="text-sm font-medium {isPause ? 'text-muted-foreground' : ''}"
+										>{formatMinutes(entry.durationMinutes)}</span
+									>
 								</div>
 							{/each}
 						</div>

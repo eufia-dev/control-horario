@@ -134,7 +134,7 @@
 				<Skeleton class="h-5 w-24 mb-3" />
 				<div class="space-y-0 border border-border rounded-lg overflow-hidden">
 					{#each Array.from({ length: 2 }, (_, j) => j) as entryIndex (`${dayIndex}-${entryIndex}`)}
-						<div class="flex items-center gap-4 px-4 py-3 border-b border-border last:border-b-0">
+						<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
 							<Skeleton class="h-4 w-24" />
 							<Skeleton class="h-4 w-14" />
 							<Skeleton class="h-5 w-16 rounded-full" />
@@ -165,24 +165,24 @@
 		{#each groupedByDay as day (day.dateKey)}
 			<div>
 				<!-- Day header -->
-				<div class="flex items-center gap-3 mb-2">
-					<div class="flex items-baseline gap-1.5">
-						<span class="text-2xl font-semibold tabular-nums text-foreground">
+				<div class="flex items-center gap-2 sm:gap-3 mb-2">
+					<div class="flex items-baseline gap-1 sm:gap-1.5">
+						<span class="text-xl sm:text-2xl font-semibold tabular-nums text-foreground">
 							{day.dayNumber}
 						</span>
-						<span class="text-sm font-medium text-muted-foreground uppercase">
+						<span class="text-xs sm:text-sm font-medium text-muted-foreground uppercase">
 							{day.dayOfWeek}
 						</span>
 					</div>
 					<div class="h-px flex-1 bg-border"></div>
-					<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2 sm:gap-3">
 						{#if day.workMinutes > 0}
-							<span class="flex items-center gap-1 text-sm font-semibold text-primary tabular-nums">
+							<span class="flex items-center gap-1 text-xs sm:text-sm font-semibold text-primary tabular-nums">
 								{formatDuration(day.workMinutes)}
 							</span>
 						{/if}
 						{#if day.pauseMinutes > 0}
-							<span class="flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums">
+							<span class="hidden xs:flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums">
 								<span class="material-symbols-rounded text-sm!">pause</span>
 								{formatDuration(day.pauseMinutes)}
 							</span>
@@ -195,124 +195,146 @@
 					{#each day.entries as entry, idx (entry.id)}
 						{@const isPause = isPauseEntry(entry)}
 						<div
-							class="group/entry flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-muted/50 {idx >
+							class="group/entry flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-2.5 transition-colors hover:bg-muted/50 {idx >
 							0
 								? 'border-t border-border'
 								: ''} {isPause ? 'opacity-60 hover:opacity-80' : ''}"
 						>
-							<!-- Time range -->
-							<div class="flex items-center gap-1 text-sm tabular-nums shrink-0 min-w-[100px]">
-								<span class="font-medium text-foreground">{formatTime(entry.startTime)}</span>
-								<span class="text-muted-foreground/60">→</span>
-								<span class="font-medium text-foreground">{formatTime(entry.endTime)}</span>
+							<!-- Mobile: Top row with time + duration + actions -->
+							<div class="flex items-center gap-2 sm:contents">
+								<!-- Time range -->
+								<div class="flex items-center gap-1 text-sm tabular-nums shrink-0">
+									<span class="font-medium text-foreground">{formatTime(entry.startTime)}</span>
+									<span class="text-muted-foreground/60">→</span>
+									<span class="font-medium text-foreground">{formatTime(entry.endTime)}</span>
+								</div>
+
+								<!-- Duration -->
+								<span
+									class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isPause
+										? 'text-muted-foreground bg-muted'
+										: 'text-primary bg-primary/8'}"
+								>
+									{formatDuration(entry.durationMinutes)}
+								</span>
+
+								<!-- Entry Type - hidden on mobile, shown on desktop -->
+								<span class="hidden sm:flex text-sm shrink-0 items-center gap-1 text-muted-foreground">
+									{#if isPause}
+										<span class="material-symbols-rounded text-sm!">pause</span>
+									{/if}
+									{getEntryTypeName(
+										entry.entryType,
+										entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+									)}
+								</span>
+
+								<!-- Project - hidden on mobile -->
+								{#if hasProjects && entry.project}
+									<div class="hidden md:block">
+										<ProjectLabel project={entry.project} className="text-sm max-w-80" />
+									</div>
+								{/if}
+
+								<!-- Location indicator - icon only on mobile -->
+								<span
+									class="inline-flex items-center gap-1 text-xs px-1.5 sm:px-2 py-1 rounded-full shrink-0"
+									class:bg-foreground={entry.isInOffice}
+									class:text-background={entry.isInOffice}
+									class:bg-muted={!entry.isInOffice}
+									class:text-muted-foreground={!entry.isInOffice}
+								>
+									<span class="material-symbols-rounded text-xs!">
+										{entry.isInOffice ? 'apartment' : 'home'}
+									</span>
+									<span class="hidden sm:inline">{entry.isInOffice ? 'Oficina' : 'Remoto'}</span>
+								</span>
+
+								<!-- Source -->
+								{#if showSourceColumn}
+									<span class="hidden sm:inline text-xs text-muted-foreground shrink-0">
+										{getSourceLabel(entry.source)}
+									</span>
+								{/if}
+
+								<!-- Status indicators -->
+								{#if showStatusColumn}
+									<div class="hidden sm:flex items-center gap-1">
+										{#if entry.isManual}
+											<Tooltip>
+												<TooltipTrigger>
+													<span class="material-symbols-rounded text-sm! text-muted-foreground/60"
+														>edit_note</span
+													>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Registro creado manualmente</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
+										{#if entry.isModified}
+											<Tooltip>
+												<TooltipTrigger>
+													<span class="material-symbols-rounded text-sm! text-amber-500">history</span
+													>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Registro modificado después de su creación</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
+									</div>
+								{/if}
+
+								<div class="flex-1"></div>
+
+								<!-- Actions - always visible on mobile, hover on desktop -->
+								{#if showActions}
+									<div
+										class="flex items-center gap-1 sm:opacity-0 sm:group-hover/entry:opacity-100 transition-opacity"
+									>
+										{#if onEdit}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+												onclick={() => onEdit(entry)}
+											>
+												<span class="material-symbols-rounded text-lg!">edit</span>
+												<span class="sr-only">Editar</span>
+											</Button>
+										{/if}
+										{#if onDelete}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+												onclick={() => onDelete(entry)}
+											>
+												<span class="material-symbols-rounded text-lg!">delete</span>
+												<span class="sr-only">Eliminar</span>
+											</Button>
+										{/if}
+									</div>
+								{/if}
 							</div>
 
-							<!-- Duration -->
-							<span
-								class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isPause
-									? 'text-muted-foreground bg-muted'
-									: 'text-primary bg-primary/8'}"
-							>
-								{formatDuration(entry.durationMinutes)}
-							</span>
-
-							<!-- Entry Type -->
-							<span class="text-sm shrink-0 flex items-center gap-1 text-muted-foreground">
-								{#if isPause}
-									<span class="material-symbols-rounded text-sm!">pause</span>
+							<!-- Mobile: Second row with entry type + project (if any) -->
+							<div class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap">
+								<span class="flex items-center gap-1">
+									{#if isPause}
+										<span class="material-symbols-rounded text-xs!">pause</span>
+									{/if}
+									{getEntryTypeName(
+										entry.entryType,
+										entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
+									)}
+								</span>
+								{#if hasProjects && entry.project}
+									<span class="text-muted-foreground/40">•</span>
+									<ProjectLabel project={entry.project} className="text-xs max-w-[160px]" />
 								{/if}
-								{getEntryTypeName(
-									entry.entryType,
-									entry.timeEntryType?.name ?? entry.entryTypeName ?? '-'
-								)}
-							</span>
-
-							<!-- Project -->
-							{#if hasProjects && entry.project}
-								<ProjectLabel project={entry.project} className="text-sm max-w-80" />
-							{/if}
-
-							<!-- Location indicator -->
-							<span
-								class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full shrink-0"
-								class:bg-foreground={entry.isInOffice}
-								class:text-background={entry.isInOffice}
-								class:bg-muted={!entry.isInOffice}
-								class:text-muted-foreground={!entry.isInOffice}
-							>
-								<span class="material-symbols-rounded text-xs!">
-									{entry.isInOffice ? 'apartment' : 'home'}
-								</span>
-								{entry.isInOffice ? 'Oficina' : 'Remoto'}
-							</span>
-
-							<!-- Source -->
-							{#if showSourceColumn}
-								<span class="text-xs text-muted-foreground shrink-0">
-									{getSourceLabel(entry.source)}
-								</span>
-							{/if}
-
-							<!-- Status indicators -->
-							{#if showStatusColumn}
-								<div class="flex items-center gap-1">
-									{#if entry.isManual}
-										<Tooltip>
-											<TooltipTrigger>
-												<span class="material-symbols-rounded text-sm! text-muted-foreground/60"
-													>edit_note</span
-												>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Registro creado manualmente</p>
-											</TooltipContent>
-										</Tooltip>
-									{/if}
-									{#if entry.isModified}
-										<Tooltip>
-											<TooltipTrigger>
-												<span class="material-symbols-rounded text-sm! text-amber-500">history</span
-												>
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>Registro modificado después de su creación</p>
-											</TooltipContent>
-										</Tooltip>
-									{/if}
-								</div>
-							{/if}
-
-							<div class="flex-1"></div>
-
-							<!-- Actions -->
-							{#if showActions}
-								<div
-									class="flex items-center gap-1 opacity-0 group-hover/entry:opacity-100 transition-opacity"
-								>
-									{#if onEdit}
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-											onclick={() => onEdit(entry)}
-										>
-											<span class="material-symbols-rounded text-lg!">edit</span>
-											<span class="sr-only">Editar</span>
-										</Button>
-									{/if}
-									{#if onDelete}
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-											onclick={() => onDelete(entry)}
-										>
-											<span class="material-symbols-rounded text-lg!">delete</span>
-											<span class="sr-only">Eliminar</span>
-										</Button>
-									{/if}
-								</div>
-							{/if}
+							</div>
 						</div>
 					{/each}
 				</div>

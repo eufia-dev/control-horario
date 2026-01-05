@@ -253,10 +253,12 @@
 
 	function handleTimerStop() {
 		loadEntries();
+		loadCalendarData();
 	}
 
 	function handleTimerSwitch() {
 		loadEntries();
+		loadCalendarData();
 	}
 
 	function handleCreateEntry() {
@@ -280,6 +282,7 @@
 
 	function handleEntrySuccess() {
 		loadEntries();
+		loadCalendarData();
 	}
 
 	function handleCreateExternalHours() {

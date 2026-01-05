@@ -8,6 +8,8 @@ export type WorkScheduleDay = {
 	dayOfWeek: number; // 0 = Monday, 1 = Tuesday, ... 6 = Sunday
 	startTime: string; // "HH:mm" 24h format
 	endTime: string; // "HH:mm" 24h format
+	breakStartTime?: string; // "HH:mm" 24h format (optional)
+	breakEndTime?: string; // "HH:mm" 24h format (optional)
 };
 
 export type WorkScheduleResponse = {
@@ -185,6 +187,41 @@ export function isEndTimeAfterStartTime(startTime: string, endTime: string): boo
 }
 
 /**
+ * Convert time string to minutes since midnight
+ */
+function timeToMinutes(time: string): number {
+	const [hour, min] = time.split(':').map(Number);
+	return hour * 60 + min;
+}
+
+/**
+ * Check if break is within work hours
+ * Break must satisfy: startTime <= breakStartTime && breakEndTime <= endTime
+ */
+export function isBreakWithinWorkHours(
+	startTime: string,
+	endTime: string,
+	breakStartTime: string,
+	breakEndTime: string
+): boolean {
+	if (
+		!isValidTimeFormat(startTime) ||
+		!isValidTimeFormat(endTime) ||
+		!isValidTimeFormat(breakStartTime) ||
+		!isValidTimeFormat(breakEndTime)
+	) {
+		return false;
+	}
+
+	const workStart = timeToMinutes(startTime);
+	const workEnd = timeToMinutes(endTime);
+	const breakStart = timeToMinutes(breakStartTime);
+	const breakEnd = timeToMinutes(breakEndTime);
+
+	return workStart <= breakStart && breakEnd <= workEnd;
+}
+
+/**
  * Validate a schedule DTO
  */
 export function validateSchedule(
@@ -224,6 +261,52 @@ export function validateSchedule(
 				valid: false,
 				error: `La hora de fin debe ser posterior a la de inicio para ${DAY_NAMES[day.dayOfWeek]}`
 			};
+		}
+
+		// Validate break times if provided
+		const hasBreakStart = day.breakStartTime !== undefined && day.breakStartTime !== null;
+		const hasBreakEnd = day.breakEndTime !== undefined && day.breakEndTime !== null;
+
+		// Both or neither must be provided
+		if (hasBreakStart !== hasBreakEnd) {
+			return {
+				valid: false,
+				error: `Debe especificar inicio y fin del descanso para ${DAY_NAMES[day.dayOfWeek]}`
+			};
+		}
+
+		if (hasBreakStart && hasBreakEnd) {
+			// Validate break time formats
+			if (!isValidTimeFormat(day.breakStartTime!)) {
+				return {
+					valid: false,
+					error: `Hora de inicio de descanso inválida para ${DAY_NAMES[day.dayOfWeek]}: ${day.breakStartTime}`
+				};
+			}
+			if (!isValidTimeFormat(day.breakEndTime!)) {
+				return {
+					valid: false,
+					error: `Hora de fin de descanso inválida para ${DAY_NAMES[day.dayOfWeek]}: ${day.breakEndTime}`
+				};
+			}
+
+			// Check breakEndTime > breakStartTime
+			if (!isEndTimeAfterStartTime(day.breakStartTime!, day.breakEndTime!)) {
+				return {
+					valid: false,
+					error: `La hora de fin de descanso debe ser posterior a la de inicio para ${DAY_NAMES[day.dayOfWeek]}`
+				};
+			}
+
+			// Check break is within work hours
+			if (
+				!isBreakWithinWorkHours(day.startTime, day.endTime, day.breakStartTime!, day.breakEndTime!)
+			) {
+				return {
+					valid: false,
+					error: `El descanso debe estar dentro del horario laboral para ${DAY_NAMES[day.dayOfWeek]}`
+				};
+			}
 		}
 	}
 

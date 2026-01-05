@@ -16,6 +16,7 @@
 	} from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType } from '$lib/api/time-entries';
+	import { fetchMyEffectiveSchedule, type WorkScheduleDay, type WorkScheduleResponse } from '$lib/api/work-schedules';
 	import { isGuest as isGuestStore } from '$lib/stores/auth';
 
 	let isGuest = $state(false);
@@ -45,8 +46,10 @@
 	// For time entry modal
 	let projects = $state<Project[]>([]);
 	let timeEntryTypes = $state<TimeEntryType[]>([]);
+	let workSchedule = $state<WorkScheduleResponse | null>(null);
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
+	let dayScheduleForModal = $state<WorkScheduleDay | null>(null);
 
 	async function loadCalendar() {
 		loading = true;
@@ -78,6 +81,25 @@
 		}
 	}
 
+	async function loadWorkSchedule() {
+		try {
+			workSchedule = await fetchMyEffectiveSchedule();
+		} catch (e) {
+			console.error('Error loading work schedule:', e);
+		}
+	}
+
+	function getScheduleForDate(dateStr: string): WorkScheduleDay | null {
+		if (!workSchedule) return null;
+		// Parse date and get day of week (0 = Monday, ..., 6 = Sunday in the API)
+		const date = new Date(dateStr);
+		// JavaScript: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+		// API: 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
+		const jsDayOfWeek = date.getDay();
+		const apiDayOfWeek = jsDayOfWeek === 0 ? 6 : jsDayOfWeek - 1;
+		return workSchedule.days.find((d) => d.dayOfWeek === apiDayOfWeek) ?? null;
+	}
+
 	function handlePrevMonth() {
 		currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
 	}
@@ -97,8 +119,9 @@
 
 	function handleAddEntry() {
 		dayDetailOpen = false;
-		// Store the selected day's date to pass to the modal
+		// Store the selected day's date and schedule to pass to the modal
 		initialDateForModal = selectedDay?.date ?? null;
+		dayScheduleForModal = initialDateForModal ? getScheduleForDate(initialDateForModal) : null;
 		timeEntryModalOpen = true;
 	}
 
@@ -107,8 +130,9 @@
 	}
 
 	function handleTimeEntryModalClose() {
-		// Clear the initial date when modal closes
+		// Clear the initial date and schedule when modal closes
 		initialDateForModal = null;
+		dayScheduleForModal = null;
 	}
 
 	// Reload calendar when month changes
@@ -119,6 +143,7 @@
 	onMount(() => {
 		loadProjects();
 		loadTypes();
+		loadWorkSchedule();
 	});
 </script>
 
@@ -195,6 +220,7 @@
 	{timeEntryTypes}
 	latestProjectId={null}
 	initialDate={initialDateForModal}
+	daySchedule={dayScheduleForModal}
 	onClose={handleTimeEntryModalClose}
 	onSuccess={handleEntrySuccess}
 />
