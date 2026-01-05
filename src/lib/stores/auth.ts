@@ -101,12 +101,35 @@ const createAuthStore = () => {
 			update((state) => ({
 				...state,
 				profiles,
-				activeProfile
+				activeProfile,
+				// Sync user data with the active profile to keep them consistent
+				user: activeProfile && state.user
+					? {
+							...state.user,
+							name: activeProfile.name,
+							email: activeProfile.email,
+							role: activeProfile.role,
+							relation: activeProfile.relation,
+							companyName: activeProfile.company.name
+						}
+					: state.user
 			})),
 		setActiveProfile: (activeProfile: Profile | null) =>
 			update((state) => ({
 				...state,
-				activeProfile
+				activeProfile,
+				// Sync user data with the active profile to keep them consistent
+				// Note: user.id stays the same (it's the auth user ID), but name, role, relation, etc. come from the profile
+				user: activeProfile && state.user
+					? {
+							...state.user,
+							name: activeProfile.name,
+							email: activeProfile.email,
+							role: activeProfile.role,
+							relation: activeProfile.relation,
+							companyName: activeProfile.company.name
+						}
+					: state.user
 			})),
 		clearProfiles: () =>
 			update((state) => ({

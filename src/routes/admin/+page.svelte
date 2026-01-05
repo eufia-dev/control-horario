@@ -32,12 +32,6 @@
 
 	// Read tab from URL query parameter on mount
 	onMount(() => {
-		const role = $auth.user?.role;
-		if (role !== 'OWNER' && role !== 'ADMIN') {
-			goto(resolve('/'));
-			return;
-		}
-
 		const tabParam = $page.url.searchParams.get('tab');
 		if (tabParam && validTabs.includes(tabParam as TabValue)) {
 			activeTab = tabParam as TabValue;
@@ -51,13 +45,6 @@
 			const url = new URL($page.url);
 			url.searchParams.set('tab', activeTab);
 			goto(url.toString(), { replaceState: true, noScroll: true });
-		}
-	});
-
-	$effect(() => {
-		const role = $auth.user?.role;
-		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
-			goto(resolve('/'));
 		}
 	});
 </script>

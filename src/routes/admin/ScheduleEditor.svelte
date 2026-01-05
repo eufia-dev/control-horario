@@ -74,6 +74,37 @@
 		}
 	});
 
+	// Helper to convert time string to minutes
+	function timeToMinutes(time: string): number {
+		const [hour, min] = time.split(':').map(Number);
+		return hour * 60 + min;
+	}
+
+	// Calculate total weekly hours
+	const totalWeeklyHours = $derived(() => {
+		let totalMinutes = 0;
+		for (const day of days) {
+			if (!day.enabled) continue;
+			if (!isValidTimeFormat(day.startTime) || !isValidTimeFormat(day.endTime)) continue;
+
+			const workMinutes = timeToMinutes(day.endTime) - timeToMinutes(day.startTime);
+
+			let breakMinutes = 0;
+			if (
+				day.hasBreak &&
+				isValidTimeFormat(day.breakStartTime) &&
+				isValidTimeFormat(day.breakEndTime)
+			) {
+				breakMinutes = timeToMinutes(day.breakEndTime) - timeToMinutes(day.breakStartTime);
+			}
+
+			totalMinutes += Math.max(0, workMinutes - breakMinutes);
+		}
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = totalMinutes % 60;
+		return { hours, minutes, totalMinutes };
+	});
+
 	// Validation errors per day
 	const errors = $derived(
 		days.map((day) => {
@@ -177,6 +208,19 @@
 </script>
 
 <div class="space-y-3">
+	<!-- Total weekly hours summary -->
+	<div class="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
+		<div class="flex items-center gap-2 text-sm font-medium">
+			<span class="material-symbols-rounded text-primary">schedule</span>
+			<span>Total horas semanales</span>
+		</div>
+		<div class="text-lg font-semibold text-primary">
+			{totalWeeklyHours().hours}h {totalWeeklyHours().minutes > 0
+				? `${totalWeeklyHours().minutes}min`
+				: ''}
+		</div>
+	</div>
+
 	{#each days as day, i (i)}
 		<div
 			class="w-full flex flex-col gap-3 p-3 border rounded-lg transition-colors {day.enabled

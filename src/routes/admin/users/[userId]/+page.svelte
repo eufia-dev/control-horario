@@ -153,22 +153,9 @@
 	});
 
 	onMount(() => {
-		const role = $auth.user?.role;
-		if (role !== 'OWNER' && role !== 'ADMIN') {
-			goto(resolve('/'));
-			return;
-		}
-
 		loadUser();
 		loadEntries();
 		loadTypes();
-	});
-
-	$effect(() => {
-		const role = $auth.user?.role;
-		if (!$auth.isInitializing && role !== 'OWNER' && role !== 'ADMIN') {
-			goto(resolve('/'));
-		}
 	});
 </script>
 
