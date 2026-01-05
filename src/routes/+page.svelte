@@ -250,7 +250,6 @@
 		});
 	}
 
-
 	function handleTimerStop() {
 		loadEntries();
 		loadCalendarData();

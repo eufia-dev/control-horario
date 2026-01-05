@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Skeleton } from '$lib/components/ui/skeleton';
@@ -11,7 +10,7 @@
 	import WorkingCalendar from '../../../calendar/WorkingCalendar.svelte';
 	import CalendarDayDetail from '../../../calendar/CalendarDayDetail.svelte';
 	import TimeEntriesCard from '$lib/components/TimeEntriesCard.svelte';
-	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { isAdmin as isAdminStore } from '$lib/stores/auth';
 	import { fetchUsers, type User } from '$lib/api/users';
 	import {
 		fetchUserTimeEntries,

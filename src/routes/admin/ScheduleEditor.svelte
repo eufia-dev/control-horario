@@ -130,12 +130,7 @@
 					return 'La hora de fin del descanso debe ser posterior a la de inicio';
 				}
 				if (
-					!isBreakWithinWorkHours(
-						day.startTime,
-						day.endTime,
-						day.breakStartTime,
-						day.breakEndTime
-					)
+					!isBreakWithinWorkHours(day.startTime, day.endTime, day.breakStartTime, day.breakEndTime)
 				) {
 					return 'El descanso debe estar dentro del horario laboral';
 				}
@@ -209,7 +204,9 @@
 
 <div class="space-y-3">
 	<!-- Total weekly hours summary -->
-	<div class="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
+	<div
+		class="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg"
+	>
 		<div class="flex items-center gap-2 text-sm font-medium">
 			<span class="material-symbols-rounded text-primary">schedule</span>
 			<span>Total horas semanales</span>

@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
-	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { isAdmin as isAdminStore } from '$lib/stores/auth';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import ProjectsSection from './ProjectsSection.svelte';

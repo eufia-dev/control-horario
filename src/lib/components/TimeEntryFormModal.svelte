@@ -98,7 +98,11 @@
 			: 'Añade uno o más registros de tiempo. Usa el botón + para añadir pausas o cambiar de proyecto.'
 	);
 	const submitLabel = $derived(
-		isEditMode ? 'Guardar cambios' : segments.length > 1 ? `Crear ${segments.length} registros` : 'Crear registro'
+		isEditMode
+			? 'Guardar cambios'
+			: segments.length > 1
+				? `Crear ${segments.length} registros`
+				: 'Crear registro'
 	);
 
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
@@ -724,7 +728,12 @@
 									disabled={submitting}
 								>
 									{baseDate
-										? baseDate.toDate(getLocalTimeZone()).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+										? baseDate.toDate(getLocalTimeZone()).toLocaleDateString('es-ES', {
+												weekday: 'long',
+												year: 'numeric',
+												month: 'long',
+												day: 'numeric'
+											})
 										: 'Seleccionar fecha'}
 									<span class="material-symbols-rounded text-lg! opacity-50"
 										>keyboard_arrow_down</span
@@ -753,7 +762,9 @@
 						{@const segmentIsWorkType = segmentType?.name === 'Trabajo'}
 						{@const segmentDuration = getSegmentDuration(segment)}
 
-						<div class="relative rounded-lg border bg-card p-4 transition-all hover:border-primary/30">
+						<div
+							class="relative rounded-lg border bg-card p-4 transition-all hover:border-primary/30"
+						>
 							{#if segments.length > 1}
 								<button
 									type="button"
@@ -767,7 +778,9 @@
 
 							<!-- Segment header with number -->
 							<div class="mb-3 flex items-center gap-2">
-								<span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+								<span
+									class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary"
+								>
 									{index + 1}
 								</span>
 								<span class="text-sm text-muted-foreground">
@@ -786,7 +799,10 @@
 											const isWork = newType?.name === 'Trabajo';
 											updateSegment(segment.id, {
 												entryType: v,
-												projectId: isWork && hasProjects ? (segment.projectId || defaultProjectId()) : undefined
+												projectId:
+													isWork && hasProjects
+														? segment.projectId || defaultProjectId()
+														: undefined
 											});
 										}}
 										disabled={submitting}

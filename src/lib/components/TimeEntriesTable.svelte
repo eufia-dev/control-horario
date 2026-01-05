@@ -134,7 +134,9 @@
 				<Skeleton class="h-5 w-24 mb-3" />
 				<div class="space-y-0 border border-border rounded-lg overflow-hidden">
 					{#each Array.from({ length: 2 }, (_, j) => j) as entryIndex (`${dayIndex}-${entryIndex}`)}
-						<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
+						<div
+							class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 border-b border-border last:border-b-0"
+						>
 							<Skeleton class="h-4 w-24" />
 							<Skeleton class="h-4 w-14" />
 							<Skeleton class="h-5 w-16 rounded-full" />
@@ -177,12 +179,16 @@
 					<div class="h-px flex-1 bg-border"></div>
 					<div class="flex items-center gap-2 sm:gap-3">
 						{#if day.workMinutes > 0}
-							<span class="flex items-center gap-1 text-xs sm:text-sm font-semibold text-primary tabular-nums">
+							<span
+								class="flex items-center gap-1 text-xs sm:text-sm font-semibold text-primary tabular-nums"
+							>
 								{formatDuration(day.workMinutes)}
 							</span>
 						{/if}
 						{#if day.pauseMinutes > 0}
-							<span class="hidden xs:flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums">
+							<span
+								class="hidden xs:flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums"
+							>
 								<span class="material-symbols-rounded text-sm!">pause</span>
 								{formatDuration(day.pauseMinutes)}
 							</span>
@@ -219,7 +225,9 @@
 								</span>
 
 								<!-- Entry Type - hidden on mobile, shown on desktop -->
-								<span class="hidden sm:flex text-sm shrink-0 items-center gap-1 text-muted-foreground">
+								<span
+									class="hidden sm:flex text-sm shrink-0 items-center gap-1 text-muted-foreground"
+								>
 									{#if isPause}
 										<span class="material-symbols-rounded text-sm!">pause</span>
 									{/if}
@@ -275,7 +283,8 @@
 										{#if entry.isModified}
 											<Tooltip>
 												<TooltipTrigger>
-													<span class="material-symbols-rounded text-sm! text-amber-500">history</span
+													<span class="material-symbols-rounded text-sm! text-amber-500"
+														>history</span
 													>
 												</TooltipTrigger>
 												<TooltipContent>
@@ -320,7 +329,9 @@
 							</div>
 
 							<!-- Mobile: Second row with entry type + project (if any) -->
-							<div class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap">
+							<div
+								class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap"
+							>
 								<span class="flex items-center gap-1">
 									{#if isPause}
 										<span class="material-symbols-rounded text-xs!">pause</span>

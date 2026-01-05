@@ -16,7 +16,11 @@
 	} from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType } from '$lib/api/time-entries';
-	import { fetchMyEffectiveSchedule, type WorkScheduleDay, type WorkScheduleResponse } from '$lib/api/work-schedules';
+	import {
+		fetchMyEffectiveSchedule,
+		type WorkScheduleDay,
+		type WorkScheduleResponse
+	} from '$lib/api/work-schedules';
 	import { isGuest as isGuestStore } from '$lib/stores/auth';
 
 	let isGuest = $state(false);
