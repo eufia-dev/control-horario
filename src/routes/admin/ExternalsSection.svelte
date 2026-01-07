@@ -81,7 +81,10 @@
 		<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
 		<div class="flex items-center gap-4">
 			<div class="relative">
-				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<span
+					class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+					>search</span
+				>
 				<Input
 					type="text"
 					placeholder="Buscar por nombre..."

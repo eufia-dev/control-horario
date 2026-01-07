@@ -60,16 +60,13 @@
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-	const selectedProject = $derived(projects.find((p) => p.id === selectedProjectId));
 	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
-	const switchProject = $derived(projects.find((p) => p.id === switchProjectId));
 	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
 	const isWorkType = $derived(selectedType?.name === 'Trabajo');
 	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
 
-	// Get the default project (latest or first active)
 	const defaultProjectId = $derived.by(() => {
 		if (latestProjectId) {
 			const project = activeProjects.find((p) => p.id === latestProjectId);
@@ -433,7 +430,10 @@
 					</Select>
 				</div>
 				{#if hasProjects}
-					<div class="grid gap-2 {isWorkType ? '' : 'opacity-0 pointer-events-none select-none'}" aria-hidden={!isWorkType}>
+					<div
+						class="grid gap-2 {isWorkType ? '' : 'opacity-0 pointer-events-none select-none'}"
+						aria-hidden={!isWorkType}
+					>
 						<Label>Proyecto</Label>
 						<Combobox
 							items={activeProjects}

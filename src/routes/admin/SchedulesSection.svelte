@@ -23,22 +23,18 @@
 
 	let activeTab = $state<'company' | 'users'>('company');
 
-	// Company settings
 	let company = $state<Company | null>(null);
 	let loadingCompany = $state(true);
 	let savingSettings = $state(false);
 
-	// Company default schedule
 	let companySchedule = $state<WorkScheduleDay[]>([]);
 	let loadingCompanySchedule = $state(true);
 	let savingCompanySchedule = $state(false);
 	let companyScheduleError = $state<string | null>(null);
 
-	// Users list
 	let users = $state<User[]>([]);
 	let loadingUsers = $state(true);
 
-	// Selected user for overrides
 	let selectedUserId = $state<string | undefined>(undefined);
 	let userSchedule = $state<WorkScheduleDay[]>([]);
 	let loadingUserSchedule = $state(false);
@@ -46,7 +42,6 @@
 	let deletingUserOverrides = $state(false);
 	let userScheduleError = $state<string | null>(null);
 
-	const selectedUser = $derived(users.find((u) => u.id === selectedUserId));
 	const activeUsers = $derived(users.filter((u) => u.isActive));
 
 	async function loadCompany() {

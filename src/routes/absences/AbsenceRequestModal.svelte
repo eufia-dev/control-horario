@@ -20,7 +20,7 @@
 		type AbsenceTypeOption
 	} from '$lib/api/absences';
 	import { onMount } from 'svelte';
-	import { today, getLocalTimeZone, CalendarDate, type DateValue } from '@internationalized/date';
+	import { CalendarDate, type DateValue } from '@internationalized/date';
 
 	type DateRange = {
 		start: DateValue | undefined;

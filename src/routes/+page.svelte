@@ -141,11 +141,10 @@
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
 
-	// Find the latest project from time entries (skip entries without projectId like pauses)
+	// not fcking working
 	const latestProjectId = $derived.by(() => {
 		for (const entry of timeEntries) {
 			if (entry.projectId) {
-				// Check if project is still active
 				const project = activeProjects.find((p) => p.id === entry.projectId);
 				if (project) {
 					return entry.projectId;
@@ -166,6 +165,7 @@
 		loadingProjects = true;
 		try {
 			projects = await fetchProjects();
+			console.log('projects', projects);
 		} catch (e) {
 			console.error('Error loading projects:', e);
 		} finally {

@@ -29,8 +29,7 @@
 			if (!searchQuery.trim()) return true;
 			const query = searchQuery.toLowerCase();
 			return (
-				project.code.toLowerCase().includes(query) ||
-				project.name.toLowerCase().includes(query)
+				project.code.toLowerCase().includes(query) || project.name.toLowerCase().includes(query)
 			);
 		})
 	);
@@ -84,7 +83,10 @@
 		<CardTitle class="text-2xl font-semibold tracking-tight">Proyectos</CardTitle>
 		<div class="flex items-center gap-4">
 			<div class="relative">
-				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<span
+					class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+					>search</span
+				>
 				<Input
 					type="text"
 					placeholder="Buscar por código o nombre..."

@@ -28,8 +28,7 @@
 			if (!searchQuery.trim()) return true;
 			const query = searchQuery.toLowerCase();
 			return (
-				request.name.toLowerCase().includes(query) ||
-				request.email.toLowerCase().includes(query)
+				request.name.toLowerCase().includes(query) || request.email.toLowerCase().includes(query)
 			);
 		})
 	);
@@ -88,7 +87,10 @@
 			{/if}
 		</div>
 		<div class="relative">
-			<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+			<span
+				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+				>search</span
+			>
 			<Input
 				type="text"
 				placeholder="Buscar por nombre o email..."
