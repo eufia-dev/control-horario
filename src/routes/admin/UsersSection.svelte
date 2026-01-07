@@ -14,6 +14,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import UserFormModal from './UserFormModal.svelte';
 	import UserDeleteDialog from './UserDeleteDialog.svelte';
@@ -24,6 +25,18 @@
 	let users = $state<User[]>([]);
 	let loadingUsers = $state(true);
 	let usersError = $state<string | null>(null);
+	let searchQuery = $state('');
+
+	const filteredUsers = $derived(
+		users.filter((user) => {
+			if (!searchQuery.trim()) return true;
+			const query = searchQuery.toLowerCase();
+			return (
+				user.name.toLowerCase().includes(query) ||
+				user.email.toLowerCase().includes(query)
+			);
+		})
+	);
 
 	let userFormModalOpen = $state(false);
 	let userDeleteDialogOpen = $state(false);
@@ -72,10 +85,21 @@
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Usuarios</CardTitle>
-		<Button onclick={handleInviteUser}>
-			<span class="material-symbols-rounded text-lg!">person_add</span>
-			Invitar usuario
-		</Button>
+		<div class="flex items-center gap-4">
+			<div class="relative">
+				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<Input
+					type="text"
+					placeholder="Buscar por nombre o email..."
+					bind:value={searchQuery}
+					class="pl-9 mr-9"
+				/>
+			</div>
+			<Button onclick={handleInviteUser}>
+				<span class="material-symbols-rounded text-lg!">person_add</span>
+				Invitar usuario
+			</Button>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loadingUsers}
@@ -121,6 +145,11 @@
 					Invitar primer usuario
 				</Button>
 			</div>
+		{:else if filteredUsers.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">search_off</span>
+				<p>No se encontraron usuarios</p>
+			</div>
 		{:else}
 			<Table>
 				<TableHeader>
@@ -136,7 +165,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each users as user (user.id)}
+					{#each filteredUsers as user (user.id)}
 						{@const roleBadge = getRoleBadge(user.role)}
 						{@const relationBadge = getRelationTypeBadge(user.relation)}
 						{@const isOwner = user.role === 'OWNER'}

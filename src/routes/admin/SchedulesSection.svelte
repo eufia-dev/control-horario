@@ -6,7 +6,7 @@
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Combobox } from '$lib/components/ui/combobox';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ScheduleEditor from './ScheduleEditor.svelte';
 	import {
@@ -277,25 +277,17 @@
 					</p>
 
 					<div class="flex items-center gap-4">
-						<Label class="whitespace-nowrap">Seleccionar usuario</Label>
-						<Select
-							type="single"
+						<Combobox
+							items={activeUsers}
 							bind:value={selectedUserId}
+							getItemValue={(user) => user.id}
+							getItemLabel={(user) => user.name}
+							placeholder="Seleccionar usuario"
+							searchPlaceholder="Buscar usuario..."
+							emptyMessage="No se encontraron usuarios."
 							disabled={loadingUsers || loadingUserSchedule}
-						>
-							<SelectTrigger class="w-full max-w-xs">
-								{#if selectedUser}
-									{selectedUser.name}
-								{:else}
-									<span class="text-muted-foreground">Seleccionar usuario</span>
-								{/if}
-							</SelectTrigger>
-							<SelectContent>
-								{#each activeUsers as user (user.id)}
-									<SelectItem value={user.id} label={user.name} />
-								{/each}
-							</SelectContent>
-						</Select>
+							class="w-full max-w-xs"
+						/>
 					</div>
 
 					{#if selectedUserId}

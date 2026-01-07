@@ -12,6 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
 	import InvitationDeleteDialog from './InvitationDeleteDialog.svelte';
@@ -21,6 +22,15 @@
 	let invitations = $state<Invitation[]>([]);
 	let loadingInvitations = $state(true);
 	let invitationsError = $state<string | null>(null);
+	let searchQuery = $state('');
+
+	const filteredInvitations = $derived(
+		invitations.filter((invitation) => {
+			if (!searchQuery.trim()) return true;
+			const query = searchQuery.toLowerCase();
+			return invitation.email.toLowerCase().includes(query);
+		})
+	);
 
 	let invitationFormModalOpen = $state(false);
 	let invitationDeleteDialogOpen = $state(false);
@@ -90,10 +100,21 @@
 				<Badge variant="secondary">{pendingInvitationsCount} pendientes</Badge>
 			{/if}
 		</div>
-		<Button onclick={handleCreateInvitation}>
-			<span class="material-symbols-rounded text-lg!">add</span>
-			Invitar
-		</Button>
+		<div class="flex items-center gap-4">
+			<div class="relative">
+				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<Input
+					type="text"
+					placeholder="Buscar por email..."
+					bind:value={searchQuery}
+					class="pl-9 mr-9"
+				/>
+			</div>
+			<Button onclick={handleCreateInvitation}>
+				<span class="material-symbols-rounded text-lg!">add</span>
+				Invitar
+			</Button>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loadingInvitations}
@@ -137,6 +158,11 @@
 					Crear primera invitación
 				</Button>
 			</div>
+		{:else if filteredInvitations.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">search_off</span>
+				<p>No se encontraron invitaciones</p>
+			</div>
 		{:else}
 			<Table>
 				<TableHeader>
@@ -151,7 +177,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each invitations as invitation (invitation.id)}
+					{#each filteredInvitations as invitation (invitation.id)}
 						{@const status = getInvitationStatus(invitation)}
 						{@const roleBadge = getRoleBadge(invitation.role)}
 						{@const relationBadge = getRelationTypeBadge(invitation.relation)}

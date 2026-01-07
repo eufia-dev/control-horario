@@ -12,6 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ExternalFormModal from './ExternalFormModal.svelte';
 	import ExternalDeleteDialog from './ExternalDeleteDialog.svelte';
@@ -21,6 +22,15 @@
 	let externals = $state<External[]>([]);
 	let loadingExternals = $state(true);
 	let externalsError = $state<string | null>(null);
+	let searchQuery = $state('');
+
+	const filteredExternals = $derived(
+		externals.filter((external) => {
+			if (!searchQuery.trim()) return true;
+			const query = searchQuery.toLowerCase();
+			return external.name.toLowerCase().includes(query);
+		})
+	);
 
 	let externalFormModalOpen = $state(false);
 	let externalDeleteDialogOpen = $state(false);
@@ -69,10 +79,21 @@
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Externos</CardTitle>
-		<Button onclick={handleCreateExternal}>
-			<span class="material-symbols-rounded text-lg!">add</span>
-			Añadir
-		</Button>
+		<div class="flex items-center gap-4">
+			<div class="relative">
+				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<Input
+					type="text"
+					placeholder="Buscar por nombre..."
+					bind:value={searchQuery}
+					class="pl-9 mr-9"
+				/>
+			</div>
+			<Button onclick={handleCreateExternal}>
+				<span class="material-symbols-rounded text-lg!">add</span>
+				Añadir
+			</Button>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loadingExternals}
@@ -112,6 +133,11 @@
 					Crear primer externo
 				</Button>
 			</div>
+		{:else if filteredExternals.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">search_off</span>
+				<p>No se encontraron externos</p>
+			</div>
 		{:else}
 			<Table>
 				<TableHeader>
@@ -124,7 +150,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each externals as external (external.id)}
+					{#each filteredExternals as external (external.id)}
 						<TableRow>
 							<TableCell class="font-medium">
 								<Tooltip>

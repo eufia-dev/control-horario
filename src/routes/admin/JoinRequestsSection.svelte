@@ -12,6 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import JoinRequestDialog from './JoinRequestDialog.svelte';
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
@@ -20,6 +21,18 @@
 	let joinRequests = $state<AdminJoinRequest[]>([]);
 	let loadingJoinRequests = $state(true);
 	let joinRequestsError = $state<string | null>(null);
+	let searchQuery = $state('');
+
+	const filteredJoinRequests = $derived(
+		joinRequests.filter((request) => {
+			if (!searchQuery.trim()) return true;
+			const query = searchQuery.toLowerCase();
+			return (
+				request.name.toLowerCase().includes(query) ||
+				request.email.toLowerCase().includes(query)
+			);
+		})
+	);
 
 	let joinRequestDialogOpen = $state(false);
 	let selectedJoinRequest = $state<AdminJoinRequest | null>(null);
@@ -74,6 +87,15 @@
 				<Badge variant="default">{pendingJoinRequestsCount} pendientes</Badge>
 			{/if}
 		</div>
+		<div class="relative">
+			<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+			<Input
+				type="text"
+				placeholder="Buscar por nombre o email..."
+				bind:value={searchQuery}
+				class="pl-9 mr-9"
+			/>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loadingJoinRequests}
@@ -109,6 +131,11 @@
 				<span class="material-symbols-rounded text-4xl! mb-2">person_search</span>
 				<p>No hay solicitudes de acceso</p>
 			</div>
+		{:else if filteredJoinRequests.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">search_off</span>
+				<p>No se encontraron solicitudes</p>
+			</div>
 		{:else}
 			<Table>
 				<TableHeader>
@@ -121,7 +148,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each joinRequests as request (request.id)}
+					{#each filteredJoinRequests as request (request.id)}
 						{@const isPending = request.status === 'PENDING'}
 						<TableRow>
 							<TableCell class="font-medium">

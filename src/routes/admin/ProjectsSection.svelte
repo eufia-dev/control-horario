@@ -12,6 +12,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import ProjectFormModal from './ProjectFormModal.svelte';
 	import ProjectDeleteDialog from './ProjectDeleteDialog.svelte';
@@ -21,6 +22,18 @@
 	let projects = $state<Project[]>([]);
 	let loadingProjects = $state(true);
 	let projectsError = $state<string | null>(null);
+	let searchQuery = $state('');
+
+	const filteredProjects = $derived(
+		projects.filter((project) => {
+			if (!searchQuery.trim()) return true;
+			const query = searchQuery.toLowerCase();
+			return (
+				project.code.toLowerCase().includes(query) ||
+				project.name.toLowerCase().includes(query)
+			);
+		})
+	);
 
 	let projectFormModalOpen = $state(false);
 	let deleteDialogOpen = $state(false);
@@ -69,10 +82,21 @@
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Proyectos</CardTitle>
-		<Button onclick={handleCreateProject}>
-			<span class="material-symbols-rounded text-lg!">add</span>
-			Añadir
-		</Button>
+		<div class="flex items-center gap-4">
+			<div class="relative">
+				<span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!">search</span>
+				<Input
+					type="text"
+					placeholder="Buscar por código o nombre..."
+					bind:value={searchQuery}
+					class="pl-9 mr-9"
+				/>
+			</div>
+			<Button onclick={handleCreateProject}>
+				<span class="material-symbols-rounded text-lg!">add</span>
+				Añadir
+			</Button>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loadingProjects}
@@ -112,6 +136,11 @@
 					Crear primer proyecto
 				</Button>
 			</div>
+		{:else if filteredProjects.length === 0}
+			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<span class="material-symbols-rounded text-4xl! mb-2">search_off</span>
+				<p>No se encontraron proyectos</p>
+			</div>
 		{:else}
 			<Table>
 				<TableHeader>
@@ -124,7 +153,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each projects as project (project.id)}
+					{#each filteredProjects as project (project.id)}
 						<TableRow>
 							<TableCell class="font-medium">
 								<Tooltip>
