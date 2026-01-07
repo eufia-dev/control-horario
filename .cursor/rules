@@ -1,6 +1,6 @@
 # Cursor Rules for control-horario
 
-Scope: light guidance to follow existing conventions (not strict blockers). Prefer `pnpm`.
+Scope: light guidance to follow existing conventions (not strict blockers). Always use `pnpm` (never npm, yarn, or other package managers).
 
 Stack & tooling
 - SvelteKit 2 + Svelte 5 runes; Vite; adapter-vercel deployment.
@@ -15,6 +15,7 @@ Structure
 UI & state
 - Prefer runes (`$state`, `$derived`, `$effect`) in components.
 - Reuse shadcn-svelte primitives; keep Spanish UI copy; favor Tailwind utilities.
+- Icons: always use Material Symbols (`<span class="material-symbols-outlined">icon_name</span>`); never use other icon libraries (Lucide, FontAwesome, Heroicons, etc.).
 - Forms: local state + inline validation; disable while submitting; show friendly errors near inputs.
 
 Auth & onboarding

@@ -69,7 +69,6 @@
 			? 'Modifica los datos de las horas del externo.'
 			: 'Rellena los datos para registrar horas de un externo.'
 	);
-	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear registro');
 
 	const selectedExternal = $derived(externals.find((e) => e.id === externalId));
 	const selectedProject = $derived(projects.find((p) => p.id === projectId));
@@ -333,18 +332,16 @@
 					type="submit"
 					variant={success ? 'success' : 'default'}
 					disabled={submitting || success}
-					class="min-w-[130px] transition-all duration-300"
+					class="min-w-22"
 				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
-						{submitLabel}
 					{:else if success}
 						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
 							>check_circle</span
 						>
-						Guardado
 					{:else}
-						{submitLabel}
+						Guardar
 					{/if}
 				</Button>
 			</DialogFooter>

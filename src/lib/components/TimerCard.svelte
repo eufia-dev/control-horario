@@ -255,8 +255,8 @@
 
 <Card class="flex-1 min-w-0">
 	<CardHeader>
-		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
-			<span class="material-symbols-rounded text-3xl!">timer</span>
+		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-3">
+			<span class="material-symbols-rounded text2xl!">timer</span>
 			Temporizador
 		</CardTitle>
 	</CardHeader>

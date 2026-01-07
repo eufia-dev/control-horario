@@ -8,7 +8,6 @@
 	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import type { CalendarDay, EntryType, TimeEntryBrief } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
 
@@ -22,7 +21,15 @@
 		onDeleteEntry?: (entry: TimeEntryBrief) => void;
 	};
 
-	let { open = $bindable(), day, onClose, onAddEntry, onAddAbsence, onEditEntry, onDeleteEntry }: Props = $props();
+	let {
+		open = $bindable(),
+		day,
+		onClose,
+		onAddEntry,
+		onAddAbsence,
+		onEditEntry,
+		onDeleteEntry
+	}: Props = $props();
 
 	function formatDate(dateString: string): string {
 		return new Date(dateString).toLocaleDateString('es-ES', {
@@ -67,6 +74,16 @@
 
 	const styles = $derived(day ? DAY_STATUS_STYLES[day.status] : null);
 	const statusLabel = $derived(day ? DAY_STATUS_LABELS[day.status] : '');
+
+	// Check if the day is in the future (no entries allowed)
+	const isFutureDay = $derived(() => {
+		if (!day) return false;
+		const dayDate = new Date(day.date);
+		dayDate.setHours(0, 0, 0, 0);
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return dayDate > today;
+	});
 </script>
 
 <Dialog bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -151,7 +168,7 @@
 										<span class="text-sm font-medium {isPause ? 'text-muted-foreground' : ''}"
 											>{formatMinutes(entry.durationMinutes)}</span
 										>
-										{#if onEditEntry}
+										{#if onEditEntry && !isFutureDay()}
 											<Button
 												variant="ghost"
 												size="sm"
@@ -161,7 +178,7 @@
 												<span class="material-symbols-rounded text-base!">edit</span>
 											</Button>
 										{/if}
-										{#if onDeleteEntry}
+										{#if onDeleteEntry && !isFutureDay()}
 											<Button
 												variant="ghost"
 												size="sm"
@@ -186,7 +203,7 @@
 				<!-- Action buttons -->
 				{#if onAddEntry || onAddAbsence}
 					<div class="flex flex-wrap gap-2 pt-4 border-t">
-						{#if onAddEntry}
+						{#if onAddEntry && !isFutureDay()}
 							<Button variant="outline" size="sm" onclick={onAddEntry}>
 								<span class="material-symbols-rounded text-lg! mr-2">add</span>
 								Añadir registro

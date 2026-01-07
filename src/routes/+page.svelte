@@ -375,7 +375,7 @@
 		</Card>
 	{:else}
 		<!-- Non-GUEST user: show personal widgets -->
-		
+
 		<!-- Missing Logs Alert - Full width at top for visibility -->
 		{#if missingDays.length > 0}
 			<div class="w-full max-w-6xl mx-auto">
@@ -398,7 +398,11 @@
 			/>
 
 			<!-- Compliance Widget - Secondary -->
-			<ComplianceWidget summary={calendarData?.summary ?? null} loading={loadingCalendar} {hasProjects} />
+			<ComplianceWidget
+				summary={calendarData?.summary ?? null}
+				loading={loadingCalendar}
+				{hasProjects}
+			/>
 		</div>
 
 		<!-- Time Entries / External Hours Card -->
@@ -614,6 +618,7 @@
 		{projects}
 		{timeEntryTypes}
 		{latestProjectId}
+		existingEntries={timeEntries}
 		onClose={handleModalClose}
 		onSuccess={handleEntrySuccess}
 	/>

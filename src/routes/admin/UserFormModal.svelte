@@ -275,18 +275,16 @@
 					type="submit"
 					variant={success ? 'success' : 'default'}
 					disabled={submitting || success}
-					class="min-w-[140px] transition-all duration-300"
+					class="min-w-22"
 				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
-						Guardando...
 					{:else if success}
 						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
 							>check_circle</span
 						>
-						Guardado
 					{:else}
-						Guardar cambios
+						Guardar
 					{/if}
 				</Button>
 			</DialogFooter>

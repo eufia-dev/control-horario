@@ -19,11 +19,7 @@
 	} from '$lib/api/calendar';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType, type TimeEntry } from '$lib/api/time-entries';
-	import {
-		fetchMyEffectiveSchedule,
-		type WorkScheduleDay,
-		type WorkScheduleResponse
-	} from '$lib/api/work-schedules';
+	import { fetchMyEffectiveSchedule, type WorkScheduleResponse } from '$lib/api/work-schedules';
 	import { isGuest as isGuestStore } from '$lib/stores/auth';
 
 	let isGuest = $state(false);
@@ -56,7 +52,6 @@
 	let workSchedule = $state<WorkScheduleResponse | null>(null);
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
-	let dayScheduleForModal = $state<WorkScheduleDay | null>(null);
 	let entryToEdit = $state<TimeEntry | null>(null);
 
 	// For time entry delete dialog
@@ -105,17 +100,6 @@
 		}
 	}
 
-	function getScheduleForDate(dateStr: string): WorkScheduleDay | null {
-		if (!workSchedule) return null;
-		// Parse date and get day of week (0 = Monday, ..., 6 = Sunday in the API)
-		const date = new Date(dateStr);
-		// JavaScript: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-		// API: 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
-		const jsDayOfWeek = date.getDay();
-		const apiDayOfWeek = jsDayOfWeek === 0 ? 6 : jsDayOfWeek - 1;
-		return workSchedule.days.find((d) => d.dayOfWeek === apiDayOfWeek) ?? null;
-	}
-
 	function handlePrevMonth() {
 		currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
 	}
@@ -137,12 +121,6 @@
 		dayDetailOpen = false;
 		// Store the selected day's date to pass to the modal
 		initialDateForModal = selectedDay?.date ?? null;
-		// Only pass schedule if the day has no existing entries (to pre-fill with schedule times)
-		// If entries already exist, show basic modal without schedule pre-fill
-		const hasExistingEntries = selectedDay && selectedDay.entries.length > 0;
-		dayScheduleForModal = initialDateForModal && !hasExistingEntries 
-			? getScheduleForDate(initialDateForModal) 
-			: null;
 		timeEntryModalOpen = true;
 	}
 
@@ -151,9 +129,8 @@
 	}
 
 	function handleTimeEntryModalClose() {
-		// Clear the initial date, schedule, and entry when modal closes
+		// Clear the initial date and entry when modal closes
 		initialDateForModal = null;
-		dayScheduleForModal = null;
 		entryToEdit = null;
 	}
 
@@ -171,7 +148,9 @@
 			durationMinutes: briefEntry.durationMinutes,
 			isInOffice: true, // Default value since not in TimeEntryBrief
 			createdAt: '', // Not needed for editing/deleting
-			project: briefEntry.projectName ? { id: briefEntry.projectId ?? '', name: briefEntry.projectName, code: '' } : undefined
+			project: briefEntry.projectName
+				? { id: briefEntry.projectId ?? '', name: briefEntry.projectName, code: '' }
+				: undefined
 		};
 	}
 
@@ -299,7 +278,7 @@
 	{timeEntryTypes}
 	latestProjectId={null}
 	initialDate={initialDateForModal}
-	daySchedule={dayScheduleForModal}
+	{workSchedule}
 	onClose={handleTimeEntryModalClose}
 	onSuccess={handleEntrySuccess}
 />

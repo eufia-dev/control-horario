@@ -13,7 +13,7 @@
 
 	let { summary, loading = false, hasProjects = false }: Props = $props();
 
-	const MAX_PROJECTS_SHOWN = 4;
+	const MAX_PROJECTS_SHOWN = 3;
 
 	function formatMinutes(minutes: number): string {
 		const absMinutes = Math.abs(minutes);
@@ -82,28 +82,24 @@
 		if (!summary?.projectBreakdown) return [];
 		return summary.projectBreakdown.slice(0, MAX_PROJECTS_SHOWN);
 	});
-
-	const hiddenProjectsCount = $derived.by(() => {
-		if (!summary?.projectBreakdown) return 0;
-		return Math.max(0, summary.projectBreakdown.length - MAX_PROJECTS_SHOWN);
-	});
 </script>
 
 <Card class="w-full flex-1">
 	<CardHeader class="flex flex-row items-center justify-between gap-2">
-		<CardTitle class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+		<CardTitle class="text-lg font-medium flex items-center gap-2 text-muted-foreground">
 			<span class="material-symbols-rounded text-lg!">schedule</span>
 			Cumplimiento este mes
 		</CardTitle>
 		<CardAction>
-			<Button variant="ghost" size="sm" href={resolve('/calendar')} title="Ver calendario" class="sm:px-3">
+			<Button variant="ghost" href={resolve('/calendar')} title="Ver calendario">
 				<span class="material-symbols-rounded text-lg!">calendar_month</span>
 				<span class="hidden sm:inline">Calendario</span>
-				<span class="material-symbols-rounded text-lg! ml-auto hidden sm:inline">chevron_right</span>
+				<span class="material-symbols-rounded text-lg! ml-auto hidden sm:inline">chevron_right</span
+				>
 			</Button>
 		</CardAction>
 	</CardHeader>
-	<CardContent>
+	<CardContent class="h-full">
 		{#if loading}
 			<div class="space-y-3 animate-pulse">
 				<div class="h-8 bg-muted rounded w-32"></div>
@@ -120,8 +116,8 @@
 				{/if}
 			</div>
 		{:else if summary}
-			<div class="space-y-3">
-				<div class="flex flex-col gap-1">
+			<div class="flex flex-col h-full gap-2">
+				<div class="flex flex-col gap-2 h-full justify-between">
 					<div class="flex items-baseline gap-2">
 						<span class="text-3xl font-bold">
 							{formatMinutes(summary.totalLoggedMinutes)}
@@ -130,48 +126,52 @@
 							/ {formatMinutes(summary.totalExpectedMinutes)}
 						</span>
 					</div>
-					<div class="flex items-center gap-1.5 {differenceColor}">
-						<span class="material-symbols-rounded text-lg!">{differenceIcon}</span>
-						<span class="text-sm font-medium">{differenceLabel}</span>
-					</div>
-				</div>
 
-				<div class="flex items-center gap-2">
-					<div class="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
-						<div
-							class="h-full transition-all duration-500 {progressColor}"
-							style="width: {barWidth}"
-						></div>
+					<div class="flex flex-col gap-2">
+						<div class="flex items-center gap-2 {differenceColor}">
+							<span class="material-symbols-rounded text-lg!">{differenceIcon}</span>
+							<span class="font-medium">{differenceLabel}</span>
+						</div>
+
+						<div class="flex items-center gap-2">
+							<div class="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+								<div
+									class="h-full transition-all duration-500 {progressColor}"
+									style="width: {barWidth}"
+								></div>
+							</div>
+							<span
+								class="text-sm font-semibold min-w-12 text-right flex items-center gap-1 {isOvertime
+									? 'text-success'
+									: 'text-muted-foreground'}"
+							>
+								{#if isOvertime}
+									<span class="material-symbols-rounded text-base!">bolt</span>
+								{/if}
+								{summary.compliancePercentage}%
+							</span>
+						</div>
 					</div>
-					<span
-						class="text-sm font-semibold min-w-12 text-right flex items-center gap-1 {isOvertime
-							? 'text-success'
-							: 'text-muted-foreground'}"
-					>
-						{#if isOvertime}
-							<span class="material-symbols-rounded text-base!">bolt</span>
-						{/if}
-						{summary.compliancePercentage}%
-					</span>
 				</div>
 
 				{#if hasProjectBreakdown}
-					<div class="pt-3 mt-1 border-t border-border/50">
-						<div class="flex flex-wrap items-center gap-2">
+					<div class="pt-3 border-t border-border/50">
+						<div class="flex items-center justify-around gap-2">
 							{#each visibleProjects as project (project.projectId)}
 								<Tooltip>
-									<TooltipTrigger class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/60 hover:bg-muted transition-colors">
-										<span class="text-sm font-bold">{project.projectCode}</span>
-										<span class="text-sm text-muted-foreground">{formatMinutesCompact(project.minutesWorked)}</span>
+									<TooltipTrigger
+										class="flex flex-col items-center gap-0.5 p-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors flex-1 max-w-28"
+									>
+										<span class="text-base font-bold tracking-tight">{project.projectCode}</span>
+										<span class="text-sm text-muted-foreground"
+											>{formatMinutesCompact(project.minutesWorked)}</span
+										>
 									</TooltipTrigger>
 									<TooltipContent>
 										<p>{project.projectName}</p>
 									</TooltipContent>
 								</Tooltip>
 							{/each}
-							{#if hiddenProjectsCount > 0}
-								<span class="inline-flex items-center px-3 py-1.5 text-sm text-muted-foreground">+{hiddenProjectsCount} más</span>
-							{/if}
 						</div>
 					</div>
 				{/if}

@@ -142,6 +142,12 @@ export async function fetchMyTimeEntries(year?: number, month?: number): Promise
 	return handleJsonResponse<TimeEntry[]>(response);
 }
 
+export async function fetchTimeEntriesByDate(date: string): Promise<TimeEntry[]> {
+	const url = `${API_BASE}/time-entries/me/by-date?date=${encodeURIComponent(date)}`;
+	const response = await fetchWithAuth(url);
+	return handleJsonResponse<TimeEntry[]>(response);
+}
+
 export async function fetchUserTimeEntries(
 	userId: string,
 	year?: number,

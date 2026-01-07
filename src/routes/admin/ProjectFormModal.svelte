@@ -42,7 +42,6 @@
 			? 'Modifica los datos del proyecto.'
 			: 'Rellena los datos para crear un nuevo proyecto.'
 	);
-	const submitLabel = $derived(isEditMode ? 'Guardar cambios' : 'Crear proyecto');
 
 	function resetForm() {
 		name = '';
@@ -173,18 +172,17 @@
 					type="submit"
 					variant={success ? 'success' : 'default'}
 					disabled={submitting || success}
-					class="min-w-[120px] transition-all duration-300"
+					class="min-w-22"
 				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
-						{submitLabel}
 					{:else if success}
 						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
 							>check_circle</span
 						>
 						Guardado
 					{:else}
-						{submitLabel}
+						Guardar
 					{/if}
 				</Button>
 			</DialogFooter>

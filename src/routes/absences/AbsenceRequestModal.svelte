@@ -250,16 +250,14 @@
 					type="submit"
 					variant={success ? 'success' : 'default'}
 					disabled={submitting || success || loadingTypes}
-					class="min-w-[140px] transition-all duration-300"
+					class="min-w-34"
 				>
 					{#if submitting}
 						<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
-						Enviando...
 					{:else if success}
 						<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
 							>check_circle</span
 						>
-						Enviada
 					{:else}
 						Enviar solicitud
 					{/if}
