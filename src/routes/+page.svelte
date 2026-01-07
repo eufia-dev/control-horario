@@ -122,7 +122,21 @@
 	let loadingCalendar = $state(true);
 	let loadingAbsenceStats = $state(true);
 
-	const missingDays = $derived(calendarData?.days.filter((d) => d.status === 'MISSING_LOGS') ?? []);
+	// Track if timer is active to filter out today from missing days
+	let hasActiveTimer = $state(false);
+
+	// Get today's date string in YYYY-MM-DD format for comparison
+	const todayString = $derived(() => {
+		const now = new Date();
+		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+	});
+
+	// Filter missing days - exclude today if timer is active
+	const missingDays = $derived(
+		(calendarData?.days.filter((d) => d.status === 'MISSING_LOGS') ?? []).filter(
+			(d) => !(hasActiveTimer && d.date === todayString())
+		)
+	);
 
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
@@ -260,6 +274,10 @@
 		loadCalendarData();
 	}
 
+	function handleActiveTimerChange(active: boolean) {
+		hasActiveTimer = active;
+	}
+
 	function handleCreateEntry() {
 		selectedEntry = null;
 		formModalOpen = true;
@@ -376,6 +394,7 @@
 				{loadingTypes}
 				onTimerStop={handleTimerStop}
 				onTimerSwitch={handleTimerSwitch}
+				onActiveTimerChange={handleActiveTimerChange}
 			/>
 
 			<!-- Compliance Widget - Secondary -->

@@ -27,6 +27,7 @@
 		loadingTypes?: boolean;
 		onTimerStop?: () => void;
 		onTimerSwitch?: () => void;
+		onActiveTimerChange?: (hasActiveTimer: boolean) => void;
 	}
 
 	let {
@@ -36,7 +37,8 @@
 		loadingProjects = false,
 		loadingTypes = false,
 		onTimerStop,
-		onTimerSwitch
+		onTimerSwitch,
+		onActiveTimerChange
 	}: Props = $props();
 
 	let activeTimer = $state<ActiveTimer | null>(null);
@@ -162,6 +164,7 @@
 			if (activeTimer) {
 				startElapsedTimer();
 			}
+			onActiveTimerChange?.(!!activeTimer);
 		} catch (e) {
 			console.error('Error loading active timer:', e);
 		} finally {
@@ -181,6 +184,7 @@
 				isInOffice
 			});
 			startElapsedTimer();
+			onActiveTimerChange?.(true);
 		} catch (e) {
 			console.error('Error starting timer:', e);
 		} finally {
@@ -194,6 +198,7 @@
 			await stopTimer();
 			activeTimer = null;
 			stopElapsedTimer();
+			onActiveTimerChange?.(false);
 			onTimerStop?.();
 		} catch (e) {
 			console.error('Error stopping timer:', e);
