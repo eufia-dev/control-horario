@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Combobox } from '$lib/components/ui/combobox';
 	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import { formatProjectLabel } from '$lib/utils';
 	import {
@@ -288,7 +289,7 @@
 					</div>
 					<div class="flex flex-col gap-1 text-right">
 						{#if activeTimer.project}
-							<div class="text-lg font-semibold">{activeTimer.project.name}</div>
+							<ProjectLabel project={activeTimer.project} />
 						{/if}
 						<div class="flex items-center gap-2 justify-end">
 							<Badge variant="secondary">
@@ -332,24 +333,23 @@
 							{#if isSwitchWorkType && hasProjects}
 								<div class="grid gap-2">
 									<Label>Proyecto</Label>
-									<Select type="single" bind:value={switchProjectId} disabled={switchingTimer}>
-										<SelectTrigger class="w-full min-w-0">
-											<div class="flex min-w-0 items-center">
-												{#if switchProject}
-													<ProjectLabel project={switchProject} />
-												{:else}
-													<span class="text-muted-foreground">Seleccionar proyecto</span>
-												{/if}
-											</div>
-										</SelectTrigger>
-										<SelectContent>
-											{#each activeProjects as project (project.id)}
-												<SelectItem value={project.id} label={formatProjectLabel(project)}>
-													<ProjectLabel {project} className="flex-1 min-w-0" />
-												</SelectItem>
-											{/each}
-										</SelectContent>
-									</Select>
+									<Combobox
+										items={activeProjects}
+										bind:value={switchProjectId}
+										getItemValue={(p) => p.id}
+										getItemLabel={(p) => formatProjectLabel(p)}
+										placeholder="Seleccionar proyecto"
+										searchPlaceholder="Buscar proyecto..."
+										emptyMessage="No se encontró ningún proyecto."
+										disabled={switchingTimer}
+									>
+										{#snippet selectedSnippet({ item })}
+											<ProjectLabel project={item} />
+										{/snippet}
+										{#snippet itemSnippet({ item })}
+											<ProjectLabel project={item} className="flex-1 min-w-0" />
+										{/snippet}
+									</Combobox>
 								</div>
 							{/if}
 						</div>
@@ -432,27 +432,26 @@
 						</SelectContent>
 					</Select>
 				</div>
-				{#if isWorkType && hasProjects}
-					<div class="grid gap-2">
+				{#if hasProjects}
+					<div class="grid gap-2 {isWorkType ? '' : 'opacity-0 pointer-events-none select-none'}" aria-hidden={!isWorkType}>
 						<Label>Proyecto</Label>
-						<Select type="single" bind:value={selectedProjectId} disabled={startingTimer}>
-							<SelectTrigger class="w-full min-w-0">
-								<div class="flex min-w-0 items-center">
-									{#if selectedProject}
-										<ProjectLabel project={selectedProject} />
-									{:else}
-										<span class="text-muted-foreground">Seleccionar proyecto</span>
-									{/if}
-								</div>
-							</SelectTrigger>
-							<SelectContent>
-								{#each activeProjects as project (project.id)}
-									<SelectItem value={project.id} label={formatProjectLabel(project)}>
-										<ProjectLabel {project} className="flex-1 min-w-0" />
-									</SelectItem>
-								{/each}
-							</SelectContent>
-						</Select>
+						<Combobox
+							items={activeProjects}
+							bind:value={selectedProjectId}
+							getItemValue={(p) => p.id}
+							getItemLabel={(p) => formatProjectLabel(p)}
+							placeholder="Seleccionar proyecto"
+							searchPlaceholder="Buscar proyecto..."
+							emptyMessage="No se encontró ningún proyecto."
+							disabled={startingTimer}
+						>
+							{#snippet selectedSnippet({ item })}
+								<ProjectLabel project={item} />
+							{/snippet}
+							{#snippet itemSnippet({ item })}
+								<ProjectLabel project={item} className="flex-1 min-w-0" />
+							{/snippet}
+						</Combobox>
 					</div>
 				{/if}
 				<div class="flex items-center justify-between flex-wrap gap-4">

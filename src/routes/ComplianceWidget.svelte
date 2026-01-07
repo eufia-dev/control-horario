@@ -13,7 +13,7 @@
 
 	let { summary, loading = false, hasProjects = false }: Props = $props();
 
-	const MAX_PROJECTS_SHOWN = 3;
+	const MAX_PROJECTS_SHOWN = 5;
 
 	function formatMinutes(minutes: number): string {
 		const absMinutes = Math.abs(minutes);
@@ -154,27 +154,25 @@
 					</div>
 				</div>
 
-				{#if hasProjectBreakdown}
-					<div class="pt-3 border-t border-border/50">
-						<div class="flex items-center justify-around gap-2">
-							{#each visibleProjects as project (project.projectId)}
-								<Tooltip>
-									<TooltipTrigger
-										class="flex flex-col items-center gap-0.5 p-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors flex-1 max-w-28"
-									>
-										<span class="text-base font-bold tracking-tight">{project.projectCode}</span>
-										<span class="text-sm text-muted-foreground"
-											>{formatMinutesCompact(project.minutesWorked)}</span
-										>
-									</TooltipTrigger>
-									<TooltipContent>
-										<p>{project.projectName}</p>
-									</TooltipContent>
-								</Tooltip>
-							{/each}
-						</div>
-					</div>
-				{/if}
+			{#if hasProjectBreakdown}
+				<div class="pt-3 border-t border-border/50 flex items-center justify-start gap-2">
+					{#each visibleProjects as project (project.projectId)}
+						<Tooltip>
+							<TooltipTrigger
+								class="flex-1 flex flex-col items-center gap-0.5 py-2 px-3 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+							>
+								<span class="w-full text-center truncate">{project.projectCode}</span>
+								<span class="text-sm text-muted-foreground whitespace-nowrap"
+									>{formatMinutesCompact(project.minutesWorked)}</span
+								>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>{project.projectName}</p>
+							</TooltipContent>
+						</Tooltip>
+					{/each}
+				</div>
+			{/if}
 			</div>
 		{:else}
 			<p class="text-sm text-muted-foreground">No hay datos disponibles</p>

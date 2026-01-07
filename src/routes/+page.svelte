@@ -374,18 +374,13 @@
 			</CardContent>
 		</Card>
 	{:else}
-		<!-- Non-GUEST user: show personal widgets -->
-
-		<!-- Missing Logs Alert - Full width at top for visibility -->
 		{#if missingDays.length > 0}
 			<div class="w-full max-w-6xl mx-auto">
 				<MissingLogsAlert {missingDays} loading={loadingCalendar} />
 			</div>
 		{/if}
 
-		<!-- Main row: Timer (primary) + Compliance (secondary) -->
-		<div class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-stretch gap-4">
-			<!-- Timer Card - Primary focus, takes more space -->
+		<div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
 			<TimerCard
 				{projects}
 				{timeEntryTypes}
@@ -397,7 +392,6 @@
 				onActiveTimerChange={handleActiveTimerChange}
 			/>
 
-			<!-- Compliance Widget - Secondary -->
 			<ComplianceWidget
 				summary={calendarData?.summary ?? null}
 				loading={loadingCalendar}
