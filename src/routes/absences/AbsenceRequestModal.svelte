@@ -211,7 +211,6 @@
 					<PopoverContent class="w-auto p-0" align="start">
 						<RangeCalendar
 							bind:value={dateRange}
-							minValue={today(getLocalTimeZone())}
 							onValueChange={() => {
 								if (dateRange?.start && dateRange?.end) {
 									dateRangePopoverOpen = false;
