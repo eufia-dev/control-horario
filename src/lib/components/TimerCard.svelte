@@ -51,27 +51,22 @@
 	let startingTimer = $state(false);
 	let stoppingTimer = $state(false);
 
-	let showSwitchForm = $state(false);
 	let switchProjectId = $state<string | undefined>(undefined);
-	let switchEntryType = $state<string | undefined>(undefined);
-	let switchIsInOffice = $state(true);
 	let switchingTimer = $state(false);
 
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	const selectedType = $derived(timeEntryTypes.find((t) => t.value === selectedEntryType));
-	const switchType = $derived(timeEntryTypes.find((t) => t.value === switchEntryType));
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
 	const isWorkType = $derived(selectedType?.name === 'Trabajo');
-	const isSwitchWorkType = $derived(switchType?.name === 'Trabajo');
+	const hasProjectChanged = $derived(
+		switchProjectId !== undefined && switchProjectId !== activeTimer?.project?.id
+	);
 
 	const defaultProjectId = $derived.by(() => {
-		if (latestProjectId) {
-			const project = activeProjects.find((p) => p.id === latestProjectId);
-			if (project) return latestProjectId;
-		}
+		if (latestProjectId) return latestProjectId;
 		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
 	});
 
@@ -94,7 +89,6 @@
 			!activeTimer
 	);
 
-	// Set default entry type
 	$effect(() => {
 		if (timeEntryTypes.length > 0 && !selectedEntryType) {
 			const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
@@ -106,22 +100,16 @@
 		}
 	});
 
-	// Handle project selection when switching entry types for timer form
 	$effect(() => {
-		if (isWorkType && hasProjects && !selectedProjectId && !loadingProjects && defaultProjectId) {
+		if (isWorkType && hasProjects && !loadingProjects && defaultProjectId) {
 			selectedProjectId = defaultProjectId;
 		} else if ((!isWorkType || !hasProjects) && selectedProjectId) {
 			selectedProjectId = undefined;
 		}
 	});
 
-	// Handle project selection when switching entry types for switch form
 	$effect(() => {
-		if (isSwitchWorkType && hasProjects && !switchProjectId && showSwitchForm && defaultProjectId) {
-			switchProjectId = defaultProjectId;
-		} else if ((!isSwitchWorkType || !hasProjects) && switchProjectId) {
-			switchProjectId = undefined;
-		}
+		switchProjectId = activeTimer?.project?.id;
 	});
 
 	function startElapsedTimer() {
@@ -205,41 +193,28 @@
 		}
 	}
 
-	function handleShowSwitchForm() {
-		if (activeTimer) {
-			switchEntryType = activeTimer.entryType;
-			switchIsInOffice = activeTimer.isInOffice;
-		}
-		switchProjectId = undefined;
-		showSwitchForm = true;
-	}
-
-	function handleCancelSwitch() {
-		showSwitchForm = false;
-		switchProjectId = undefined;
-		switchEntryType = undefined;
-	}
-
 	async function handleSwitchTimer() {
-		if (!switchEntryType) return;
-		if (isSwitchWorkType && hasProjects && !switchProjectId) return;
+		if (!activeTimer || !switchProjectId) return;
 
 		switchingTimer = true;
 		try {
 			const result = await switchTimer({
-				projectId: isSwitchWorkType ? switchProjectId : undefined,
-				entryType: switchEntryType,
-				isInOffice: switchIsInOffice
+				projectId: switchProjectId,
+				entryType: activeTimer.entryType,
+				isInOffice: activeTimer.isInOffice
 			});
 			activeTimer = result.activeTimer;
 			startElapsedTimer();
-			showSwitchForm = false;
 			onTimerSwitch?.();
 		} catch (e) {
 			console.error('Error switching timer:', e);
 		} finally {
 			switchingTimer = false;
 		}
+	}
+
+	function handleCancelSwitch() {
+		switchProjectId = activeTimer?.project?.id;
 	}
 
 	onMount(() => {
@@ -268,9 +243,12 @@
 				</div>
 			</div>
 		{:else if activeTimer}
-			<div class="flex flex-col gap-6">
-				<div class="flex items-center justify-between flex-wrap gap-4">
-					<div class="flex flex-col gap-1">
+			<div class="flex flex-col">
+				<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+					<div class="text-4xl font-mono font-bold tracking-tight">
+						{formatElapsedTime(elapsedSeconds)}
+					</div>
+					<div class="flex flex-col gap-2 items-end">
 						<div class="flex items-center gap-2">
 							<span class="relative flex h-3 w-3">
 								<span
@@ -280,15 +258,7 @@
 							</span>
 							<span class="text-sm font-medium text-success">En curso</span>
 						</div>
-						<div class="text-4xl font-mono font-bold tracking-tight">
-							{formatElapsedTime(elapsedSeconds)}
-						</div>
-					</div>
-					<div class="flex flex-col gap-1 text-right">
-						{#if activeTimer.project}
-							<ProjectLabel project={activeTimer.project} />
-						{/if}
-						<div class="flex items-center gap-2 justify-end">
+						<div class="flex items-center gap-2">
 							<Badge variant="secondary">
 								{getEntryTypeName(
 									activeTimer.entryType,
@@ -302,112 +272,64 @@
 					</div>
 				</div>
 
-				{#if showSwitchForm}
-					<!-- Switch Task Form -->
-					<div class="border rounded-lg p-4 bg-muted/30 space-y-4">
-						<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-							<span class="material-symbols-rounded text-lg!">swap_horiz</span>
-							Cambiar a otra tarea
-						</div>
-						<div class="flex flex-col gap-4">
-							<div class="grid gap-2">
-								<Label>Tipo</Label>
-								<Select type="single" bind:value={switchEntryType} disabled={switchingTimer}>
-									<SelectTrigger class="w-full">
-										{#if switchType}
-											{switchType.name}
-										{:else}
-											<span class="text-muted-foreground">Seleccionar tipo</span>
-										{/if}
-									</SelectTrigger>
-									<SelectContent>
-										{#each timeEntryTypes as type (type.value)}
-											<SelectItem value={type.value} label={type.name} />
-										{/each}
-									</SelectContent>
-								</Select>
-							</div>
-							{#if isSwitchWorkType && hasProjects}
-								<div class="grid gap-2">
-									<Label>Proyecto</Label>
-									<Combobox
-										items={activeProjects}
-										bind:value={switchProjectId}
-										getItemValue={(p) => p.id}
-										getItemLabel={(p) => formatProjectLabel(p)}
-										placeholder="Seleccionar proyecto"
-										searchPlaceholder="Buscar proyecto..."
-										emptyMessage="No se encontró ningún proyecto."
-										disabled={switchingTimer}
-									>
-										{#snippet selectedSnippet({ item })}
-											<ProjectLabel project={item} />
-										{/snippet}
-										{#snippet itemSnippet({ item })}
-											<ProjectLabel project={item} className="flex-1 min-w-0" />
-										{/snippet}
-									</Combobox>
-								</div>
-							{/if}
-						</div>
-						<div class="flex items-center gap-3">
-							<Switch
-								id="switchIsInOffice"
-								bind:checked={switchIsInOffice}
-								disabled={switchingTimer}
-							/>
-							<Label for="switchIsInOffice" class="cursor-pointer">
-								{switchIsInOffice ? 'Oficina' : 'Remoto'}
-							</Label>
-						</div>
-						<div class="flex gap-2 justify-end">
-							<Button variant="outline" onclick={handleCancelSwitch} disabled={switchingTimer}>
+				{#if activeTimer.project}
+					<div class="space-y-2 mb-4">
+						<Label>Proyecto</Label>
+						<Combobox
+							items={activeProjects}
+							bind:value={switchProjectId}
+							getItemValue={(p) => p.id}
+							getItemLabel={(p) => formatProjectLabel(p)}
+							placeholder="Seleccionar proyecto"
+							searchPlaceholder="Buscar proyecto..."
+							emptyMessage="No se encontró ningún proyecto."
+							disabled={switchingTimer || stoppingTimer}
+						>
+							{#snippet selectedSnippet({ item })}
+								<ProjectLabel project={item} />
+							{/snippet}
+							{#snippet itemSnippet({ item })}
+								<ProjectLabel project={item} className="flex-1 min-w-0" />
+							{/snippet}
+						</Combobox>
+					</div>
+				{/if}
+
+				<div class="flex gap-3 justify-between">
+					<Button
+						variant="destructive"
+						onclick={handleStopTimer}
+						disabled={stoppingTimer || switchingTimer}
+					>
+						{#if stoppingTimer}
+							<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+						{:else}
+							<span class="material-symbols-rounded text-lg!">stop</span>
+						{/if}
+						Detener
+					</Button>
+					{#if hasProjectChanged}
+						<div class="flex gap-2">
+							<Button
+								variant="outline"
+								onclick={handleCancelSwitch}
+								disabled={switchingTimer || stoppingTimer}
+							>
 								Cancelar
 							</Button>
-							<Button
-								onclick={handleSwitchTimer}
-								disabled={!switchEntryType ||
-									(isSwitchWorkType && hasProjects && !switchProjectId) ||
-									switchingTimer}
-							>
+							<Button onclick={handleSwitchTimer} disabled={switchingTimer || stoppingTimer}>
 								{#if switchingTimer}
-									<span class="material-symbols-rounded animate-spin text-base"
+									<span class="material-symbols-rounded animate-spin text-lg!"
 										>progress_activity</span
 									>
+								{:else}
+									<span class="material-symbols-rounded text-lg!">swap_horiz</span>
 								{/if}
 								Cambiar tarea
 							</Button>
 						</div>
-					</div>
-				{:else}
-					<!-- Timer Actions -->
-					<div class="flex gap-3 flex-wrap">
-						<Button
-							variant="destructive"
-							onclick={handleStopTimer}
-							disabled={stoppingTimer}
-							class="flex-1 sm:flex-none"
-						>
-							{#if stoppingTimer}
-								<span class="material-symbols-rounded mr-2 animate-spin text-base"
-									>progress_activity</span
-								>
-							{:else}
-								<span class="material-symbols-rounded mr-2 text-lg!">stop</span>
-							{/if}
-							Detener
-						</Button>
-						<Button
-							variant="outline"
-							onclick={handleShowSwitchForm}
-							disabled={stoppingTimer}
-							class="flex-1 sm:flex-none"
-						>
-							<span class="material-symbols-rounded mr-2 text-lg!">swap_horiz</span>
-							Cambiar tarea
-						</Button>
-					</div>
-				{/if}
+					{/if}
+				</div>
 			</div>
 		{:else}
 			<!-- Start Timer Form -->
@@ -463,7 +385,7 @@
 					</div>
 					<Button onclick={handleStartTimer} disabled={!canStartTimer}>
 						{#if startingTimer}
-							<span class="material-symbols-rounded animate-spin text-base">progress_activity</span>
+							<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
 						{:else}
 							<span class="material-symbols-rounded text-lg!">play_arrow</span>
 						{/if}

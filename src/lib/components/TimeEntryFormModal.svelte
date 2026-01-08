@@ -154,11 +154,7 @@
 
 	// Get the default project (latest from entries or first active)
 	const defaultProjectId = $derived(() => {
-		if (latestProjectId) {
-			// Verify the project is still active
-			const project = activeProjects.find((p) => p.id === latestProjectId);
-			if (project) return latestProjectId;
-		}
+		if (latestProjectId) return latestProjectId;
 		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
 	});
 

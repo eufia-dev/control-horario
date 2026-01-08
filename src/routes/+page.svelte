@@ -96,7 +96,6 @@
 
 	let activeTab = $state('my-entries');
 
-	// Month navigation state
 	let selectedMonth = $state(new Date());
 	const isCurrentMonth = $derived(() => {
 		const now = new Date();
@@ -116,22 +115,18 @@
 		loadEntries();
 	}
 
-	// Calendar and compliance data
 	let calendarData = $state<CalendarMonthResponse | null>(null);
 	let absenceStats = $state<AbsenceStats | null>(null);
 	let loadingCalendar = $state(true);
 	let loadingAbsenceStats = $state(true);
 
-	// Track if timer is active to filter out today from missing days
 	let hasActiveTimer = $state(false);
 
-	// Get today's date string in YYYY-MM-DD format for comparison
 	const todayString = $derived(() => {
 		const now = new Date();
 		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 	});
 
-	// Filter missing days - exclude today if timer is active
 	const missingDays = $derived(
 		(calendarData?.days.filter((d) => d.status === 'MISSING_LOGS') ?? []).filter(
 			(d) => !(hasActiveTimer && d.date === todayString())
@@ -141,17 +136,21 @@
 	const activeProjects = $derived(projects.filter((p) => p.isActive));
 	const hasProjects = $derived(activeProjects.length > 0);
 
-	// not fcking working
-	const latestProjectId = $derived.by(() => {
+	let latestProjectId = $state<string | null>(null);
+
+	$effect(() => {
+		let found: string | null = null;
 		for (const entry of timeEntries) {
 			if (entry.projectId) {
 				const project = activeProjects.find((p) => p.id === entry.projectId);
 				if (project) {
-					return entry.projectId;
+					found = entry.projectId;
+					break;
 				}
 			}
 		}
-		return null;
+
+		latestProjectId = found;
 	});
 
 	const enrichedExternalHours = $derived(
