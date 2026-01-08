@@ -165,7 +165,6 @@
 		loadingProjects = true;
 		try {
 			projects = await fetchProjects();
-			console.log('projects', projects);
 		} catch (e) {
 			console.error('Error loading projects:', e);
 		} finally {
