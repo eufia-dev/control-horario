@@ -89,19 +89,6 @@
 		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
 	</div>
 
-	{#if isTeamLeader}
-		<div
-			class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3"
-		>
-			<span class="material-symbols-rounded text-blue-600 text-xl! shrink-0">info</span>
-			<p class="text-sm text-blue-700 dark:text-blue-300">
-				Mostrando analíticas de tu equipo. Las estadísticas de proyectos incluyen todos los
-				proyectos de la empresa, pero las estadísticas de trabajadores solo incluyen a los miembros
-				de tu equipo.
-			</p>
-		</div>
-	{/if}
-
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
 		<Card class="gap-2">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
