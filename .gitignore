@@ -24,3 +24,5 @@ vite.config.ts.timestamp-*
 
 # cursor
 .cursor
+
+prompt.md

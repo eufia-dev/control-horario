@@ -5,7 +5,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { auth } from '$lib/stores/auth';
+	import { auth, isTeamLeader as isTeamLeaderStore } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import {
@@ -17,6 +17,14 @@
 	} from '$lib/api/analytics';
 
 	const currentUserId = $derived($auth.user?.id ?? null);
+	let isTeamLeader = $state(false);
+
+	$effect(() => {
+		const unsub = isTeamLeaderStore.subscribe((value) => {
+			isTeamLeader = value;
+		});
+		return unsub;
+	});
 
 	let projects = $state<ProjectSummary[]>([]);
 	let workers = $state<WorkerSummary[]>([]);
@@ -80,6 +88,19 @@
 		</div>
 		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
 	</div>
+
+	{#if isTeamLeader}
+		<div
+			class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3"
+		>
+			<span class="material-symbols-rounded text-blue-600 text-xl! shrink-0">info</span>
+			<p class="text-sm text-blue-700 dark:text-blue-300">
+				Mostrando analíticas de tu equipo. Las estadísticas de proyectos incluyen todos los
+				proyectos de la empresa, pero las estadísticas de trabajadores solo incluyen a los miembros
+				de tu equipo.
+			</p>
+		</div>
+	{/if}
 
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
 		<Card class="gap-2">

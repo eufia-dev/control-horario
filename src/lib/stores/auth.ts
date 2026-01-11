@@ -1,7 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import type { PendingInvitation, JoinRequest, OnboardingStatusType } from '$lib/api/onboarding';
 
-export type UserRole = 'OWNER' | 'ADMIN' | 'WORKER' | 'AUDITOR';
+export type UserRole = 'OWNER' | 'ADMIN' | 'TEAM_LEADER' | 'WORKER' | 'AUDITOR';
 
 export type RelationType = 'EMPLOYEE' | 'CONTRACTOR' | 'GUEST';
 
@@ -11,6 +11,7 @@ export type Profile = {
 	email: string;
 	role: UserRole;
 	relation: RelationType;
+	teamId: string | null;
 	company: {
 		id: string;
 		name: string;
@@ -25,6 +26,7 @@ export type AuthUser = {
 	companyName: string;
 	role: UserRole;
 	relation: RelationType;
+	teamId: string | null;
 	createdAt: string;
 };
 
@@ -111,6 +113,7 @@ const createAuthStore = () => {
 								email: activeProfile.email,
 								role: activeProfile.role,
 								relation: activeProfile.relation,
+								teamId: activeProfile.teamId,
 								companyName: activeProfile.company.name
 							}
 						: state.user
@@ -129,6 +132,7 @@ const createAuthStore = () => {
 								email: activeProfile.email,
 								role: activeProfile.role,
 								relation: activeProfile.relation,
+								teamId: activeProfile.teamId,
 								companyName: activeProfile.company.name
 							}
 						: state.user
@@ -180,3 +184,17 @@ export const hasMultipleProfiles = derived(auth, ($auth) => $auth.profiles.lengt
 export const isGuest = derived(auth, ($auth) => $auth.activeProfile?.relation === 'GUEST');
 
 export const canTrackTime = derived(auth, ($auth) => $auth.activeProfile?.relation !== 'GUEST');
+
+export const isTeamLeader = derived(auth, ($auth) => {
+	const role = $auth.activeProfile?.role ?? $auth.user?.role;
+	return role === 'TEAM_LEADER';
+});
+
+export const canAccessAdmin = derived(auth, ($auth) => {
+	const role = $auth.activeProfile?.role ?? $auth.user?.role;
+	return role === 'OWNER' || role === 'ADMIN' || role === 'TEAM_LEADER';
+});
+
+export const userTeamId = derived(auth, ($auth) => {
+	return $auth.activeProfile?.teamId ?? $auth.user?.teamId ?? null;
+});

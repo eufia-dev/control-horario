@@ -40,6 +40,7 @@
 	import {
 		isAdmin as isAdminStore,
 		isGuest as isGuestStore,
+		isTeamLeader as isTeamLeaderStore,
 		activeProfile
 	} from '$lib/stores/auth';
 	import GuestBanner from '$lib/components/GuestBanner.svelte';
@@ -47,6 +48,7 @@
 
 	let isAdmin = $state(false);
 	let isGuest = $state(false);
+	let isTeamLeader = $state(false);
 	let currentProfile = $state<typeof $activeProfile>(null);
 
 	$effect(() => {
@@ -59,6 +61,13 @@
 	$effect(() => {
 		const unsub = isGuestStore.subscribe((value) => {
 			isGuest = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = isTeamLeaderStore.subscribe((value) => {
+			isTeamLeader = value;
 		});
 		return unsub;
 	});
@@ -234,7 +243,7 @@
 	}
 
 	async function loadAbsenceStats() {
-		if (!isAdmin) return;
+		if (!isAdmin && !isTeamLeader) return;
 		loadingAbsenceStats = true;
 		try {
 			absenceStats = await fetchAbsenceStats();
@@ -338,7 +347,7 @@
 </script>
 
 <div class="grow p-6 space-y-6">
-	{#if isAdmin && absenceStats && absenceStats.pending > 0}
+	{#if (isAdmin || isTeamLeader) && absenceStats && absenceStats.pending > 0}
 		<div class="w-full max-w-6xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}

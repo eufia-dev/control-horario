@@ -6,6 +6,7 @@ const API_BASE = PUBLIC_API_URL;
 // Types
 export type WorkScheduleDay = {
 	dayOfWeek: number; // 0 = Monday, 1 = Tuesday, ... 6 = Sunday
+	isWorkable?: boolean; // true if working day, false if non-working (defaults to true)
 	startTime: string; // "HH:mm" 24h format
 	endTime: string; // "HH:mm" 24h format
 	breakStartTime?: string; // "HH:mm" 24h format (optional)
@@ -240,6 +241,12 @@ export function validateSchedule(
 			return { valid: false, error: `Día duplicado: ${DAY_NAMES[day.dayOfWeek]}` };
 		}
 		seenDays.add(day.dayOfWeek);
+
+		// If day is not workable, skip time validation
+		const isWorkable = day.isWorkable !== false; // defaults to true
+		if (!isWorkable) {
+			continue;
+		}
 
 		// Validate time formats
 		if (!isValidTimeFormat(day.startTime)) {

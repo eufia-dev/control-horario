@@ -86,7 +86,10 @@
 		const jsDayOfWeek = jsDate.getDay();
 		const apiDayOfWeek = jsDayOfWeek === 0 ? 6 : jsDayOfWeek - 1;
 
-		return schedule.days.find((d) => d.dayOfWeek === apiDayOfWeek) ?? null;
+		const day = schedule.days.find((d) => d.dayOfWeek === apiDayOfWeek);
+		// Return null if day doesn't exist OR is not workable
+		if (!day || day.isWorkable === false) return null;
+		return day;
 	}
 
 	// Track if schedule is currently being loaded

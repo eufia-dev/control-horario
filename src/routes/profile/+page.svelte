@@ -509,16 +509,17 @@
 							<div class="space-y-3">
 								{#each Array.from({ length: 7 }, (_, i) => i) as dayIndex (dayIndex)}
 									{@const daySchedule = mySchedule.find((d) => d.dayOfWeek === dayIndex)}
+									{@const isWorkable = daySchedule ? daySchedule.isWorkable !== false : false}
 									{@const hasBreak = !!(daySchedule?.breakStartTime && daySchedule?.breakEndTime)}
 									<div
-										class="flex items-center justify-between p-3 border rounded-lg {daySchedule
+										class="flex items-center justify-between p-3 border rounded-lg {isWorkable
 											? 'bg-background'
 											: 'bg-muted/30'}"
 									>
-										<span class="font-medium {!daySchedule ? 'text-muted-foreground' : ''}">
+										<span class="font-medium {!isWorkable ? 'text-muted-foreground' : ''}">
 											{DAY_NAMES[dayIndex]}
 										</span>
-										{#if daySchedule}
+										{#if isWorkable && daySchedule}
 											<div class="flex flex-col items-end gap-0.5">
 												<span class="text-sm">
 													{daySchedule.startTime} – {daySchedule.endTime}

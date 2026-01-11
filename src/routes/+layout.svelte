@@ -8,10 +8,10 @@
 		auth,
 		isAuthenticated,
 		isSignedIn,
-		isAdmin,
 		isGuest,
 		hasMultipleProfiles,
 		activeProfile,
+		canAccessAdmin as canAccessAdminStore,
 		type AuthUser
 	} from '$lib/stores/auth';
 	import {
@@ -37,9 +37,9 @@
 	let isInitializing = $state(true);
 	let isAuthed = $state(false);
 	let signedIn = $state(false);
-	let isUserAdmin = $state(false);
 	let isUserGuest = $state(false);
 	let hasMultiProfiles = $state(false);
+	let userCanAccessAdmin = $state(false);
 	let user = $state<AuthUser | null>(null);
 	let onboardingStatus = $state<OnboardingStatusType | null>(null);
 	let mobileMenuOpen = $state(false);
@@ -50,6 +50,7 @@
 	let unsubIsAdmin: (() => void) | undefined;
 	let unsubIsGuest: (() => void) | undefined;
 	let unsubHasMultipleProfiles: (() => void) | undefined;
+	let unsubCanAccessAdmin: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
 	const publicRoutes = ['/login', '/register', '/reset-password'];
@@ -135,7 +136,8 @@
 		}
 
 		// Redirect non-admin users away from admin-only routes
-		if (isAdminOnlyRoute(pathname) && !isUserAdmin) {
+		// TEAM_LEADER can also access admin and analytics routes
+		if (isAdminOnlyRoute(pathname) && !userCanAccessAdmin) {
 			goto(resolve('/'));
 			return;
 		}
@@ -162,16 +164,16 @@
 			signedIn = value;
 		});
 
-		unsubIsAdmin = isAdmin.subscribe((value) => {
-			isUserAdmin = value;
-		});
-
 		unsubIsGuest = isGuest.subscribe((value) => {
 			isUserGuest = value;
 		});
 
 		unsubHasMultipleProfiles = hasMultipleProfiles.subscribe((value) => {
 			hasMultiProfiles = value;
+		});
+
+		unsubCanAccessAdmin = canAccessAdminStore.subscribe((value) => {
+			userCanAccessAdmin = value;
 		});
 
 		unsubAuthChanges = subscribeToAuthChanges();
@@ -211,6 +213,7 @@
 			unsubIsAdmin?.();
 			unsubIsGuest?.();
 			unsubHasMultipleProfiles?.();
+			unsubCanAccessAdmin?.();
 			unsubAuthChanges?.data.subscription.unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
@@ -223,6 +226,7 @@
 		unsubIsAdmin?.();
 		unsubIsGuest?.();
 		unsubHasMultipleProfiles?.();
+		unsubCanAccessAdmin?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
 	});
 
@@ -268,7 +272,7 @@
 									<span>Ausencias</span>
 								</Button>
 							{/if}
-							{#if isUserAdmin}
+							{#if userCanAccessAdmin}
 								<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
 									<span class="material-symbols-rounded text-lg!">settings</span>
 									<span>Configuración</span>
@@ -399,7 +403,7 @@
 									<span>Ausencias</span>
 								</Button>
 							{/if}
-							{#if isUserAdmin}
+							{#if userCanAccessAdmin}
 								<Button
 									href={resolve('/admin')}
 									variant="ghost"

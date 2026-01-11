@@ -13,7 +13,8 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { updateUser, type User, type UpdateUserDto } from '$lib/api/users';
-	import type { UserRole } from '$lib/stores/auth';
+	import { fetchTeams, type Team } from '$lib/api/teams';
+	import { isAdmin as isAdminStore, type UserRole } from '$lib/stores/auth';
 	import type { RelationType } from '$lib/api/invitations';
 
 	type Props = {
@@ -32,19 +33,44 @@
 	let isActive = $state(true);
 	let role = $state<UserRole>('WORKER');
 	let relation = $state<RelationType>('EMPLOYEE');
+	let teamId = $state<string>('');
+	let teams = $state<Team[]>([]);
+	let loadingTeams = $state(false);
 	let submitting = $state(false);
 	let success = $state(false);
 	let error = $state<string | null>(null);
+	let isAdmin = $state(false);
+
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value;
+		});
+		return unsub;
+	});
 
 	const isAuditor = $derived(role === 'AUDITOR');
 	const isWorker = $derived(role === 'WORKER');
+	const isTeamLeader = $derived(role === 'TEAM_LEADER');
+	const teamLeaderWithoutTeam = $derived(isTeamLeader && !teamId);
 
-	const roleOptions: { value: UserRole; label: string }[] = [
+	const allRoleOptions: { value: UserRole; label: string }[] = [
 		{ value: 'OWNER', label: 'Propietario' },
 		{ value: 'ADMIN', label: 'Administrador' },
+		{ value: 'TEAM_LEADER', label: 'Jefe de equipo' },
 		{ value: 'WORKER', label: 'Trabajador' },
 		{ value: 'AUDITOR', label: 'Auditor' }
 	];
+
+	// Team leaders can only assign WORKER or TEAM_LEADER roles
+	const availableRoleOptions = $derived(
+		isAdmin
+			? allRoleOptions
+			: allRoleOptions.filter((r) => r.value === 'WORKER' || r.value === 'TEAM_LEADER')
+	);
+
+	const selectedTeamLabel = $derived(
+		teamId === '' ? 'Sin equipo' : (teams.find((t) => t.id === teamId)?.name ?? 'Sin equipo')
+	);
 
 	const relationTypeLabels: Record<RelationType, string> = {
 		EMPLOYEE: 'Empleado',
@@ -53,7 +79,7 @@
 	};
 
 	const selectedRoleLabel = $derived(
-		roleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'
+		allRoleOptions.find((r) => r.value === role)?.label ?? 'Seleccionar rol'
 	);
 
 	const selectedRelationTypeLabel = $derived(relationTypeLabels[relation] ?? 'Seleccionar tipo');
@@ -76,6 +102,7 @@
 		isActive = true;
 		role = 'WORKER';
 		relation = 'EMPLOYEE';
+		teamId = '';
 		error = null;
 		success = false;
 	}
@@ -88,6 +115,7 @@
 			hourlyCost = user.hourlyCost;
 			isActive = user.isActive;
 			role = user.role;
+			teamId = user.team?.id ?? '';
 			if (user.role === 'AUDITOR') {
 				relation = 'GUEST';
 			} else if (user.role === 'WORKER') {
@@ -100,9 +128,23 @@
 		}
 	}
 
+	async function loadTeams() {
+		loadingTeams = true;
+		try {
+			teams = await fetchTeams();
+		} catch (e) {
+			console.error('Error loading teams:', e);
+		} finally {
+			loadingTeams = false;
+		}
+	}
+
 	$effect(() => {
 		if (open && user) {
 			populateForm();
+			if (isAdmin) {
+				loadTeams();
+			}
 		}
 	});
 
@@ -140,6 +182,12 @@
 			return;
 		}
 
+		// Validate that TEAM_LEADER has a team assigned
+		if (role === 'TEAM_LEADER' && !teamId) {
+			error = 'Un jefe de equipo debe tener un equipo asignado';
+			return;
+		}
+
 		submitting = true;
 
 		try {
@@ -149,7 +197,8 @@
 				hourlyCost,
 				isActive,
 				role,
-				relation
+				relation,
+				teamId: teamId || null
 			};
 			await updateUser(user.id, data);
 			submitting = false;
@@ -231,7 +280,7 @@
 							{selectedRoleLabel}
 						</SelectTrigger>
 						<SelectContent>
-							{#each roleOptions as option (option.value)}
+							{#each availableRoleOptions as option (option.value)}
 								<SelectItem value={option.value} label={option.label} />
 							{/each}
 						</SelectContent>
@@ -252,6 +301,36 @@
 					</Select>
 				</div>
 			</div>
+
+			{#if isAdmin}
+				<div class="grid gap-2">
+					<Label>Equipo {isTeamLeader ? '*' : ''}</Label>
+					<Select type="single" bind:value={teamId} disabled={submitting || loadingTeams}>
+						<SelectTrigger class="w-full {teamLeaderWithoutTeam ? 'border-destructive' : ''}">
+							{selectedTeamLabel}
+						</SelectTrigger>
+						<SelectContent>
+							{#if !isTeamLeader}
+								<SelectItem value="" label="Sin equipo" />
+							{/if}
+							{#each teams as team (team.id)}
+								<SelectItem value={team.id} label={team.name} />
+							{/each}
+						</SelectContent>
+					</Select>
+					{#if teamLeaderWithoutTeam}
+						<p class="text-xs text-destructive">Un jefe de equipo debe tener un equipo asignado</p>
+					{:else}
+						<p class="text-xs text-muted-foreground">
+							{#if isTeamLeader}
+								El jefe de equipo podrá gestionar a los miembros de su equipo
+							{:else}
+								Asigna el usuario a un equipo para que el jefe de equipo pueda gestionarlo
+							{/if}
+						</p>
+					{/if}
+				</div>
+			{/if}
 
 			<div class="flex items-center gap-3">
 				<Switch id="isActive" bind:checked={isActive} disabled={submitting} />

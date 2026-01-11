@@ -14,11 +14,20 @@
 		type AbsenceResponse,
 		type AbsenceStats
 	} from '$lib/api/absences';
+	import { isTeamLeader as isTeamLeaderStore } from '$lib/stores/auth';
 
 	let absences = $state<AbsenceResponse[]>([]);
 	let stats = $state<AbsenceStats | null>(null);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
+	let isTeamLeader = $state(false);
+
+	$effect(() => {
+		const unsub = isTeamLeaderStore.subscribe((value) => {
+			isTeamLeader = value;
+		});
+		return unsub;
+	});
 
 	let activeTab = $state<'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'all'>('PENDING');
 	let reviewModalOpen = $state(false);
@@ -157,6 +166,12 @@
 	<Card class="w-full max-w-6xl mx-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl font-semibold tracking-tight">Gestión de Ausencias</CardTitle>
+			{#if isTeamLeader}
+				<p class="text-sm text-muted-foreground">
+					<span class="material-symbols-rounded text-sm! align-middle mr-1">info</span>
+					Mostrando ausencias de los miembros de tu equipo
+				</p>
+			{/if}
 		</CardHeader>
 		<CardContent>
 			{#if loading}

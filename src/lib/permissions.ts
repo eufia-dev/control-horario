@@ -1,106 +1,157 @@
-import { get } from 'svelte/store';
-import { auth } from '$lib/stores/auth';
+import type { UserRole } from '$lib/stores/auth';
+import type { Project } from '$lib/api/projects';
+import type { User } from '$lib/api/users';
 
 /**
- * Check if the current user can track their own time
- * GUEST users cannot track time as they don't work in the company
+ * Check if a user can edit a project
+ * - OWNER/ADMIN can edit any project
+ * - TEAM_LEADER can only edit projects belonging to their team
  */
-export function canTrackTime(): boolean {
-	const state = get(auth);
-	return state.activeProfile?.relation !== 'GUEST';
+export function canEditProject(
+	userRole: UserRole,
+	userTeamId: string | null,
+	project: Project
+): boolean {
+	if (userRole === 'OWNER' || userRole === 'ADMIN') {
+		return true;
+	}
+	if (userRole === 'TEAM_LEADER') {
+		return project.teamId !== null && project.teamId === userTeamId;
+	}
+	return false;
 }
 
 /**
- * Check if the current user can request absences
- * GUEST users cannot request absences
+ * Check if a user can delete a project
+ * - OWNER/ADMIN can delete any project
+ * - TEAM_LEADER can only delete projects belonging to their team
  */
-export function canRequestAbsence(): boolean {
-	return canTrackTime();
+export function canDeleteProject(
+	userRole: UserRole,
+	userTeamId: string | null,
+	project: Project
+): boolean {
+	if (userRole === 'OWNER' || userRole === 'ADMIN') {
+		return true;
+	}
+	if (userRole === 'TEAM_LEADER') {
+		return project.teamId !== null && project.teamId === userTeamId;
+	}
+	return false;
 }
 
 /**
- * Check if the current user can view their own schedule
- * GUEST users don't have a personal schedule
+ * Check if a user can edit another user
+ * - OWNER/ADMIN can edit any user (except OWNER can't be edited by ADMIN)
+ * - TEAM_LEADER can only edit users in their team
  */
-export function canViewOwnSchedule(): boolean {
-	return canTrackTime();
+export function canEditUser(
+	currentUserRole: UserRole,
+	currentUserTeamId: string | null,
+	targetUser: User
+): boolean {
+	if (currentUserRole === 'OWNER') {
+		return true;
+	}
+	if (currentUserRole === 'ADMIN') {
+		return targetUser.role !== 'OWNER';
+	}
+	if (currentUserRole === 'TEAM_LEADER') {
+		return (
+			targetUser.team?.id === currentUserTeamId &&
+			targetUser.role !== 'OWNER' &&
+			targetUser.role !== 'ADMIN'
+		);
+	}
+	return false;
 }
 
 /**
- * Check if the current user can view their own calendar
- * GUEST users don't have a personal calendar
+ * Check if a user can delete another user
+ * - OWNER can delete any user except themselves
+ * - ADMIN can delete non-OWNER users
+ * - TEAM_LEADER cannot delete users (only remove from team)
  */
-export function canViewOwnCalendar(): boolean {
-	return canTrackTime();
+export function canDeleteUser(
+	currentUserRole: UserRole,
+	currentUserTeamId: string | null,
+	targetUser: User
+): boolean {
+	if (targetUser.role === 'OWNER') {
+		return false; // Cannot delete owner
+	}
+	if (currentUserRole === 'OWNER') {
+		return true;
+	}
+	if (currentUserRole === 'ADMIN') {
+		return targetUser.role !== 'OWNER';
+	}
+	// TEAM_LEADER cannot delete users, only remove them from the team
+	return false;
 }
 
 /**
- * Check if the current user has admin role (OWNER or ADMIN)
+ * Check if a user can manage teams (create, delete teams)
+ * Only OWNER and ADMIN can manage teams
  */
-export function isAdmin(): boolean {
-	const state = get(auth);
-	const role = state.activeProfile?.role ?? state.user?.role;
+export function canManageTeams(role: UserRole): boolean {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
 /**
- * Check if the current user can access admin features
- * Both EMPLOYEE admins and GUEST admins can access admin features
+ * Check if a user can edit a team (edit team details or manage members)
+ * - OWNER/ADMIN can edit any team
+ * - TEAM_LEADER can only edit their own team
  */
-export function canAccessAdminFeatures(): boolean {
-	return isAdmin();
+export function canEditTeam(
+	userRole: UserRole,
+	userTeamId: string | null,
+	teamId: string
+): boolean {
+	if (userRole === 'OWNER' || userRole === 'ADMIN') {
+		return true;
+	}
+	if (userRole === 'TEAM_LEADER') {
+		return teamId === userTeamId;
+	}
+	return false;
 }
 
 /**
- * Check if the current user can manage other users' time entries
- * GUEST + ADMIN can manage others' time, just not their own
+ * Check if a user can access analytics
+ * OWNER, ADMIN, and TEAM_LEADER can access analytics
  */
-export function canManageOthersTime(): boolean {
-	return isAdmin();
+export function canAccessAnalytics(role: UserRole): boolean {
+	return role === 'OWNER' || role === 'ADMIN' || role === 'TEAM_LEADER';
 }
 
 /**
- * Check if the current user can manage absences (approve/reject)
+ * Check if a user can access admin panel
+ * OWNER, ADMIN, and TEAM_LEADER can access
  */
-export function canManageAbsences(): boolean {
-	return isAdmin();
+export function canAccessAdmin(role: UserRole): boolean {
+	return role === 'OWNER' || role === 'ADMIN' || role === 'TEAM_LEADER';
 }
 
 /**
- * Check if the current user can view analytics
+ * Check if a user can send invitations
+ * Only OWNER and ADMIN can send invitations
  */
-export function canViewAnalytics(): boolean {
-	return isAdmin();
+export function canSendInvitations(role: UserRole): boolean {
+	return role === 'OWNER' || role === 'ADMIN';
 }
 
 /**
- * Check if the current user can manage projects
+ * Check if a user can manage external workers
+ * Only OWNER and ADMIN can manage externals
  */
-export function canManageProjects(): boolean {
-	return isAdmin();
+export function canManageExternals(role: UserRole): boolean {
+	return role === 'OWNER' || role === 'ADMIN';
 }
 
 /**
- * Check if the current user can manage users
+ * Check if a user is a full admin (OWNER or ADMIN)
  */
-export function canManageUsers(): boolean {
-	return isAdmin();
-}
-
-/**
- * Check if the current user can edit company settings
- * Only OWNER can edit settings
- */
-export function canEditCompanySettings(): boolean {
-	const state = get(auth);
-	const role = state.activeProfile?.role ?? state.user?.role;
-	return role === 'OWNER';
-}
-
-/**
- * Check if the current user is a GUEST
- */
-export function isGuest(): boolean {
-	const state = get(auth);
-	return state.activeProfile?.relation === 'GUEST';
+export function isFullAdmin(role: UserRole): boolean {
+	return role === 'OWNER' || role === 'ADMIN';
 }

@@ -40,6 +40,7 @@
 
 	const isAuditor = $derived(role === 'AUDITOR');
 	const isWorker = $derived(role === 'WORKER');
+	const isTeamLeader = $derived(role === 'TEAM_LEADER');
 
 	const resetForm = () => {
 		email = '';
@@ -208,6 +209,18 @@
 					</Select.Root>
 				{/if}
 			</Field>
+
+			{#if isTeamLeader}
+				<div
+					class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-2"
+				>
+					<span class="material-symbols-rounded text-amber-600 text-lg! shrink-0">warning</span>
+					<p class="text-xs text-amber-700 dark:text-amber-300">
+						Recuerda asignar al usuario a un equipo una vez acepte la invitación. Un jefe de equipo
+						sin equipo asignado tendrá funcionalidad limitada.
+					</p>
+				</div>
+			{/if}
 
 			{#if errorMessage}
 				<FieldError class="text-sm text-destructive">{errorMessage}</FieldError>

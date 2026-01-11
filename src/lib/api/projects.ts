@@ -10,17 +10,21 @@ export type Project = {
 	isActive: boolean;
 	createdAt: string;
 	companyName: string;
+	teamId: string | null;
+	team: { id: string; name: string } | null;
 };
 
 export type CreateProjectDto = {
 	name: string;
 	code: string;
+	teamId?: string;
 };
 
 export type UpdateProjectDto = {
 	name?: string;
 	code?: string;
 	isActive?: boolean;
+	teamId?: string | null;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

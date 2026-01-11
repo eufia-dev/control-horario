@@ -18,6 +18,7 @@ export type User = {
 	role: UserRole;
 	nif: string | null;
 	naf: string | null;
+	team: { id: string; name: string } | null;
 	createdAt: string;
 	updatedAt: string | null;
 };
@@ -30,6 +31,7 @@ export type UpdateUserDto = {
 	isActive?: boolean;
 	role?: UserRole;
 	relation?: RelationType;
+	teamId?: string | null;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

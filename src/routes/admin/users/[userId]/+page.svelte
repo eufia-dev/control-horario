@@ -10,7 +10,7 @@
 	import WorkingCalendar from '../../../calendar/WorkingCalendar.svelte';
 	import CalendarDayDetail from '../../../calendar/CalendarDayDetail.svelte';
 	import TimeEntriesCard from '$lib/components/TimeEntriesCard.svelte';
-	import { isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { canAccessAdmin as canAccessAdminStore } from '$lib/stores/auth';
 	import { fetchUsers, type User } from '$lib/api/users';
 	import {
 		fetchUserTimeEntries,
@@ -24,10 +24,11 @@
 		type CalendarMonthResponse
 	} from '$lib/api/calendar';
 
-	let isAdmin = $state(false);
+	let canAccessAdmin = $state(false);
+
 	$effect(() => {
-		const unsub = isAdminStore.subscribe((value) => {
-			isAdmin = value;
+		const unsub = canAccessAdminStore.subscribe((value) => {
+			canAccessAdmin = value;
 		});
 		return unsub;
 	});
@@ -158,7 +159,7 @@
 	});
 </script>
 
-{#if isAdmin}
+{#if canAccessAdmin}
 	<div class="grow flex flex-col gap-6 p-6">
 		<!-- Header -->
 		<div class="flex items-center gap-2">

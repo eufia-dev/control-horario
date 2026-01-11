@@ -9,6 +9,8 @@ export function getRoleBadge(role: string): BadgeInfo {
 			return { variant: 'default', label: 'Propietario' };
 		case 'ADMIN':
 			return { variant: 'default', label: 'Admin' };
+		case 'TEAM_LEADER':
+			return { variant: 'default', label: 'Jefe de equipo' };
 		case 'AUDITOR':
 			return { variant: 'outline', label: 'Auditor' };
 		case 'WORKER':

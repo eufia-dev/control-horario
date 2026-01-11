@@ -29,15 +29,24 @@
 
 	let { schedule = $bindable(), disabled = false, readonly = false, onchange }: Props = $props();
 
+	// Helper to check if a time is a valid working time (not the "00:00" placeholder)
+	function isValidWorkingTime(time: string | undefined): boolean {
+		return !!time && time !== '00:00';
+	}
+
 	// Internal state for all 7 days
 	let days = $state<DayState[]>(
 		Array.from({ length: 7 }, (_, i) => {
 			const existing = schedule.find((d) => d.dayOfWeek === i);
+			// Day is enabled only if it exists in the schedule AND isWorkable is not false
+			const isWorkable = existing ? existing.isWorkable !== false : false;
 			const hasBreak = !!(existing?.breakStartTime && existing?.breakEndTime);
+			// Use existing times only if workable and valid, otherwise use defaults
+			const useExistingTimes = isWorkable && isValidWorkingTime(existing?.startTime);
 			return {
-				enabled: !!existing,
-				startTime: existing?.startTime ?? '09:00',
-				endTime: existing?.endTime ?? '17:00',
+				enabled: isWorkable,
+				startTime: useExistingTimes ? existing!.startTime : '09:00',
+				endTime: useExistingTimes ? existing!.endTime : '17:00',
 				hasBreak,
 				breakStartTime: existing?.breakStartTime ?? '13:00',
 				breakEndTime: existing?.breakEndTime ?? '14:00'
@@ -49,11 +58,15 @@
 	$effect(() => {
 		const newDays = Array.from({ length: 7 }, (_, i) => {
 			const existing = schedule.find((d) => d.dayOfWeek === i);
+			// Day is enabled only if it exists in the schedule AND isWorkable is not false
+			const isWorkable = existing ? existing.isWorkable !== false : false;
 			const hasBreak = !!(existing?.breakStartTime && existing?.breakEndTime);
+			// Use existing times only if workable and valid, otherwise use defaults
+			const useExistingTimes = isWorkable && isValidWorkingTime(existing?.startTime);
 			return {
-				enabled: !!existing,
-				startTime: existing?.startTime ?? '09:00',
-				endTime: existing?.endTime ?? '17:00',
+				enabled: isWorkable,
+				startTime: useExistingTimes ? existing!.startTime : '09:00',
+				endTime: useExistingTimes ? existing!.endTime : '17:00',
 				hasBreak,
 				breakStartTime: existing?.breakStartTime ?? '13:00',
 				breakEndTime: existing?.breakEndTime ?? '14:00'
@@ -140,29 +153,24 @@
 	);
 
 	function buildSchedule(): WorkScheduleDay[] {
-		return days
-			.map((day, i) => {
-				const base: WorkScheduleDay & { enabled: boolean } = {
-					dayOfWeek: i,
-					startTime: day.startTime,
-					endTime: day.endTime,
-					enabled: day.enabled
-				};
-				if (day.hasBreak) {
-					base.breakStartTime = day.breakStartTime;
-					base.breakEndTime = day.breakEndTime;
-				}
-				return base;
-			})
-			.filter((d) => d.enabled)
-			.map(({ dayOfWeek, startTime, endTime, breakStartTime, breakEndTime }) => {
-				const result: WorkScheduleDay = { dayOfWeek, startTime, endTime };
-				if (breakStartTime && breakEndTime) {
-					result.breakStartTime = breakStartTime;
-					result.breakEndTime = breakEndTime;
-				}
-				return result;
-			});
+		return days.map((day, i) => {
+			if (!day.enabled) {
+				// Non-working day - send isWorkable: false, no times needed
+				return { dayOfWeek: i, isWorkable: false } as WorkScheduleDay;
+			}
+			// Working day
+			const result: WorkScheduleDay = {
+				dayOfWeek: i,
+				isWorkable: true,
+				startTime: day.startTime,
+				endTime: day.endTime
+			};
+			if (day.hasBreak) {
+				result.breakStartTime = day.breakStartTime;
+				result.breakEndTime = day.breakEndTime;
+			}
+			return result;
+		});
 	}
 
 	function handleDayChange() {

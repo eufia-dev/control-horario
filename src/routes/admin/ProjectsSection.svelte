@@ -14,24 +14,80 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import ProjectFormModal from './ProjectFormModal.svelte';
 	import ProjectDeleteDialog from './ProjectDeleteDialog.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
+	import { fetchTeams, type Team } from '$lib/api/teams';
 	import { formatDate } from './helpers';
+	import {
+		isAdmin as isAdminStore,
+		userTeamId as userTeamIdStore,
+		canAccessAdmin as canAccessAdminStore
+	} from '$lib/stores/auth';
+	import { canEditProject, canDeleteProject } from '$lib/permissions';
 
 	let projects = $state<Project[]>([]);
+	let teams = $state<Team[]>([]);
 	let loadingProjects = $state(true);
 	let projectsError = $state<string | null>(null);
 	let searchQuery = $state('');
+	let teamFilter = $state<string>('');
+	let isAdmin = $state(false);
+	let currentUserTeamId = $state<string | null>(null);
+	let canAccess = $state(false);
+
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = userTeamIdStore.subscribe((value) => {
+			currentUserTeamId = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = canAccessAdminStore.subscribe((value) => {
+			canAccess = value;
+		});
+		return unsub;
+	});
 
 	const filteredProjects = $derived(
 		projects.filter((project) => {
-			if (!searchQuery.trim()) return true;
-			const query = searchQuery.toLowerCase();
-			return (
-				project.code.toLowerCase().includes(query) || project.name.toLowerCase().includes(query)
-			);
+			// Search filter
+			if (searchQuery.trim()) {
+				const query = searchQuery.toLowerCase();
+				if (
+					!project.code.toLowerCase().includes(query) &&
+					!project.name.toLowerCase().includes(query)
+				) {
+					return false;
+				}
+			}
+			// Team filter
+			if (teamFilter && teamFilter !== '') {
+				if (teamFilter === 'global') {
+					if (project.teamId !== null) return false;
+				} else if (project.teamId !== teamFilter) {
+					return false;
+				}
+			}
+			return true;
 		})
+	);
+
+	const teamFilterLabel = $derived(
+		teamFilter === ''
+			? 'Todos los proyectos'
+			: teamFilter === 'global'
+				? 'Global (sin equipo)'
+				: (teams.find((t) => t.id === teamFilter)?.name ?? 'Todos los proyectos')
 	);
 
 	let projectFormModalOpen = $state(false);
@@ -50,8 +106,19 @@
 		}
 	}
 
+	async function loadTeams() {
+		try {
+			teams = await fetchTeams();
+		} catch (e) {
+			console.error('Error loading teams:', e);
+		}
+	}
+
 	onMount(() => {
 		loadProjects();
+		if (isAdmin) {
+			loadTeams();
+		}
 	});
 
 	function handleCreateProject() {
@@ -94,10 +161,26 @@
 					class="pl-9 mr-9"
 				/>
 			</div>
-			<Button onclick={handleCreateProject}>
-				<span class="material-symbols-rounded text-lg!">add</span>
-				Añadir
-			</Button>
+			{#if isAdmin && teams.length > 0}
+				<Select type="single" bind:value={teamFilter}>
+					<SelectTrigger class="w-[180px]">
+						{teamFilterLabel}
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="" label="Todos los proyectos" />
+						<SelectItem value="global" label="Global (sin equipo)" />
+						{#each teams as team (team.id)}
+							<SelectItem value={team.id} label={team.name} />
+						{/each}
+					</SelectContent>
+				</Select>
+			{/if}
+			{#if canAccess}
+				<Button onclick={handleCreateProject}>
+					<span class="material-symbols-rounded text-lg!">add</span>
+					Añadir
+				</Button>
+			{/if}
 		</div>
 	</CardHeader>
 	<CardContent>
@@ -108,6 +191,7 @@
 						<TableHead>Código</TableHead>
 						<TableHead>Nombre</TableHead>
 						<TableHead>Estado</TableHead>
+						<TableHead>Equipo</TableHead>
 						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
@@ -118,6 +202,7 @@
 							<TableCell><Skeleton class="h-4 w-16" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
+							<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 							<TableCell><Skeleton class="h-8 w-20" /></TableCell>
 						</TableRow>
@@ -150,12 +235,16 @@
 						<TableHead>Código</TableHead>
 						<TableHead>Nombre</TableHead>
 						<TableHead>Estado</TableHead>
+						<TableHead>Equipo</TableHead>
 						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
 					{#each filteredProjects as project (project.id)}
+						{@const userRole = isAdmin ? 'ADMIN' : 'TEAM_LEADER'}
+						{@const canEdit = canEditProject(userRole, currentUserTeamId, project)}
+						{@const canDelete = canDeleteProject(userRole, currentUserTeamId, project)}
 						<TableRow>
 							<TableCell class="font-medium">
 								<Tooltip>
@@ -184,27 +273,38 @@
 									<Badge variant="destructive">Inactivo</Badge>
 								{/if}
 							</TableCell>
+							<TableCell>
+								{#if project.team}
+									<Badge variant="outline">{project.team.name}</Badge>
+								{:else}
+									<Badge variant="secondary">Global</Badge>
+								{/if}
+							</TableCell>
 							<TableCell class="text-muted-foreground">{formatDate(project.createdAt)}</TableCell>
 							<TableCell>
 								<div class="flex items-center gap-1">
-									<Button
-										variant="ghost"
-										size="sm"
-										class="h-8 w-8 p-0"
-										onclick={() => handleEditProject(project)}
-									>
-										<span class="material-symbols-rounded text-xl!">edit</span>
-										<span class="sr-only">Editar</span>
-									</Button>
-									<Button
-										variant="ghost"
-										size="sm"
-										class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-										onclick={() => handleDeleteProject(project)}
-									>
-										<span class="material-symbols-rounded text-xl!">delete</span>
-										<span class="sr-only">Eliminar</span>
-									</Button>
+									{#if canEdit}
+										<Button
+											variant="ghost"
+											size="sm"
+											class="h-8 w-8 p-0"
+											onclick={() => handleEditProject(project)}
+										>
+											<span class="material-symbols-rounded text-xl!">edit</span>
+											<span class="sr-only">Editar</span>
+										</Button>
+									{/if}
+									{#if canDelete}
+										<Button
+											variant="ghost"
+											size="sm"
+											class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+											onclick={() => handleDeleteProject(project)}
+										>
+											<span class="material-symbols-rounded text-xl!">delete</span>
+											<span class="sr-only">Eliminar</span>
+										</Button>
+									{/if}
 								</div>
 							</TableCell>
 						</TableRow>
