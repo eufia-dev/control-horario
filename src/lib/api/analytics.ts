@@ -63,6 +63,42 @@ export type WorkerBreakdownResponse = {
 	projects: ProjectBreakdown[];
 };
 
+// Payroll Summary Types
+export type PayrollUserSummary = {
+	id: string;
+	name: string;
+	email: string;
+	team: { id: string; name: string } | null;
+	hourlyCost: number;
+	expectedMinutes: number;
+	loggedMinutes: number;
+	differenceMinutes: number; // positive = extra, negative = missing
+	expectedWorkDays: number;
+	daysWorked: number;
+	daysMissing: number;
+	vacationDays: number;
+	sickLeaveDays: number;
+	otherAbsenceDays: number;
+	totalCost: number;
+};
+
+export type PayrollSummaryTotals = {
+	expectedMinutes: number;
+	loggedMinutes: number;
+	differenceMinutes: number;
+	vacationDays: number;
+	sickLeaveDays: number;
+	otherAbsenceDays: number;
+	totalCost: number;
+};
+
+export type PayrollSummaryResponse = {
+	startDate: string;
+	endDate: string;
+	users: PayrollUserSummary[];
+	totals: PayrollSummaryTotals;
+};
+
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -105,6 +141,19 @@ export async function fetchWorkerBreakdown(
 		`${API_BASE}/analytics/workers/${workerId}/breakdown?type=${type}`
 	);
 	return handleJsonResponse<WorkerBreakdownResponse>(response);
+}
+
+export async function fetchPayrollSummary(
+	startDate: string,
+	endDate: string
+): Promise<PayrollSummaryResponse> {
+	const params = new URLSearchParams();
+	params.set('startDate', startDate);
+	params.set('endDate', endDate);
+	const response = await fetchWithAuth(
+		`${API_BASE}/analytics/payroll-summary?${params.toString()}`
+	);
+	return handleJsonResponse<PayrollSummaryResponse>(response);
 }
 
 export function formatHours(minutes: number): string {
