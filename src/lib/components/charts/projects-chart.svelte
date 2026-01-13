@@ -5,7 +5,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Combobox } from '$lib/components/ui/combobox';
 	import {
 		type ProjectSummary,
 		type WorkerBreakdown,
@@ -49,6 +49,7 @@
 	const chartData = $derived.by(() => {
 		const data = projects.map((p) => ({
 			...p,
+			key: p.id,
 			label: p.code,
 			fullName: p.name,
 			value: mainViewMode === 'cost' ? p.totalCost : p.totalMinutes / 60,
@@ -58,6 +59,10 @@
 		}));
 		return data;
 	});
+
+	const keyToLabelMap = $derived(
+		Object.fromEntries(chartData.map((d) => [d.key, d.label]))
+	);
 
 	const maxValue = $derived(Math.max(...chartData.map((d) => d.value), 1));
 
@@ -88,6 +93,7 @@
 	const breakdownChartData = $derived(
 		breakdownData.map((w) => ({
 			...w,
+			key: w.id,
 			label: w.name.split(' ')[0],
 			fullName: w.name,
 			value: breakdownViewMode === 'cost' ? w.totalCost : w.minutes / 60,
@@ -95,6 +101,10 @@
 			workerCost: w.totalCost,
 			workerHours: w.minutes / 60
 		}))
+	);
+
+	const breakdownKeyToLabelMap = $derived(
+		Object.fromEntries(breakdownChartData.map((d) => [d.key, d.label]))
 	);
 
 	const maxBreakdownValue = $derived(Math.max(...breakdownChartData.map((d) => d.value), 1));
@@ -149,9 +159,9 @@
 				<ChartContainer config={chartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={chartData}
-						x="label"
+						x="key"
 						xScale={scaleBand().padding(0.2)}
-						xDomain={chartData.map((d) => d.label)}
+						xDomain={chartData.map((d) => d.key)}
 						y="value"
 						yScale={scaleLinear()}
 						yDomain={[0, maxValue * 1.1]}
@@ -171,6 +181,7 @@
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
+								format={(key: string) => keyToLabelMap[key] ?? key}
 							/>
 							<Bars radius={4} strokeWidth={0}>
 								{#each chartData as item (item.id)}
@@ -231,27 +242,27 @@
 			</div>
 			<div class="flex flex-col sm:flex-row items-end sm:items-center gap-2">
 				{#if projects.length > 0}
-					<Select
-						type="single"
+					<Combobox
+						items={projects}
 						value={selectedProjectId ?? undefined}
 						onValueChange={(value) => value && selectProject(value)}
+						getItemValue={(p) => p.id}
+						getItemLabel={(p) => `${p.code} - ${p.name}`}
+						placeholder="Seleccionar..."
+						searchPlaceholder="Buscar proyecto..."
+						emptyMessage="No se encontraron proyectos."
+						class="w-[180px] h-8 text-sm"
 					>
-						<SelectTrigger class="w-[140px]" size="sm">
-							{#if selectedProject}
-								<span>{selectedProject.code}</span>
-							{:else}
-								<span class="text-muted-foreground">Seleccionar...</span>
-							{/if}
-						</SelectTrigger>
-						<SelectContent>
-							{#each projects as project (project.id)}
-								<SelectItem value={project.id} label={project.code}>
-									<span class="font-medium">{project.code}</span>
-									<span class="text-muted-foreground text-xs ml-1">- {project.name}</span>
-								</SelectItem>
-							{/each}
-						</SelectContent>
-					</Select>
+						{#snippet selectedSnippet({ item })}
+							<span class="truncate">{item.code}</span>
+						{/snippet}
+						{#snippet itemSnippet({ item })}
+							<div class="flex flex-col">
+								<span class="font-medium">{item.code}</span>
+								<span class="text-muted-foreground text-xs">{item.name}</span>
+							</div>
+						{/snippet}
+					</Combobox>
 				{/if}
 				<div class="flex gap-1 rounded-lg bg-muted p-1">
 					<Button
@@ -297,9 +308,9 @@
 				<ChartContainer config={breakdownChartConfig} class="h-[300px] w-full min-w-0">
 					<Chart
 						data={breakdownChartData}
-						x="label"
+						x="key"
 						xScale={scaleBand().padding(0.2)}
-						xDomain={breakdownChartData.map((d) => d.label)}
+						xDomain={breakdownChartData.map((d) => d.key)}
 						y="value"
 						yScale={scaleLinear()}
 						yDomain={[0, maxBreakdownValue * 1.1]}
@@ -319,6 +330,7 @@
 							<Axis
 								placement="bottom"
 								tickLabelProps={{ class: 'text-xs fill-muted-foreground' }}
+								format={(key: string) => breakdownKeyToLabelMap[key] ?? key}
 							/>
 							<Bars radius={3} strokeWidth={0}>
 								{#each breakdownChartData as item (`${item.id}:${item.type}`)}
