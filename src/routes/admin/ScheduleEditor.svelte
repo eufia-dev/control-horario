@@ -2,7 +2,6 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { Button } from '$lib/components/ui/button';
 	import {
 		DAY_NAMES,
 		isValidTimeFormat,
@@ -194,8 +193,8 @@
 		handleDayChange();
 	}
 
-	function toggleBreak(index: number) {
-		days[index].hasBreak = !days[index].hasBreak;
+	function toggleBreak(index: number, hasBreak: boolean) {
+		days[index].hasBreak = hasBreak;
 		handleDayChange();
 	}
 
@@ -232,28 +231,50 @@
 				? 'bg-background'
 				: 'bg-muted/30'}"
 		>
-			<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-				<div class="flex items-center gap-2 w-28 shrink-0">
-					<Switch
-						id="day-{i}"
-						checked={day.enabled}
-						onCheckedChange={(checked) => toggleDay(i, checked)}
-						disabled={disabled || readonly}
-					/>
-					<Label
-						for="day-{i}"
-						class="cursor-pointer font-medium {!day.enabled ? 'text-muted-foreground' : ''}"
-					>
-						{DAY_NAMES[i]}
-					</Label>
+			<div class="flex items-start gap-4">
+				<!-- Switches column -->
+				<div class="flex flex-col gap-2 w-28 shrink-0">
+					<!-- Day toggle -->
+					<div class="flex items-center gap-2 h-9">
+						<Switch
+							id="day-{i}"
+							checked={day.enabled}
+							onCheckedChange={(checked) => toggleDay(i, checked)}
+							disabled={disabled || readonly}
+						/>
+						<Label
+							for="day-{i}"
+							class="cursor-pointer font-medium {!day.enabled ? 'text-muted-foreground' : ''}"
+						>
+							{DAY_NAMES[i]}
+						</Label>
+					</div>
+
+					{#if day.enabled}
+						<!-- Break toggle -->
+						<div class="flex items-center gap-2 h-9">
+							<Switch
+								id="break-{i}"
+								checked={day.hasBreak}
+								onCheckedChange={(checked) => toggleBreak(i, checked)}
+								disabled={disabled || readonly}
+								class="scale-90"
+							/>
+							<Label
+								for="break-{i}"
+								class="cursor-pointer text-sm {!day.hasBreak ? 'text-muted-foreground' : ''}"
+							>
+								Descanso
+							</Label>
+						</div>
+					{/if}
 				</div>
 
 				{#if day.enabled}
-					<div class="flex items-center gap-2 flex-wrap">
-						<div class="flex flex-col sm:flex-row items-center gap-2">
-							<Label for="start-{i}" class="text-sm text-muted-foreground whitespace-nowrap">
-								Inicio
-							</Label>
+					<!-- Time inputs column -->
+					<div class="flex flex-col gap-2">
+						<!-- Work hours row -->
+						<div class="flex items-center gap-2 h-9">
 							<Input
 								id="start-{i}"
 								type="time"
@@ -261,12 +282,7 @@
 								oninput={(e) => updateStartTime(i, e.currentTarget.value)}
 								disabled={disabled || readonly}
 							/>
-						</div>
-						<span class="text-muted-foreground">–</span>
-						<div class="flex flex-col sm:flex-row items-center gap-2">
-							<Label for="end-{i}" class="text-sm text-muted-foreground whitespace-nowrap"
-								>Fin</Label
-							>
+							<span class="text-muted-foreground">–</span>
 							<Input
 								id="end-{i}"
 								type="time"
@@ -275,70 +291,36 @@
 								disabled={disabled || readonly}
 							/>
 						</div>
+
+						<!-- Break row -->
+						<div class="flex items-center gap-2 h-9 {!day.hasBreak ? 'opacity-50' : ''} transition-opacity">
+							<Input
+								id="break-start-{i}"
+								type="time"
+								value={day.breakStartTime}
+								oninput={(e) => updateBreakStartTime(i, e.currentTarget.value)}
+								disabled={disabled || readonly || !day.hasBreak}
+							/>
+							<span class="text-muted-foreground">–</span>
+							<Input
+								id="break-end-{i}"
+								type="time"
+								value={day.breakEndTime}
+								oninput={(e) => updateBreakEndTime(i, e.currentTarget.value)}
+								disabled={disabled || readonly || !day.hasBreak}
+							/>
+						</div>
 					</div>
 				{:else}
-					<div class="text-sm text-muted-foreground italic">No laborable</div>
+					<div class="text-sm text-muted-foreground italic h-9 flex items-center">No laborable</div>
 				{/if}
 			</div>
 
-			{#if day.enabled}
-				<!-- Break section -->
-				<div class="flex flex-col sm:flex-row items-start gap-3 sm:gap-6 pl-0">
-					<Button
-						variant="ghost"
-						size="sm"
-						class="h-8 px-2 text-muted-foreground hover:text-foreground {day.hasBreak
-							? 'text-foreground'
-							: ''}"
-						onclick={() => toggleBreak(i)}
-						disabled={disabled || readonly}
-					>
-						<span class="material-symbols-rounded text-lg! mr-1">
-							{day.hasBreak ? 'check_box' : 'check_box_outline_blank'}
-						</span>
-						Descanso
-					</Button>
-
-					{#if day.hasBreak}
-						<div class="flex items-center gap-2 flex-wrap">
-							<div class="flex flex-col sm:flex-row items-center gap-2">
-								<Label
-									for="break-start-{i}"
-									class="text-sm text-muted-foreground whitespace-nowrap"
-								>
-									Desde
-								</Label>
-								<Input
-									id="break-start-{i}"
-									type="time"
-									value={day.breakStartTime}
-									oninput={(e) => updateBreakStartTime(i, e.currentTarget.value)}
-									disabled={disabled || readonly}
-								/>
-							</div>
-							<span class="text-muted-foreground">–</span>
-							<div class="flex flex-col sm:flex-row items-center gap-2">
-								<Label for="break-end-{i}" class="text-sm text-muted-foreground whitespace-nowrap"
-									>Hasta</Label
-								>
-								<Input
-									id="break-end-{i}"
-									type="time"
-									value={day.breakEndTime}
-									oninput={(e) => updateBreakEndTime(i, e.currentTarget.value)}
-									disabled={disabled || readonly}
-								/>
-							</div>
-						</div>
-					{/if}
+			{#if errors[i]}
+				<div class="text-sm text-destructive flex items-center gap-1 ml-32">
+					<span class="material-symbols-rounded text-base">error</span>
+					{errors[i]}
 				</div>
-
-				{#if errors[i]}
-					<div class="text-sm text-destructive flex items-center gap-1 pl-0 sm:pl-[7.5rem]">
-						<span class="material-symbols-rounded text-base">error</span>
-						{errors[i]}
-					</div>
-				{/if}
 			{/if}
 		</div>
 	{/each}
