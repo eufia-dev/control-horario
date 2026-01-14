@@ -398,19 +398,40 @@
 					</TableBody>
 					<TableFooter>
 						<TableRow class="bg-muted/50 font-semibold">
-							{@const filteredExpectedMinutes = filteredUsers.reduce((sum, u) => sum + u.expectedMinutes, 0)}
-							{@const filteredLoggedMinutes = filteredUsers.reduce((sum, u) => sum + u.loggedMinutes, 0)}
-							{@const filteredDifferenceMinutes = filteredUsers.reduce((sum, u) => sum + u.differenceMinutes, 0)}
-							{@const filteredVacationDays = filteredUsers.reduce((sum, u) => sum + u.vacationDays, 0)}
-							{@const filteredSickLeaveDays = filteredUsers.reduce((sum, u) => sum + u.sickLeaveDays, 0)}
-							{@const filteredOtherAbsenceDays = filteredUsers.reduce((sum, u) => sum + u.otherAbsenceDays, 0)}
+							{@const filteredExpectedMinutes = filteredUsers.reduce(
+								(sum, u) => sum + u.expectedMinutes,
+								0
+							)}
+							{@const filteredLoggedMinutes = filteredUsers.reduce(
+								(sum, u) => sum + u.loggedMinutes,
+								0
+							)}
+							{@const filteredDifferenceMinutes = filteredUsers.reduce(
+								(sum, u) => sum + u.differenceMinutes,
+								0
+							)}
+							{@const filteredVacationDays = filteredUsers.reduce(
+								(sum, u) => sum + u.vacationDays,
+								0
+							)}
+							{@const filteredSickLeaveDays = filteredUsers.reduce(
+								(sum, u) => sum + u.sickLeaveDays,
+								0
+							)}
+							{@const filteredOtherAbsenceDays = filteredUsers.reduce(
+								(sum, u) => sum + u.otherAbsenceDays,
+								0
+							)}
 							{@const filteredTotalCost = filteredUsers.reduce((sum, u) => sum + u.totalCost, 0)}
 							{@const totalDiff = formatDifference(filteredDifferenceMinutes)}
-							{@const totalAbsences = filteredVacationDays + filteredSickLeaveDays + filteredOtherAbsenceDays}
+							{@const totalAbsences =
+								filteredVacationDays + filteredSickLeaveDays + filteredOtherAbsenceDays}
 							<TableCell>
 								<span class="flex items-center gap-1.5">
 									<span class="material-symbols-rounded text-lg!">functions</span>
-									Total ({filteredUsers.length} empleados{searchQuery.trim() ? ` de ${payrollData.users.length}` : ''})
+									Total ({filteredUsers.length} empleados{searchQuery.trim()
+										? ` de ${payrollData.users.length}`
+										: ''})
 								</span>
 							</TableCell>
 							<TableCell class="text-right tabular-nums">

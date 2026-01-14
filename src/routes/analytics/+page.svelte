@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { auth, isTeamLeader as isTeamLeaderStore } from '$lib/stores/auth';
+	import { auth } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import PayrollSummary from '$lib/components/charts/payroll-summary.svelte';
@@ -20,14 +20,6 @@
 	} from '$lib/api/analytics';
 
 	const currentUserId = $derived($auth.user?.id ?? null);
-	let isTeamLeader = $state(false);
-
-	$effect(() => {
-		const unsub = isTeamLeaderStore.subscribe((value) => {
-			isTeamLeader = value;
-		});
-		return unsub;
-	});
 
 	let projects = $state<ProjectSummary[]>([]);
 	let workers = $state<WorkerSummary[]>([]);

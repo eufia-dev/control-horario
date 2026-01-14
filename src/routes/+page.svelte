@@ -19,7 +19,8 @@
 	import ExternalHoursDeleteDialog from './ExternalHoursDeleteDialog.svelte';
 	import ComplianceWidget from './ComplianceWidget.svelte';
 	import MissingLogsAlert from './MissingLogsAlert.svelte';
-	import PendingAbsencesWidget from './PendingAbsencesWidget.svelte';
+	import PendingAbsencesWidget from '$lib/components/PendingAbsencesWidget.svelte';
+	import PendingJoinRequestsWidget from '$lib/components/PendingJoinRequestsWidget.svelte';
 	import TimeEntriesTable from '$lib/components/TimeEntriesTable.svelte';
 	import TimerCard from '$lib/components/TimerCard.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
@@ -37,6 +38,7 @@
 	} from '$lib/api/externals';
 	import { fetchMyCalendarMonth, type CalendarMonthResponse } from '$lib/api/calendar';
 	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
+	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import {
 		isAdmin as isAdminStore,
 		isGuest as isGuestStore,
@@ -126,8 +128,14 @@
 
 	let calendarData = $state<CalendarMonthResponse | null>(null);
 	let absenceStats = $state<AbsenceStats | null>(null);
+	let joinRequests = $state<AdminJoinRequest[]>([]);
 	let loadingCalendar = $state(true);
 	let loadingAbsenceStats = $state(true);
+	let loadingJoinRequests = $state(true);
+
+	const pendingJoinRequestsCount = $derived(
+		joinRequests.filter((r) => r.status === 'PENDING').length
+	);
 
 	let hasActiveTimer = $state(false);
 
@@ -254,6 +262,18 @@
 		}
 	}
 
+	async function loadJoinRequests() {
+		if (!isAdmin) return;
+		loadingJoinRequests = true;
+		try {
+			joinRequests = await fetchJoinRequests();
+		} catch (e) {
+			console.error('Error loading join requests:', e);
+		} finally {
+			loadingJoinRequests = false;
+		}
+	}
+
 	function formatDuration(minutes: number): string {
 		const hours = Math.floor(minutes / 60);
 		const mins = minutes % 60;
@@ -343,15 +363,25 @@
 		loadExternals();
 		loadExternalHours();
 		loadAbsenceStats();
+		loadJoinRequests();
 	});
 </script>
 
 <div class="grow p-6 space-y-6">
-	{#if (isAdmin || isTeamLeader) && absenceStats && absenceStats.pending > 0}
+	{#if (isAdmin || isTeamLeader) && (absenceStats?.pending ?? 0) > 0}
 		<div class="w-full max-w-6xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}
 				loading={loadingAbsenceStats}
+			/>
+		</div>
+	{/if}
+
+	{#if isAdmin && pendingJoinRequestsCount > 0}
+		<div class="w-full max-w-6xl mx-auto">
+			<PendingJoinRequestsWidget
+				pendingCount={pendingJoinRequestsCount}
+				loading={loadingJoinRequests}
 			/>
 		</div>
 	{/if}

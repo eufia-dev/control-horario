@@ -10,6 +10,10 @@
 	} from '$lib/stores/auth';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import PendingAbsencesWidget from '$lib/components/PendingAbsencesWidget.svelte';
+	import PendingJoinRequestsWidget from '$lib/components/PendingJoinRequestsWidget.svelte';
+	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
+	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import ProjectsSection from './ProjectsSection.svelte';
 	import UsersSection from './UsersSection.svelte';
 	import ExternalsSection from './ExternalsSection.svelte';
@@ -25,6 +29,39 @@
 	let isAdmin = $state(false);
 	let canAccessAdmin = $state(false);
 	let isTeamLeader = $state(false);
+
+	let absenceStats = $state<AbsenceStats | null>(null);
+	let joinRequests = $state<AdminJoinRequest[]>([]);
+	let loadingAbsenceStats = $state(true);
+	let loadingJoinRequests = $state(true);
+
+	const pendingJoinRequestsCount = $derived(
+		joinRequests.filter((r) => r.status === 'PENDING').length
+	);
+
+	async function loadAbsenceStats() {
+		if (!isAdmin && !isTeamLeader) return;
+		loadingAbsenceStats = true;
+		try {
+			absenceStats = await fetchAbsenceStats();
+		} catch (e) {
+			console.error('Error loading absence stats:', e);
+		} finally {
+			loadingAbsenceStats = false;
+		}
+	}
+
+	async function loadJoinRequests() {
+		if (!isAdmin) return;
+		loadingJoinRequests = true;
+		try {
+			joinRequests = await fetchJoinRequests();
+		} catch (e) {
+			console.error('Error loading join requests:', e);
+		} finally {
+			loadingJoinRequests = false;
+		}
+	}
 
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -53,6 +90,7 @@
 
 	let activeTab = $state<TabValue>('empresa');
 	let teamsSectionRef = $state<{ loadTeams: () => Promise<void> } | null>(null);
+	let joinRequestsSectionEl = $state<HTMLDivElement | null>(null);
 
 	function handleUserUpdated() {
 		if (isAdmin && teamsSectionRef) {
@@ -60,15 +98,34 @@
 		}
 	}
 
+	function scrollToJoinRequests() {
+		// First ensure we're on the equipo tab
+		activeTab = 'equipo';
+		// Wait for tab content to render, then scroll
+		setTimeout(() => {
+			joinRequestsSectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}, 100);
+	}
+
 	// Read tab from URL query parameter on mount
 	onMount(() => {
 		const tabParam = $page.url.searchParams.get('tab');
+		const scrollTo = $page.url.searchParams.get('scrollTo');
 		const availableTabs = isAdmin ? validTabs : teamLeaderValidTabs;
 		if (tabParam && availableTabs.includes(tabParam as TabValue)) {
 			activeTab = tabParam as TabValue;
 		} else if (!isAdmin) {
 			// Default to 'equipo' tab for team leaders
 			activeTab = 'equipo';
+		}
+		loadAbsenceStats();
+		loadJoinRequests();
+
+		// Handle scroll to specific section
+		if (scrollTo === 'join-requests') {
+			setTimeout(() => {
+				joinRequestsSectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}, 300);
 		}
 	});
 
@@ -92,6 +149,25 @@
 			<span class="material-symbols-rounded text-3xl!">settings</span>
 			<h1 class="text-2xl font-semibold tracking-tight">Configuración</h1>
 		</div>
+
+		{#if (isAdmin || isTeamLeader) && (absenceStats?.pending ?? 0) > 0}
+			<div class="w-full max-w-6xl mx-auto">
+				<PendingAbsencesWidget
+					pendingCount={absenceStats?.pending ?? 0}
+					loading={loadingAbsenceStats}
+				/>
+			</div>
+		{/if}
+
+		{#if isAdmin && pendingJoinRequestsCount > 0}
+			<div class="w-full max-w-6xl mx-auto">
+				<PendingJoinRequestsWidget
+					pendingCount={pendingJoinRequestsCount}
+					loading={loadingJoinRequests}
+					onScrollToSection={scrollToJoinRequests}
+				/>
+			</div>
+		{/if}
 
 		<Tabs bind:value={activeTab} class="w-full max-w-6xl mx-auto">
 			<div class="mb-4 overflow-x-auto">
@@ -135,7 +211,9 @@
 				{/if}
 				{#if isAdmin}
 					<InvitationsSection />
-					<JoinRequestsSection />
+					<div bind:this={joinRequestsSectionEl}>
+						<JoinRequestsSection />
+					</div>
 				{/if}
 			</TabsContent>
 

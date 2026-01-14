@@ -59,13 +59,13 @@
 		<div class="flex items-center gap-1">
 			{#if canCancel}
 				<Button
-					variant="ghost"
+					variant="outline"
 					size="sm"
-					class="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+					class="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
 					onclick={() => onCancel?.(absence)}
 				>
-					<span class="material-symbols-rounded text-lg!">close</span>
-					<span class="sr-only">Cancelar</span>
+					<span class="material-symbols-rounded text-lg! mr-1">cancel</span>
+					Cancelar
 				</Button>
 			{/if}
 		</div>

@@ -130,10 +130,7 @@
 
 						<div class="flex items-center gap-2">
 							<div class="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
-								<div
-									class="h-full {progressColor}"
-									style="width: {barWidth}"
-								></div>
+								<div class="h-full {progressColor}" style="width: {barWidth}"></div>
 							</div>
 							<span
 								class="text-sm font-semibold px-1 text-right flex items-center gap-1 {isOvertime
@@ -150,9 +147,7 @@
 				</div>
 
 				{#if hasProjects}
-					<div
-						class="pt-3 border-t border-border/50"
-					>
+					<div class="pt-3 border-t border-border/50">
 						{#if visibleProjects.length > 0}
 							<div class="flex items-center justify-start gap-2">
 								{#each visibleProjects as project (project.projectId)}
@@ -172,7 +167,9 @@
 								{/each}
 							</div>
 						{:else}
-							<p class="text-sm text-muted-foreground mb-2">No hay horas registradas para este mes.</p>
+							<p class="text-sm text-muted-foreground mb-2">
+								No hay horas registradas para este mes.
+							</p>
 							<p class="text-sm text-muted-foreground">¡Es momento de empezar a trabajar!</p>
 						{/if}
 					</div>

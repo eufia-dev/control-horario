@@ -60,9 +60,7 @@
 		return data;
 	});
 
-	const keyToLabelMap = $derived(
-		Object.fromEntries(chartData.map((d) => [d.key, d.label]))
-	);
+	const keyToLabelMap = $derived(Object.fromEntries(chartData.map((d) => [d.key, d.label])));
 
 	const maxValue = $derived(Math.max(...chartData.map((d) => d.value), 1));
 

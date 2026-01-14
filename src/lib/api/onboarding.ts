@@ -38,6 +38,7 @@ export type OnboardingCheckResponse = {
 		companyName: string;
 		role: UserRole;
 		relation: RelationType;
+		teamId: string | null;
 		createdAt: string;
 	};
 	pendingInvitations?: PendingInvitation[];

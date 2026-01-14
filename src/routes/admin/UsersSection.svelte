@@ -551,7 +551,7 @@
 <TeamMemberRemoveDialog
 	bind:open={memberRemoveDialogOpen}
 	member={memberToRemove}
-	teamName={teamName}
+	{teamName}
 	onClose={handleMemberRemoveClose}
 	onSuccess={handleMemberRemoveSuccess}
 />

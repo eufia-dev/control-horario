@@ -59,9 +59,9 @@
 			<AlertDialogTitle>¿Eliminar miembro del equipo?</AlertDialogTitle>
 			<AlertDialogDescription>
 				{#if member}
-					Se eliminará a <strong>{member.name}</strong> ({member.email}) del equipo <strong
-						>{teamName}</strong
-					>. El usuario seguirá existiendo pero quedará sin equipo asignado.
+					Se eliminará a <strong>{member.name}</strong> ({member.email}) del equipo
+					<strong>{teamName}</strong>. El usuario seguirá existiendo pero quedará sin equipo
+					asignado.
 				{/if}
 			</AlertDialogDescription>
 		</AlertDialogHeader>

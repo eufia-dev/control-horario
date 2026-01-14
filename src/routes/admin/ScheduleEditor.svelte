@@ -293,7 +293,11 @@
 						</div>
 
 						<!-- Break row -->
-						<div class="flex items-center gap-2 h-9 {!day.hasBreak ? 'opacity-50' : ''} transition-opacity">
+						<div
+							class="flex items-center gap-2 h-9 {!day.hasBreak
+								? 'opacity-50'
+								: ''} transition-opacity"
+						>
 							<Input
 								id="break-start-{i}"
 								type="time"

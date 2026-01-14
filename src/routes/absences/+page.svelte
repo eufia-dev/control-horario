@@ -17,7 +17,7 @@
 		type AbsenceStatus
 	} from '$lib/api/absences';
 	import { isAdmin as isAdminStore, isGuest as isGuestStore } from '$lib/stores/auth';
-	import PendingAbsencesWidget from '../PendingAbsencesWidget.svelte';
+	import PendingAbsencesWidget from '$lib/components/PendingAbsencesWidget.svelte';
 
 	let isAdmin = $state(false);
 	let isGuest = $state(false);

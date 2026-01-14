@@ -312,6 +312,7 @@ export async function updateProfile(name: string, email: string): Promise<AuthUs
 		companyName: user.companyName,
 		role: updatedUser.role,
 		relation: updatedUser.relation,
+		teamId: updatedUser.team?.id ?? null,
 		createdAt: updatedUser.createdAt
 	};
 
