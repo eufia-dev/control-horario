@@ -94,10 +94,10 @@
 
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-4">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Invitaciones</CardTitle>
 			{#if pendingInvitationsCount > 0}
-				<Badge variant="secondary">{pendingInvitationsCount} pendientes</Badge>
+				<Badge variant="secondary">{pendingInvitationsCount} {pendingInvitationsCount === 1 ? 'pendiente' : 'pendientes'}</Badge>
 			{/if}
 		</div>
 		<div class="flex items-center gap-4">

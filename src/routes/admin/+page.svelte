@@ -90,6 +90,7 @@
 
 	let activeTab = $state<TabValue>('empresa');
 	let teamsSectionRef = $state<{ loadTeams: () => Promise<void> } | null>(null);
+	let usersSectionRef = $state<{ loadUsers: () => Promise<void> } | null>(null);
 	let joinRequestsSectionEl = $state<HTMLDivElement | null>(null);
 
 	function handleUserUpdated() {
@@ -107,10 +108,15 @@
 		}, 100);
 	}
 
+	function handleJoinRequestsChange(requests: AdminJoinRequest[]) {
+		joinRequests = requests;
+		// Refresh users list since approved requests create new users
+		usersSectionRef?.loadUsers();
+	}
+
 	// Read tab from URL query parameter on mount
 	onMount(() => {
 		const tabParam = $page.url.searchParams.get('tab');
-		const scrollTo = $page.url.searchParams.get('scrollTo');
 		const availableTabs = isAdmin ? validTabs : teamLeaderValidTabs;
 		if (tabParam && availableTabs.includes(tabParam as TabValue)) {
 			activeTab = tabParam as TabValue;
@@ -120,13 +126,6 @@
 		}
 		loadAbsenceStats();
 		loadJoinRequests();
-
-		// Handle scroll to specific section
-		if (scrollTo === 'join-requests') {
-			setTimeout(() => {
-				joinRequestsSectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			}, 300);
-		}
 	});
 
 	// Update URL when tab changes
@@ -205,14 +204,14 @@
 				{#if isAdmin}
 					<TeamsSection bind:this={teamsSectionRef} />
 				{/if}
-				<UsersSection onUserUpdated={handleUserUpdated} />
+				<UsersSection bind:this={usersSectionRef} onUserUpdated={handleUserUpdated} />
 				{#if isTeamLeader && !isAdmin}
 					<TeamSchedulesSection />
 				{/if}
 				{#if isAdmin}
 					<InvitationsSection />
 					<div bind:this={joinRequestsSectionEl}>
-						<JoinRequestsSection />
+						<JoinRequestsSection onRequestsChange={handleJoinRequestsChange} />
 					</div>
 				{/if}
 			</TabsContent>

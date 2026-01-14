@@ -18,8 +18,8 @@
 			// Already on admin page, just scroll
 			onScrollToSection();
 		} else {
-			// Navigate to admin page with scroll parameter
-			goto(`${resolve('/admin')}?tab=equipo&scrollTo=join-requests`);
+			// Navigate to admin page (no scroll, just go to the tab)
+			goto(`${resolve('/admin')}?tab=equipo`);
 		}
 	}
 </script>

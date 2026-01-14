@@ -18,6 +18,12 @@
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import { formatDate } from './helpers';
 
+	type Props = {
+		onRequestsChange?: (requests: AdminJoinRequest[]) => void;
+	};
+
+	let { onRequestsChange }: Props = $props();
+
 	let joinRequests = $state<AdminJoinRequest[]>([]);
 	let loadingJoinRequests = $state(true);
 	let joinRequestsError = $state<string | null>(null);
@@ -46,6 +52,7 @@
 		joinRequestsError = null;
 		try {
 			joinRequests = await fetchJoinRequests();
+			onRequestsChange?.(joinRequests);
 		} catch (e) {
 			joinRequestsError = e instanceof Error ? e.message : 'Error desconocido';
 		} finally {
@@ -80,10 +87,13 @@
 
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-4">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de acceso</CardTitle>
 			{#if pendingJoinRequestsCount > 0}
-				<Badge variant="default">{pendingJoinRequestsCount} pendientes</Badge>
+				<Badge variant="default">
+					{pendingJoinRequestsCount}
+					{pendingJoinRequestsCount === 1 ? ' pendiente' : ' pendientes'}
+				</Badge>
 			{/if}
 		</div>
 		<div class="relative">

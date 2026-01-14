@@ -146,7 +146,7 @@
 	let selectedUser = $state<User | null>(null);
 	let invitationFormModalOpen = $state(false);
 
-	async function loadUsers() {
+	export async function loadUsers() {
 		loadingUsers = true;
 		usersError = null;
 		try {
