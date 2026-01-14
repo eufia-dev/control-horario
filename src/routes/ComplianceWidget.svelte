@@ -73,11 +73,6 @@
 		return 'Al día';
 	});
 
-	// Project breakdown derived values
-	const hasProjectBreakdown = $derived(
-		summary?.projectBreakdown && summary.projectBreakdown.length > 0
-	);
-
 	const visibleProjects = $derived.by(() => {
 		if (!summary?.projectBreakdown) return [];
 		return summary.projectBreakdown.slice(0, MAX_PROJECTS_SHOWN);
@@ -116,7 +111,7 @@
 				{/if}
 			</div>
 		{:else if summary}
-			<div class="flex flex-col h-full gap-2">
+			<div class="flex flex-col h-full gap-3">
 				<div class="flex flex-col gap-2 h-full justify-between">
 					<div class="flex items-baseline gap-2">
 						<span class="text-3xl font-bold">
@@ -136,12 +131,12 @@
 						<div class="flex items-center gap-2">
 							<div class="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
 								<div
-									class="h-full transition-all duration-500 {progressColor}"
+									class="h-full {progressColor}"
 									style="width: {barWidth}"
 								></div>
 							</div>
 							<span
-								class="text-sm font-semibold min-w-12 text-right flex items-center gap-1 {isOvertime
+								class="text-sm font-semibold px-1 text-right flex items-center gap-1 {isOvertime
 									? 'text-success'
 									: 'text-muted-foreground'}"
 							>
@@ -154,23 +149,32 @@
 					</div>
 				</div>
 
-				{#if hasProjectBreakdown}
-					<div class="pt-3 border-t border-border/50 flex items-center justify-start gap-2">
-						{#each visibleProjects as project (project.projectId)}
-							<Tooltip>
-								<TooltipTrigger
-									class="flex-1 flex flex-col items-center gap-0.5 py-2 px-3 rounded-md bg-muted/50 hover:bg-muted transition-colors"
-								>
-									<span class="w-full text-center truncate">{project.projectCode}</span>
-									<span class="text-sm text-muted-foreground whitespace-nowrap"
-										>{formatMinutesCompact(project.minutesWorked)}</span
-									>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>{project.projectName}</p>
-								</TooltipContent>
-							</Tooltip>
-						{/each}
+				{#if hasProjects}
+					<div
+						class="pt-3 border-t border-border/50"
+					>
+						{#if visibleProjects.length > 0}
+							<div class="flex items-center justify-start gap-2">
+								{#each visibleProjects as project (project.projectId)}
+									<Tooltip>
+										<TooltipTrigger
+											class="flex-1 flex flex-col items-center gap-0.5 py-2 px-3 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+										>
+											<span class="w-full text-sm text-center truncate">{project.projectCode}</span>
+											<span class="text-sm text-muted-foreground whitespace-nowrap"
+												>{formatMinutesCompact(project.minutesWorked)}</span
+											>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>{project.projectName}</p>
+										</TooltipContent>
+									</Tooltip>
+								{/each}
+							</div>
+						{:else}
+							<p class="text-sm text-muted-foreground mb-2">No hay horas registradas para este mes.</p>
+							<p class="text-sm text-muted-foreground">¡Es momento de empezar a trabajar!</p>
+						{/if}
 					</div>
 				{/if}
 			</div>
