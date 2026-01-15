@@ -146,7 +146,6 @@
 		loadingUsers = true;
 		try {
 			users = await fetchUsers();
-			console.log('users', users);
 		} catch (e) {
 			console.error('Error loading users:', e);
 		} finally {

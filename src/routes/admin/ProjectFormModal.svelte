@@ -35,6 +35,8 @@
 	let code = $state('');
 	let isActive = $state(true);
 	let teamId = $state<string>('');
+	let delegation = $state('');
+	let clientName = $state('');
 	let teams = $state<Team[]>([]);
 	let loadingTeams = $state(false);
 	let submitting = $state(false);
@@ -76,6 +78,8 @@
 		code = '';
 		isActive = true;
 		teamId = '';
+		delegation = '';
+		clientName = '';
 		error = null;
 		success = false;
 	}
@@ -86,6 +90,8 @@
 			code = project.code;
 			isActive = project.isActive;
 			teamId = project.teamId ?? '';
+			delegation = project.delegation ?? '';
+			clientName = project.clientName ?? '';
 		} else {
 			resetForm();
 			// For team leaders, auto-select their team
@@ -145,7 +151,9 @@
 					code: code.trim(),
 					isActive,
 					// Admin can change team, team leader keeps existing team
-					teamId: isAdmin ? teamId || null : undefined
+					teamId: isAdmin ? teamId || null : undefined,
+					delegation: delegation.trim() || null,
+					clientName: clientName.trim() || null
 				};
 				await updateProject(project.id, data);
 			} else {
@@ -154,7 +162,9 @@
 				const data: CreateProjectDto = {
 					name: name.trim(),
 					code: code.trim(),
-					teamId: effectiveTeamId
+					teamId: effectiveTeamId,
+					delegation: delegation.trim() || undefined,
+					clientName: clientName.trim() || undefined
 				};
 				await createProject(data);
 			}
@@ -198,6 +208,28 @@
 					bind:value={name}
 					placeholder="Nombre del proyecto"
 					disabled={submitting}
+				/>
+			</div>
+
+			<div class="grid gap-2">
+				<Label for="delegation">Delegación</Label>
+				<Input
+					id="delegation"
+					bind:value={delegation}
+					placeholder="Delegación (opcional)"
+					disabled={submitting}
+					maxlength={100}
+				/>
+			</div>
+
+			<div class="grid gap-2">
+				<Label for="clientName">Cliente</Label>
+				<Input
+					id="clientName"
+					bind:value={clientName}
+					placeholder="Nombre del cliente (opcional)"
+					disabled={submitting}
+					maxlength={255}
 				/>
 			</div>
 

@@ -12,12 +12,16 @@ export type Project = {
 	companyName: string;
 	teamId: string | null;
 	team: { id: string; name: string } | null;
+	delegation: string | null;
+	clientName: string | null;
 };
 
 export type CreateProjectDto = {
 	name: string;
 	code: string;
 	teamId?: string;
+	delegation?: string;
+	clientName?: string;
 };
 
 export type UpdateProjectDto = {
@@ -25,6 +29,8 @@ export type UpdateProjectDto = {
 	code?: string;
 	isActive?: boolean;
 	teamId?: string | null;
+	delegation?: string | null;
+	clientName?: string | null;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

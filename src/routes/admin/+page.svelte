@@ -16,7 +16,6 @@
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import ProjectsSection from './ProjectsSection.svelte';
 	import UsersSection from './UsersSection.svelte';
-	import ExternalsSection from './ExternalsSection.svelte';
 	import InvitationsSection from './InvitationsSection.svelte';
 	import JoinRequestsSection from './JoinRequestsSection.svelte';
 	import LocationSection from './LocationSection.svelte';
@@ -218,9 +217,6 @@
 
 			<TabsContent value="proyectos" class="flex flex-col gap-6">
 				<ProjectsSection />
-				{#if isAdmin}
-					<ExternalsSection />
-				{/if}
 			</TabsContent>
 
 			<TabsContent value="ausencias" class="flex flex-col gap-6">

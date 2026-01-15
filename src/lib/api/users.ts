@@ -12,6 +12,7 @@ export type User = {
 	email: string;
 	phone: string | null;
 	avatarUrl: string | null;
+	salary: number | null;
 	hourlyCost: number;
 	isActive: boolean;
 	relation: RelationType;
@@ -27,6 +28,7 @@ export type UpdateUserDto = {
 	name: string;
 	email?: string;
 	phone?: string;
+	salary?: number | null;
 	hourlyCost?: number;
 	isActive?: boolean;
 	role?: UserRole;

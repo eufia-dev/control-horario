@@ -17,6 +17,8 @@ export type Profile = {
 		name: string;
 		logoUrl: string | null;
 	};
+	hasProjectsFeature: boolean;
+	hasCashFlowFeature: boolean;
 };
 
 export type AuthUser = {
@@ -197,4 +199,21 @@ export const canAccessAdmin = derived(auth, ($auth) => {
 
 export const userTeamId = derived(auth, ($auth) => {
 	return $auth.activeProfile?.teamId ?? $auth.user?.teamId ?? null;
+});
+
+export const hasProjectsFeature = derived(
+	auth,
+	($auth) => $auth.activeProfile?.hasProjectsFeature ?? false
+);
+
+export const hasCashFlowFeature = derived(
+	auth,
+	($auth) => $auth.activeProfile?.hasCashFlowFeature ?? false
+);
+
+export const canAccessCashFlow = derived(auth, ($auth) => {
+	const role = $auth.activeProfile?.role ?? $auth.user?.role;
+	const hasFeature =
+		$auth.activeProfile?.hasProjectsFeature && $auth.activeProfile?.hasCashFlowFeature;
+	return hasFeature && (role === 'OWNER' || role === 'ADMIN' || role === 'TEAM_LEADER');
 });

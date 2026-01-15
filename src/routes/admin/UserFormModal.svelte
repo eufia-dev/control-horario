@@ -29,6 +29,7 @@
 	let name = $state('');
 	let email = $state('');
 	let phone = $state('');
+	let salary = $state<number | null>(null);
 	let hourlyCost = $state(0);
 	let isActive = $state(true);
 	let role = $state<UserRole>('WORKER');
@@ -98,6 +99,7 @@
 		name = '';
 		email = '';
 		phone = '';
+		salary = null;
 		hourlyCost = 0;
 		isActive = true;
 		role = 'WORKER';
@@ -112,6 +114,7 @@
 			name = user.name;
 			email = user.email;
 			phone = user.phone ?? '';
+			salary = user.salary;
 			hourlyCost = user.hourlyCost;
 			isActive = user.isActive;
 			role = user.role;
@@ -194,6 +197,7 @@
 			const data: UpdateUserDto = {
 				name: name.trim(),
 				phone: phone.trim() || undefined,
+				salary: salary ?? undefined,
 				hourlyCost,
 				isActive,
 				role,
@@ -258,6 +262,22 @@
 					placeholder="+34 600 000 000"
 					disabled={submitting}
 				/>
+			</div>
+
+			<div class="grid gap-2">
+				<Label for="salary">Salario mensual (€)</Label>
+				<Input
+					id="salary"
+					type="number"
+					min="0"
+					step="0.01"
+					bind:value={salary}
+					placeholder="Salario bruto mensual"
+					disabled={submitting}
+				/>
+				<p class="text-xs text-muted-foreground">
+					Si se indica el salario, el coste por hora se calculará automáticamente
+				</p>
 			</div>
 
 			<div class="grid gap-2">

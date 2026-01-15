@@ -12,6 +12,7 @@
 		hasMultipleProfiles,
 		activeProfile,
 		canAccessAdmin as canAccessAdminStore,
+		canAccessCashFlow as canAccessCashFlowStore,
 		type AuthUser
 	} from '$lib/stores/auth';
 	import {
@@ -40,6 +41,7 @@
 	let isUserGuest = $state(false);
 	let hasMultiProfiles = $state(false);
 	let userCanAccessAdmin = $state(false);
+	let userCanAccessCashFlow = $state(false);
 	let user = $state<AuthUser | null>(null);
 	let onboardingStatus = $state<OnboardingStatusType | null>(null);
 	let mobileMenuOpen = $state(false);
@@ -51,6 +53,7 @@
 	let unsubIsGuest: (() => void) | undefined;
 	let unsubHasMultipleProfiles: (() => void) | undefined;
 	let unsubCanAccessAdmin: (() => void) | undefined;
+	let unsubCanAccessCashFlow: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
 
 	const publicRoutes = ['/login', '/register', '/reset-password'];
@@ -176,6 +179,10 @@
 			userCanAccessAdmin = value;
 		});
 
+		unsubCanAccessCashFlow = canAccessCashFlowStore.subscribe((value) => {
+			userCanAccessCashFlow = value ?? false;
+		});
+
 		unsubAuthChanges = subscribeToAuthChanges();
 
 		initAuthSyncChannel();
@@ -214,6 +221,7 @@
 			unsubIsGuest?.();
 			unsubHasMultipleProfiles?.();
 			unsubCanAccessAdmin?.();
+			unsubCanAccessCashFlow?.();
 			unsubAuthChanges?.data.subscription.unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
@@ -227,6 +235,7 @@
 		unsubIsGuest?.();
 		unsubHasMultipleProfiles?.();
 		unsubCanAccessAdmin?.();
+		unsubCanAccessCashFlow?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
 	});
 
@@ -281,6 +290,12 @@
 									<span class="material-symbols-rounded text-lg!">analytics</span>
 									<span>Analíticas</span>
 								</Button>
+								{#if userCanAccessCashFlow}
+									<Button href={resolve('/cash-flow')} variant="ghost" size="sm" class="gap-1.5">
+										<span class="material-symbols-rounded text-lg!">account_balance</span>
+										<span>Flujo de Caja</span>
+									</Button>
+								{/if}
 							{/if}
 						</nav>
 					{/if}
@@ -423,6 +438,18 @@
 								>
 									<span class="material-symbols-rounded text-2xl!">analytics</span>
 									<span>Analíticas</span>
+								</Button>
+							{/if}
+							{#if userCanAccessCashFlow}
+								<Button
+									href={resolve('/cash-flow')}
+									variant="ghost"
+									size="lg"
+									class="justify-start gap-4 h-14 text-lg"
+									onclick={() => (mobileMenuOpen = false)}
+								>
+									<span class="material-symbols-rounded text-2xl!">account_balance</span>
+									<span>Flujo de Caja</span>
 								</Button>
 							{/if}
 							<Button
