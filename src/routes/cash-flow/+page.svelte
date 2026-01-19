@@ -406,7 +406,8 @@ type TeamFilter = {
 							<TableHead>Cliente</TableHead>
 							<TableHead class="text-right">Prod. Est.</TableHead>
 							<TableHead class="text-right">Prod. Real</TableHead>
-							<TableHead class="text-right">Costes Ext.</TableHead>
+							<TableHead class="text-right">Costes Ext. Est.</TableHead>
+							<TableHead class="text-right">Costes Ext. Real</TableHead>
 							<TableHead class="text-right">Costes Int.</TableHead>
 							<TableHead class="text-right">Resultado</TableHead>
 						</TableRow>
@@ -418,6 +419,7 @@ type TeamFilter = {
 								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-24" /></TableCell>
+								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
@@ -448,7 +450,8 @@ type TeamFilter = {
 									<TableHead>Cliente</TableHead>
 									<TableHead class="text-right">Prod. Est.</TableHead>
 									<TableHead class="text-right">Prod. Real</TableHead>
-									<TableHead class="text-right">Costes Ext.</TableHead>
+									<TableHead class="text-right">Costes Ext. Est.</TableHead>
+									<TableHead class="text-right">Costes Ext. Real</TableHead>
 									<TableHead class="text-right">Costes Int.</TableHead>
 									<TableHead class="text-right">Resultado</TableHead>
 								</TableRow>
@@ -488,8 +491,13 @@ type TeamFilter = {
 											</span>
 										</TableCell>
 										<TableCell class="text-right">
-											<span class="text-green-600 font-medium">
+											<span class="text-green-600">
 												{formatCurrency(data?.revenue.actual)}
+											</span>
+										</TableCell>
+										<TableCell class="text-right">
+											<span class="text-muted-foreground">
+												{formatCurrency(data?.externalCosts.estimated ?? 0)}
 											</span>
 										</TableCell>
 										<TableCell class="text-right">
