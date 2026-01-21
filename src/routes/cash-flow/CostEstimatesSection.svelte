@@ -144,7 +144,7 @@
 				{#each estimates as estimate (estimate.id)}
 					<TableRow>
 						<TableCell class="font-medium">{formatCurrency(estimate.amount)}</TableCell>
-						<TableCell>{estimate.provider ?? '—'}</TableCell>
+						<TableCell>{estimate.provider?.name ?? '—'}</TableCell>
 						<TableCell>
 							{#if estimate.expenseType}
 								<Badge variant="outline" class="text-xs">

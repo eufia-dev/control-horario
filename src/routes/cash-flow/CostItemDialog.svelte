@@ -15,6 +15,7 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Calendar } from '$lib/components/ui/calendar';
 	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 	import {
 		EXPENSE_TYPE_LABELS,
 		type CostEstimate,
@@ -25,7 +26,8 @@
 		type CreateCostActualDto,
 		type UpdateCostActualDto
 	} from '$lib/api/cash-flow';
-	import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date';
+	import { fetchProviders, type Provider } from '$lib/api/providers';
+	import { CalendarDate } from '@internationalized/date';
 
 	type Props = {
 		open: boolean;
@@ -39,15 +41,17 @@
 
 	let { open = $bindable(), mode, item, onSave, onClose }: Props = $props();
 
+	// Providers list
+	let providers = $state<Provider[]>([]);
+	let loadingProviders = $state(false);
+
 	// Form state
 	let amount = $state<number | null>(null);
-	let provider = $state('');
+	let providerId = $state<string>('');
 	let expenseType = $state<ExternalCostExpenseType | ''>('');
 	let description = $state('');
-	let paymentPeriod = $state('');
 	let isBilled = $state(false);
 	let issueDate = $state<CalendarDate | undefined>(undefined);
-	let dueDate = $state<CalendarDate | undefined>(undefined);
 
 	let submitting = $state(false);
 	let success = $state(false);
@@ -83,6 +87,19 @@
 		expenseType ? EXPENSE_TYPE_LABELS[expenseType] : 'Seleccionar tipo'
 	);
 
+	const selectedProviderLabel = $derived(() => {
+		if (!providerId) return 'Seleccionar proveedor';
+		const provider = providers.find((p) => p.id === providerId);
+		return provider ? provider.name : 'Seleccionar proveedor';
+	});
+
+	// Get selected provider's payment period for display
+	const selectedProviderPaymentPeriod = $derived(() => {
+		if (!providerId) return null;
+		const provider = providers.find((p) => p.id === providerId);
+		return provider?.paymentPeriod ?? null;
+	});
+
 	function formatDateLabel(date: CalendarDate | undefined): string {
 		if (!date) return 'Seleccionar fecha';
 		return new Date(date.year, date.month - 1, date.day).toLocaleDateString('es-ES', {
@@ -103,15 +120,24 @@
 		return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
 	}
 
+	async function loadProviders() {
+		loadingProviders = true;
+		try {
+			providers = await fetchProviders();
+		} catch (e) {
+			console.error('Error loading providers:', e);
+		} finally {
+			loadingProviders = false;
+		}
+	}
+
 	function resetForm() {
 		amount = null;
-		provider = '';
+		providerId = '';
 		expenseType = '';
 		description = '';
-		paymentPeriod = '';
 		isBilled = false;
 		issueDate = undefined;
-		dueDate = undefined;
 		error = null;
 		success = false;
 	}
@@ -119,16 +145,14 @@
 	function populateForm() {
 		if (item) {
 			amount = item.amount;
-			provider = item.provider ?? '';
+			providerId = item.provider?.id ?? '';
 			expenseType = item.expenseType ?? '';
 			description = item.description ?? '';
 
 			if (mode === 'actual' && 'isBilled' in item) {
 				const actual = item as CostActual;
-				paymentPeriod = actual.paymentPeriod ?? '';
 				isBilled = actual.isBilled;
 				issueDate = parseISOToCalendarDate(actual.issueDate);
-				dueDate = parseISOToCalendarDate(actual.dueDate);
 			}
 		} else {
 			resetForm();
@@ -147,7 +171,7 @@
 		}
 
 		if (isActual) {
-			if (!provider.trim()) {
+			if (!providerId) {
 				error = 'El proveedor es obligatorio';
 				return;
 			}
@@ -163,19 +187,17 @@
 			if (isActual) {
 				const data: CreateCostActualDto | UpdateCostActualDto = {
 					amount,
-					provider: provider.trim(),
+					providerId,
 					expenseType: expenseType as ExternalCostExpenseType,
 					description: description.trim() || undefined,
-					paymentPeriod: paymentPeriod.trim() || undefined,
 					isBilled,
-					issueDate: calendarDateToISO(issueDate),
-					dueDate: calendarDateToISO(dueDate)
+					issueDate: calendarDateToISO(issueDate)
 				};
 				await onSave(data);
 			} else {
 				const data: CreateCostEstimateDto | UpdateCostEstimateDto = {
 					amount,
-					provider: provider.trim() || undefined,
+					providerId: providerId || undefined,
 					expenseType: expenseType ? (expenseType as ExternalCostExpenseType) : undefined,
 					description: description.trim() || undefined
 				};
@@ -201,6 +223,7 @@
 
 	$effect(() => {
 		if (open) {
+			loadProviders();
 			populateForm();
 		}
 	});
@@ -234,13 +257,29 @@
 			</div>
 
 			<div class="grid gap-2">
-				<Label for="provider">Proveedor {isActual ? '*' : ''}</Label>
-				<Input
-					id="provider"
-					bind:value={provider}
-					placeholder="Nombre del proveedor"
-					disabled={submitting}
-				/>
+				<Label>Proveedor {isActual ? '*' : ''}</Label>
+				{#if loadingProviders}
+					<Skeleton class="h-10 w-full" />
+				{:else}
+					<Select type="single" bind:value={providerId} disabled={submitting}>
+						<SelectTrigger class="w-full">
+							{selectedProviderLabel()}
+						</SelectTrigger>
+						<SelectContent>
+							{#if !isActual}
+								<SelectItem value="" label="Sin especificar" />
+							{/if}
+							{#each providers as provider (provider.id)}
+								<SelectItem value={provider.id} label="{provider.name} ({provider.paymentPeriod} días)" />
+							{/each}
+						</SelectContent>
+					</Select>
+					{#if providers.length === 0}
+						<p class="text-xs text-muted-foreground">
+							No hay proveedores disponibles. Crea uno desde Configuración.
+						</p>
+					{/if}
+				{/if}
 			</div>
 
 			<div class="grid gap-2">
@@ -272,62 +311,37 @@
 			</div>
 
 			{#if isActual}
-				<div class="grid gap-2">
-					<Label for="paymentPeriod">Periodo de Pago</Label>
-					<Input
-						id="paymentPeriod"
-						bind:value={paymentPeriod}
-						placeholder="Ej: Q1 2026, Mensual"
-						disabled={submitting}
-					/>
-				</div>
-
 				<div class="flex items-center gap-3">
 					<Switch id="isBilled" bind:checked={isBilled} disabled={submitting} />
 					<Label for="isBilled" class="cursor-pointer">Factura emitida</Label>
 				</div>
 
-				<div class="grid grid-cols-2 gap-4">
-					<div class="grid gap-2">
-						<Label>Fecha de Emisión</Label>
-						<Popover>
-							<PopoverTrigger>
-								<Button variant="outline" class="w-full justify-start text-left font-normal">
-									<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
-									{formatDateLabel(issueDate)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent class="w-auto p-0" align="start">
-								<Calendar
-									type="single"
-									bind:value={issueDate}
-									initialFocus
-									locale="es"
-								/>
-							</PopoverContent>
-						</Popover>
-					</div>
-
-					<div class="grid gap-2">
-						<Label>Fecha de Vencimiento</Label>
-						<Popover>
-							<PopoverTrigger>
-								<Button variant="outline" class="w-full justify-start text-left font-normal">
-									<span class="material-symbols-rounded text-lg! mr-2">event</span>
-									{formatDateLabel(dueDate)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent class="w-auto p-0" align="start">
-								<Calendar
-									type="single"
-									bind:value={dueDate}
-									initialFocus
-									locale="es"
-								/>
-							</PopoverContent>
-						</Popover>
-					</div>
+				<div class="grid gap-2">
+					<Label>Fecha de Emisión</Label>
+					<Popover>
+						<PopoverTrigger>
+							<Button variant="outline" class="w-full justify-start text-left font-normal">
+								<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
+								{formatDateLabel(issueDate)}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent class="w-auto p-0" align="start">
+							<Calendar
+								type="single"
+								bind:value={issueDate}
+								initialFocus
+								locale="es"
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
+
+				{#if selectedProviderPaymentPeriod() !== null}
+					<div class="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+						<span class="material-symbols-rounded text-sm! align-middle mr-1">info</span>
+						Periodo de pago del proveedor: <strong>{selectedProviderPaymentPeriod()} días</strong>
+					</div>
+				{/if}
 			{/if}
 
 			{#if error}

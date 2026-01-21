@@ -53,6 +53,7 @@
 	let timeEntryModalOpen = $state(false);
 	let initialDateForModal = $state<string | null>(null);
 	let entryToEdit = $state<TimeEntry | null>(null);
+	let existingEntriesForModal = $state<TimeEntry[]>([]);
 
 	// For time entry delete dialog
 	let deleteDialogOpen = $state(false);
@@ -121,6 +122,8 @@
 		dayDetailOpen = false;
 		// Store the selected day's date to pass to the modal
 		initialDateForModal = selectedDay?.date ?? null;
+		// Convert all entries from the selected day to avoid redundant API call
+		existingEntriesForModal = selectedDay?.entries.map(briefToTimeEntry) ?? [];
 		timeEntryModalOpen = true;
 	}
 
@@ -132,6 +135,7 @@
 		// Clear the initial date and entry when modal closes
 		initialDateForModal = null;
 		entryToEdit = null;
+		existingEntriesForModal = [];
 	}
 
 	function briefToTimeEntry(briefEntry: TimeEntryBrief): TimeEntry {
@@ -157,6 +161,8 @@
 	function handleEditEntry(briefEntry: TimeEntryBrief) {
 		dayDetailOpen = false;
 		entryToEdit = briefToTimeEntry(briefEntry);
+		// Convert all entries from the selected day to avoid redundant API call
+		existingEntriesForModal = selectedDay?.entries.map(briefToTimeEntry) ?? [];
 		timeEntryModalOpen = true;
 	}
 
@@ -279,6 +285,7 @@
 	latestProjectId={null}
 	initialDate={initialDateForModal}
 	{workSchedule}
+	existingEntries={existingEntriesForModal}
 	onClose={handleTimeEntryModalClose}
 	onSuccess={handleEntrySuccess}
 />

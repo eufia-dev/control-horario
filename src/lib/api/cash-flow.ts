@@ -1,5 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { fetchWithAuth } from '$lib/auth';
+import type { ProviderInfo } from './providers';
 
 const API_BASE = PUBLIC_API_URL;
 
@@ -38,7 +39,7 @@ export type CostEstimate = {
 	year: number;
 	month: number;
 	amount: number;
-	provider: string | null;
+	provider: ProviderInfo | null;
 	expenseType: ExternalCostExpenseType | null;
 	description: string | null;
 	createdAt: string;
@@ -51,13 +52,11 @@ export type CostActual = {
 	year: number;
 	month: number;
 	amount: number;
-	provider: string;
+	provider: ProviderInfo;
 	expenseType: ExternalCostExpenseType;
 	description: string | null;
-	paymentPeriod: string | null;
 	isBilled: boolean;
 	issueDate: string | null;
-	dueDate: string | null;
 	createdAt: string;
 	updatedAt: string | null;
 };
@@ -129,14 +128,14 @@ export type CreateCostEstimateDto = {
 	year: number;
 	month: number;
 	amount: number;
-	provider?: string;
+	providerId?: string;
 	expenseType?: ExternalCostExpenseType;
 	description?: string;
 };
 
 export type UpdateCostEstimateDto = {
 	amount?: number;
-	provider?: string | null;
+	providerId?: string | null;
 	expenseType?: ExternalCostExpenseType | null;
 	description?: string | null;
 };
@@ -145,24 +144,20 @@ export type CreateCostActualDto = {
 	year: number;
 	month: number;
 	amount: number;
-	provider: string;
+	providerId: string;
 	expenseType: ExternalCostExpenseType;
 	description?: string;
-	paymentPeriod?: string;
 	isBilled?: boolean;
 	issueDate?: string;
-	dueDate?: string;
 };
 
 export type UpdateCostActualDto = {
 	amount?: number;
-	provider?: string;
+	providerId?: string;
 	expenseType?: ExternalCostExpenseType;
 	description?: string | null;
-	paymentPeriod?: string | null;
 	isBilled?: boolean;
 	issueDate?: string | null;
-	dueDate?: string | null;
 };
 
 // ==================== Helper ====================

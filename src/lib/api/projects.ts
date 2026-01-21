@@ -14,6 +14,8 @@ export type Project = {
 	team: { id: string; name: string } | null;
 	delegation: string | null;
 	clientName: string | null;
+	categoryId: string | null;
+	category: { id: string; name: string } | null;
 };
 
 export type CreateProjectDto = {
@@ -22,6 +24,7 @@ export type CreateProjectDto = {
 	teamId?: string;
 	delegation?: string;
 	clientName?: string;
+	categoryId?: string;
 };
 
 export type UpdateProjectDto = {
@@ -31,6 +34,7 @@ export type UpdateProjectDto = {
 	teamId?: string | null;
 	delegation?: string | null;
 	clientName?: string | null;
+	categoryId?: string | null;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {

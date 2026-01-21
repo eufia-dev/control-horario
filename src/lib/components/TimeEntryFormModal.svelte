@@ -128,10 +128,12 @@
 	type TimeSegment = {
 		id: string;
 		originalEntryId?: string; // Track if this segment is from an existing entry (for edit mode)
+		originalStartTime?: string; // Full ISO timestamp from API (preserves seconds)
+		originalEndTime?: string; // Full ISO timestamp from API (preserves seconds)
 		projectId: string | undefined;
 		entryType: string | undefined;
-		startTime: string;
-		endTime: string;
+		startTime: string; // HH:MM format for UI
+		endTime: string; // HH:MM format for UI
 		isInOffice: boolean;
 	};
 
@@ -191,10 +193,11 @@
 			const end = new Date(`${baseDateStr}T${segment.endTime}`);
 			const diffMs = end.getTime() - start.getTime();
 			if (diffMs > 0) {
-				return Math.round(diffMs / 60000);
+				return Math.max(1, Math.round(diffMs / 60000));
 			}
 		}
-		return 0;
+
+		return 1;
 	}
 
 	function dateToDateValue(date: Date): DateValue {
@@ -322,9 +325,7 @@
 	}
 
 	function removeSegment(id: string) {
-		if (segments.length > 1) {
-			segments = segments.filter((s) => s.id !== id);
-		}
+		segments = segments.filter((s) => s.id !== id);
 	}
 
 	function updateSegment(id: string, updates: Partial<TimeSegment>) {
@@ -349,6 +350,8 @@
 			.map((e) => ({
 				id: generateId(),
 				originalEntryId: e.id,
+				originalStartTime: e.startTime, // Preserve original timestamp with seconds
+				originalEndTime: e.endTime, // Preserve original timestamp with seconds
 				projectId: e.projectId ?? undefined,
 				entryType: e.entryType,
 				startTime: formatTimeForInput(e.startTime),
@@ -490,8 +493,8 @@
 			return;
 		}
 
-		// Validate we have at least one segment
-		if (segments.length === 0) {
+		// If no segments and no original entries, nothing to do
+		if (segments.length === 0 && originalEntryIds.size === 0) {
 			error = 'Debes añadir al menos un registro';
 			return;
 		}
@@ -515,13 +518,30 @@
 				return;
 			}
 
-			const baseDateStr = dateValueToString(baseDate);
-			const startDt = new Date(`${baseDateStr}T${seg.startTime}`);
-			const endDt = new Date(`${baseDateStr}T${seg.endTime}`);
+			// Check if this is an existing entry with unchanged times
+			const startUnchanged =
+				seg.originalStartTime && formatTimeForInput(seg.originalStartTime) === seg.startTime;
+			const endUnchanged =
+				seg.originalEndTime && formatTimeForInput(seg.originalEndTime) === seg.endTime;
 
-			if (endDt <= startDt) {
-				error = `Segmento ${i + 1}: La hora de fin debe ser posterior a la de inicio`;
-				return;
+			if (startUnchanged && endUnchanged) {
+				// Use original timestamps for comparison (preserves seconds precision)
+				// This handles timer entries that start/end within the same minute
+				const originalStart = new Date(seg.originalStartTime!);
+				const originalEnd = new Date(seg.originalEndTime!);
+				if (originalEnd <= originalStart) {
+					error = `Segmento ${i + 1}: La hora de fin debe ser posterior a la de inicio`;
+					return;
+				}
+			} else {
+				// User edited times - validate at minute precision
+				const baseDateStr = dateValueToString(baseDate);
+				const startDt = new Date(`${baseDateStr}T${seg.startTime}`);
+				const endDt = new Date(`${baseDateStr}T${seg.endTime}`);
+				if (endDt <= startDt) {
+					error = `Segmento ${i + 1}: La hora de fin debe ser posterior a la de inicio`;
+					return;
+				}
 			}
 		}
 
@@ -543,8 +563,26 @@
 
 			// Process all segments (update existing, create new)
 			for (const seg of segments) {
-				const startTimeIso = new Date(`${baseDateStr}T${seg.startTime}`).toISOString();
-				const endTimeIso = new Date(`${baseDateStr}T${seg.endTime}`).toISOString();
+				// Preserve original timestamps when times haven't been modified
+				// This maintains second-level precision for timer entries
+				let startTimeIso: string;
+				let endTimeIso: string;
+
+				if (
+					seg.originalStartTime &&
+					formatTimeForInput(seg.originalStartTime) === seg.startTime
+				) {
+					startTimeIso = seg.originalStartTime; // Preserve original precision
+				} else {
+					startTimeIso = new Date(`${baseDateStr}T${seg.startTime}`).toISOString();
+				}
+
+				if (seg.originalEndTime && formatTimeForInput(seg.originalEndTime) === seg.endTime) {
+					endTimeIso = seg.originalEndTime; // Preserve original precision
+				} else {
+					endTimeIso = new Date(`${baseDateStr}T${seg.endTime}`).toISOString();
+				}
+
 				const segDuration = getSegmentDuration(seg);
 				const segIsWorkType = isSegmentWorkType(seg);
 
@@ -656,7 +694,7 @@
 				{#if loading}
 					<!-- Loading skeletons -->
 					{#each [1, 2] as i (i)}
-						<div class="rounded-lg border bg-card p-4">
+						<div class="rounded-lg border p-4">
 							<div class="mb-3 flex items-center gap-2">
 								<Skeleton class="h-6 w-6 rounded-full" />
 								<Skeleton class="h-4 w-16" />
@@ -691,18 +729,16 @@
 						{@const segmentDuration = getSegmentDuration(segment)}
 
 						<div
-							class="relative rounded-lg border bg-card p-4 transition-all hover:border-primary/30"
+							class="relative rounded-lg border p-4 transition-all hover:border-primary/30"
 						>
-							{#if segments.length > 1}
-								<button
-									type="button"
-									class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:"
-									disabled={submitting}
-									onclick={() => removeSegment(segment.id)}
-								>
-									<span class="material-symbols-rounded text-sm! pl-px">close</span>
-								</button>
-							{/if}
+							<button
+								type="button"
+								class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								disabled={submitting}
+								onclick={() => removeSegment(segment.id)}
+							>
+								<span class="material-symbols-rounded text-sm! pl-px">close</span>
+							</button>
 
 							<!-- Segment header with number -->
 							<div class="mb-3 flex items-center gap-2">
@@ -788,7 +824,7 @@
 										value={segment.startTime}
 										oninput={(e) => updateSegment(segment.id, { startTime: e.currentTarget.value })}
 										disabled={submitting}
-										class="h-9 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
 									/>
 								</div>
 								<div class="grid gap-1.5">
@@ -798,7 +834,7 @@
 										value={segment.endTime}
 										oninput={(e) => updateSegment(segment.id, { endTime: e.currentTarget.value })}
 										disabled={submitting}
-										class="h-9 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
 									/>
 								</div>
 							</div>

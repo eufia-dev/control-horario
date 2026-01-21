@@ -20,6 +20,7 @@
 		type UpdateProjectDto
 	} from '$lib/api/projects';
 	import { fetchTeams, type Team } from '$lib/api/teams';
+	import { fetchProjectCategories, type ProjectCategory } from '$lib/api/project-categories';
 	import { isAdmin as isAdminStore, userTeamId as userTeamIdStore } from '$lib/stores/auth';
 
 	type Props = {
@@ -35,10 +36,13 @@
 	let code = $state('');
 	let isActive = $state(true);
 	let teamId = $state<string>('');
+	let categoryId = $state<string>('');
 	let delegation = $state('');
 	let clientName = $state('');
 	let teams = $state<Team[]>([]);
+	let categories = $state<ProjectCategory[]>([]);
 	let loadingTeams = $state(false);
+	let loadingCategories = $state(false);
 	let submitting = $state(false);
 	let success = $state(false);
 	let error = $state<string | null>(null);
@@ -73,11 +77,18 @@
 			: (teams.find((t) => t.id === teamId)?.name ?? 'Global (sin equipo)')
 	);
 
+	const selectedCategoryLabel = $derived(
+		categoryId === ''
+			? 'Sin categoría'
+			: (categories.find((c) => c.id === categoryId)?.name ?? 'Sin categoría')
+	);
+
 	function resetForm() {
 		name = '';
 		code = '';
 		isActive = true;
 		teamId = '';
+		categoryId = '';
 		delegation = '';
 		clientName = '';
 		error = null;
@@ -90,6 +101,7 @@
 			code = project.code;
 			isActive = project.isActive;
 			teamId = project.teamId ?? '';
+			categoryId = project.categoryId ?? '';
 			delegation = project.delegation ?? '';
 			clientName = project.clientName ?? '';
 		} else {
@@ -112,9 +124,21 @@
 		}
 	}
 
+	async function loadCategories() {
+		loadingCategories = true;
+		try {
+			categories = await fetchProjectCategories();
+		} catch (e) {
+			console.error('Error loading categories:', e);
+		} finally {
+			loadingCategories = false;
+		}
+	}
+
 	$effect(() => {
 		if (open) {
 			populateForm();
+			loadCategories();
 			if (isAdmin) {
 				loadTeams();
 			}
@@ -152,6 +176,7 @@
 					isActive,
 					// Admin can change team, team leader keeps existing team
 					teamId: isAdmin ? teamId || null : undefined,
+					categoryId: categoryId || null,
 					delegation: delegation.trim() || null,
 					clientName: clientName.trim() || null
 				};
@@ -163,6 +188,7 @@
 					name: name.trim(),
 					code: code.trim(),
 					teamId: effectiveTeamId,
+					categoryId: categoryId || undefined,
 					delegation: delegation.trim() || undefined,
 					clientName: clientName.trim() || undefined
 				};
@@ -231,6 +257,21 @@
 					disabled={submitting}
 					maxlength={255}
 				/>
+			</div>
+
+			<div class="grid gap-2">
+				<Label>Categoría</Label>
+				<Select type="single" bind:value={categoryId} disabled={submitting || loadingCategories}>
+					<SelectTrigger class="w-full">
+						{selectedCategoryLabel}
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="" label="Sin categoría" />
+						{#each categories as category (category.id)}
+							<SelectItem value={category.id} label={category.name} />
+						{/each}
+					</SelectContent>
+				</Select>
 			</div>
 
 			{#if isAdmin}

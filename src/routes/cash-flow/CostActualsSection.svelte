@@ -51,14 +51,8 @@
 
 	const totalActual = $derived(actuals.reduce((sum, a) => sum + a.amount, 0));
 
-	function formatDate(dateString: string | null): string {
-		if (!dateString) return '—';
-		const date = new Date(dateString);
-		return date.toLocaleDateString('es-ES', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric'
-		});
+	function formatPaymentPeriod(days: number): string {
+		return `${days} días`;
 	}
 
 	function handleAdd() {
@@ -147,14 +141,14 @@
 					<TableHead>Tipo</TableHead>
 					<TableHead>Importe</TableHead>
 					<TableHead>Facturado</TableHead>
-					<TableHead>Vencimiento</TableHead>
+					<TableHead>Plazo Pago</TableHead>
 					<TableHead class="w-[80px]">Acciones</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
 				{#each actuals as actual (actual.id)}
 					<TableRow>
-						<TableCell class="font-medium">{actual.provider}</TableCell>
+						<TableCell class="font-medium">{actual.provider.name}</TableCell>
 						<TableCell>
 							<Badge variant="outline" class="text-xs">
 								{EXPENSE_TYPE_LABELS[actual.expenseType]}
@@ -175,7 +169,7 @@
 							{/if}
 						</TableCell>
 						<TableCell class="text-muted-foreground">
-							{formatDate(actual.dueDate)}
+							{formatPaymentPeriod(actual.provider.paymentPeriod)}
 						</TableCell>
 						<TableCell>
 							<div class="flex items-center gap-1">
@@ -221,7 +215,7 @@
 			<AlertDialogDescription>
 				Esta acción no se puede deshacer. Se eliminará el coste de {formatCurrency(
 					selectedActual?.amount ?? 0
-				)} de {selectedActual?.provider ?? 'este proveedor'}.
+				)} de {selectedActual?.provider?.name ?? 'este proveedor'}.
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 		{#if deleteError}

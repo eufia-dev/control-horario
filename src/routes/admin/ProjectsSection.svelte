@@ -190,6 +190,7 @@
 					<TableRow>
 						<TableHead>Código</TableHead>
 						<TableHead>Nombre</TableHead>
+						<TableHead>Categoría</TableHead>
 						<TableHead>Estado</TableHead>
 						<TableHead>Equipo</TableHead>
 						<TableHead>Creado</TableHead>
@@ -201,6 +202,7 @@
 						<TableRow data-placeholder-index={i}>
 							<TableCell><Skeleton class="h-4 w-16" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+							<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
@@ -234,6 +236,7 @@
 					<TableRow>
 						<TableHead>Código</TableHead>
 						<TableHead>Nombre</TableHead>
+						<TableHead>Categoría</TableHead>
 						<TableHead>Estado</TableHead>
 						<TableHead>Equipo</TableHead>
 						<TableHead>Creado</TableHead>
@@ -265,6 +268,15 @@
 										<p>{project.name}</p>
 									</TooltipContent>
 								</Tooltip>
+							</TableCell>
+							<TableCell>
+								{#if project.category}
+									<Badge variant="outline">
+										{project.category.name}
+									</Badge>
+								{:else}
+									<span class="text-muted-foreground">—</span>
+								{/if}
 							</TableCell>
 							<TableCell>
 								{#if project.isActive}

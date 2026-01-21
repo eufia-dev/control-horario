@@ -13,7 +13,7 @@
 				success:
 					'bg-success hover:bg-success/90 focus-visible:ring-success/20 dark:focus-visible:ring-success/40 dark:bg-success/60 text-white shadow-xs',
 				outline:
-					'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs',
+					'bg-card hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs',
 				secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs',
 				ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
 				link: 'text-primary underline-offset-4 hover:underline'

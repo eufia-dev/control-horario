@@ -15,6 +15,7 @@
 	import { fetchAbsenceStats, type AbsenceStats } from '$lib/api/absences';
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
 	import ProjectsSection from './ProjectsSection.svelte';
+	import ProjectCategoriesSection from './ProjectCategoriesSection.svelte';
 	import UsersSection from './UsersSection.svelte';
 	import InvitationsSection from './InvitationsSection.svelte';
 	import JoinRequestsSection from './JoinRequestsSection.svelte';
@@ -24,6 +25,7 @@
 	import AbsencesSection from './AbsencesSection.svelte';
 	import TeamsSection from './TeamsSection.svelte';
 	import TeamSchedulesSection from './TeamSchedulesSection.svelte';
+	import ProvidersSection from './ProvidersSection.svelte';
 
 	let isAdmin = $state(false);
 	let canAccessAdmin = $state(false);
@@ -217,6 +219,8 @@
 
 			<TabsContent value="proyectos" class="flex flex-col gap-6">
 				<ProjectsSection />
+				<ProjectCategoriesSection />
+				<ProvidersSection />
 			</TabsContent>
 
 			<TabsContent value="ausencias" class="flex flex-col gap-6">
