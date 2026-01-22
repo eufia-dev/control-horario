@@ -116,113 +116,113 @@
 			</TabsList>
 		</div>
 
-		<TabsContent value="proyectos" class="flex flex-col gap-6">
-			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<Card class="gap-2">
-					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle class="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
-						<span class="material-symbols-rounded text-xl! text-muted-foreground">schedule</span>
-					</CardHeader>
-					<CardContent>
-						{#if loadingProjects}
-							<Skeleton class="h-8 w-24" />
-						{:else}
-							<div class="text-2xl font-bold">{totalHours.toFixed(1)}h</div>
-							<p class="text-xs text-muted-foreground mt-1">
-								en {activeProjectsCount} proyectos activos
-							</p>
-						{/if}
+	<TabsContent value="proyectos" class="flex flex-col gap-6">
+		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<Card class="gap-2">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
+					<span class="material-symbols-rounded text-xl! text-muted-foreground">schedule</span>
+				</CardHeader>
+				<CardContent>
+					{#if loadingProjects}
+						<Skeleton class="h-8 w-24" />
+					{:else}
+						<div class="text-2xl font-bold">{totalHours.toFixed(1)}h</div>
+						<p class="text-xs text-muted-foreground mt-1">
+							en {activeProjectsCount} proyectos activos
+						</p>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<Card class="gap-2">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
+					<span class="material-symbols-rounded text-xl! text-muted-foreground">euro</span>
+				</CardHeader>
+				<CardContent>
+					{#if loadingProjects}
+						<Skeleton class="h-8 w-28" />
+					{:else}
+						<div class="text-2xl font-bold">{formatCost(totalCost)}</div>
+						<p class="text-xs text-muted-foreground mt-1">inversión acumulada</p>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<Card class="gap-2">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium text-muted-foreground"
+						>Proyectos Activos</CardTitle
+					>
+					<span class="material-symbols-rounded text-xl! text-muted-foreground">folder</span>
+				</CardHeader>
+				<CardContent>
+					{#if loadingProjects}
+						<Skeleton class="h-8 w-16" />
+					{:else}
+						<div class="text-2xl font-bold">{activeProjectsCount}</div>
+						<p class="text-xs text-muted-foreground mt-1">proyectos con actividad</p>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<Card class="gap-2">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium text-muted-foreground">Trabajadores</CardTitle>
+					<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
+				</CardHeader>
+				<CardContent>
+					{#if loadingWorkers}
+						<Skeleton class="h-8 w-20" />
+					{:else}
+						<div class="text-2xl font-bold">{totalWorkersCount}</div>
+						<p class="text-xs text-muted-foreground mt-1">con actividad registrada</p>
+					{/if}
+				</CardContent>
+			</Card>
+		</div>
+
+		<div class="space-y-8">
+			{#if projectsError}
+				<Card>
+					<CardContent class="py-8">
+						<div class="flex flex-col items-center justify-center text-destructive">
+							<span class="material-symbols-rounded text-3xl! mb-2">error</span>
+							<p class="text-sm">{projectsError}</p>
+							<button
+								class="mt-4 text-sm text-primary hover:underline"
+								onclick={() => loadProjects()}
+							>
+								Reintentar
+							</button>
+						</div>
 					</CardContent>
 				</Card>
+			{:else if activeTab === 'proyectos'}
+				<ProjectsChart {projects} loading={loadingProjects} />
+			{/if}
 
-				<Card class="gap-2">
-					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
-						<span class="material-symbols-rounded text-xl! text-muted-foreground">euro</span>
-					</CardHeader>
-					<CardContent>
-						{#if loadingProjects}
-							<Skeleton class="h-8 w-28" />
-						{:else}
-							<div class="text-2xl font-bold">{formatCost(totalCost)}</div>
-							<p class="text-xs text-muted-foreground mt-1">inversión acumulada</p>
-						{/if}
+			{#if workersError}
+				<Card>
+					<CardContent class="py-8">
+						<div class="flex flex-col items-center justify-center text-destructive">
+							<span class="material-symbols-rounded text-3xl! mb-2">error</span>
+							<p class="text-sm">{workersError}</p>
+							<button
+								class="mt-4 text-sm text-primary hover:underline"
+								onclick={() => loadWorkers()}
+							>
+								Reintentar
+							</button>
+						</div>
 					</CardContent>
 				</Card>
-
-				<Card class="gap-2">
-					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle class="text-sm font-medium text-muted-foreground"
-							>Proyectos Activos</CardTitle
-						>
-						<span class="material-symbols-rounded text-xl! text-muted-foreground">folder</span>
-					</CardHeader>
-					<CardContent>
-						{#if loadingProjects}
-							<Skeleton class="h-8 w-16" />
-						{:else}
-							<div class="text-2xl font-bold">{activeProjectsCount}</div>
-							<p class="text-xs text-muted-foreground mt-1">proyectos con actividad</p>
-						{/if}
-					</CardContent>
-				</Card>
-
-				<Card class="gap-2">
-					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle class="text-sm font-medium text-muted-foreground">Trabajadores</CardTitle>
-						<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
-					</CardHeader>
-					<CardContent>
-						{#if loadingWorkers}
-							<Skeleton class="h-8 w-20" />
-						{:else}
-							<div class="text-2xl font-bold">{totalWorkersCount}</div>
-							<p class="text-xs text-muted-foreground mt-1">con actividad registrada</p>
-						{/if}
-					</CardContent>
-				</Card>
-			</div>
-
-			<div class="space-y-8">
-				{#if projectsError}
-					<Card>
-						<CardContent class="py-8">
-							<div class="flex flex-col items-center justify-center text-destructive">
-								<span class="material-symbols-rounded text-3xl! mb-2">error</span>
-								<p class="text-sm">{projectsError}</p>
-								<button
-									class="mt-4 text-sm text-primary hover:underline"
-									onclick={() => loadProjects()}
-								>
-									Reintentar
-								</button>
-							</div>
-						</CardContent>
-					</Card>
-				{:else}
-					<ProjectsChart {projects} loading={loadingProjects} />
-				{/if}
-
-				{#if workersError}
-					<Card>
-						<CardContent class="py-8">
-							<div class="flex flex-col items-center justify-center text-destructive">
-								<span class="material-symbols-rounded text-3xl! mb-2">error</span>
-								<p class="text-sm">{workersError}</p>
-								<button
-									class="mt-4 text-sm text-primary hover:underline"
-									onclick={() => loadWorkers()}
-								>
-									Reintentar
-								</button>
-							</div>
-						</CardContent>
-					</Card>
-				{:else}
-					<WorkersChart {workers} loading={loadingWorkers} {currentUserId} />
-				{/if}
-			</div>
-		</TabsContent>
+			{:else if activeTab === 'proyectos'}
+				<WorkersChart {workers} loading={loadingWorkers} {currentUserId} />
+			{/if}
+		</div>
+	</TabsContent>
 
 		<TabsContent value="nominas" class="flex flex-col gap-6">
 			<PayrollSummary />
