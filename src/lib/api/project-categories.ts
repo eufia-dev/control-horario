@@ -53,7 +53,9 @@ export async function fetchProjectCategory(id: string): Promise<ProjectCategory>
 	return handleJsonResponse<ProjectCategory>(response);
 }
 
-export async function createProjectCategory(data: CreateProjectCategoryDto): Promise<ProjectCategory> {
+export async function createProjectCategory(
+	data: CreateProjectCategoryDto
+): Promise<ProjectCategory> {
 	const response = await fetchWithAuth(`${API_BASE}/projects/categories`, {
 		method: 'POST',
 		headers: {

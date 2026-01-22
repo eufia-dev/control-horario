@@ -17,7 +17,10 @@
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import { canAccessCashFlow as canAccessCashFlowStore, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import {
+		canAccessCashFlow as canAccessCashFlowStore,
+		isAdmin as isAdminStore
+	} from '$lib/stores/auth';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import {
 		fetchAllProjectsCashFlow,
@@ -28,13 +31,13 @@
 		type MonthCashFlow,
 		type ProjectCashFlowSummary
 	} from '$lib/api/cash-flow';
-import MonthlyDetailModal from './MonthlyDetailModal.svelte';
+	import MonthlyDetailModal from './MonthlyDetailModal.svelte';
 
-// Simplified team type for filtering (extracted from projects)
-type TeamFilter = {
-	id: string;
-	name: string;
-};
+	// Simplified team type for filtering (extracted from projects)
+	type TeamFilter = {
+		id: string;
+		name: string;
+	};
 
 	let canAccessCashFlow = $state(false);
 	let isAdmin = $state(false);
@@ -74,7 +77,10 @@ type TeamFilter = {
 	let selectedProject = $state<Project | null>(null);
 
 	// Options - convert to string values for Select
-	const monthOptions = getMonthOptions().map((o) => ({ value: o.value.toString(), label: o.label }));
+	const monthOptions = getMonthOptions().map((o) => ({
+		value: o.value.toString(),
+		label: o.label
+	}));
 	const yearOptions = getYearOptions().map((o) => ({ value: o.value.toString(), label: o.label }));
 
 	const selectedMonthLabel = $derived(getMonthName(parseInt(selectedMonth)));
@@ -392,44 +398,45 @@ type TeamFilter = {
 		<Card>
 			<CardHeader>
 				<CardTitle class="text-xl font-semibold">
-					Proyectos - {selectedMonthLabel} {selectedYear}
+					Proyectos - {selectedMonthLabel}
+					{selectedYear}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-			{#if loading}
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Proyecto</TableHead>
-							<TableHead>Código</TableHead>
-							<TableHead>Delegación</TableHead>
-							<TableHead>Cliente</TableHead>
-							<TableHead class="text-right">Prod. Est.</TableHead>
-							<TableHead class="text-right">Prod. Real</TableHead>
-							<TableHead class="text-right">Costes Ext. Est.</TableHead>
-							<TableHead class="text-right">Costes Ext. Real</TableHead>
-							<TableHead class="text-right">Costes Int.</TableHead>
-							<TableHead class="text-right">Resultado</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+				{#if loading}
+					<Table>
+						<TableHeader>
 							<TableRow>
-								<TableCell><Skeleton class="h-4 w-32" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-24" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+								<TableHead>Proyecto</TableHead>
+								<TableHead>Código</TableHead>
+								<TableHead>Delegación</TableHead>
+								<TableHead>Cliente</TableHead>
+								<TableHead class="text-right">Prod. Est.</TableHead>
+								<TableHead class="text-right">Prod. Real</TableHead>
+								<TableHead class="text-right">Costes Ext. Est.</TableHead>
+								<TableHead class="text-right">Costes Ext. Real</TableHead>
+								<TableHead class="text-right">Costes Int.</TableHead>
+								<TableHead class="text-right">Resultado</TableHead>
 							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			{:else if error}
+						</TableHeader>
+						<TableBody>
+							{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
+								<TableRow>
+									<TableCell><Skeleton class="h-4 w-32" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-24" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+									<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+								</TableRow>
+							{/each}
+						</TableBody>
+					</Table>
+				{:else if error}
 					<div class="flex items-center justify-center py-8 text-destructive">
 						<span class="material-symbols-rounded mr-2">error</span>
 						{error}
@@ -460,9 +467,7 @@ type TeamFilter = {
 								{#each filteredProjects as project (project.id)}
 									{@const data = getProjectMonthData(project.id)}
 									{@const netResult = data
-										? (data.revenue.actual ?? 0) -
-											data.externalCosts.actual -
-											data.internalCosts
+										? (data.revenue.actual ?? 0) - data.externalCosts.actual - data.internalCosts
 										: 0}
 									<TableRow
 										class="cursor-pointer hover:bg-muted/50"

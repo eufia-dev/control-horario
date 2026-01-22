@@ -1,18 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import {
-		Table,
-		TableHeader,
-		TableBody,
-		TableRow,
-		TableHead,
-		TableCell
-	} from '$lib/components/ui/table';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Button } from '$lib/components/ui/button';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import TimeEntryFormModal from '$lib/components/TimeEntryFormModal.svelte';
 	import TimeEntryDeleteDialog from './TimeEntryDeleteDialog.svelte';
 	import ComplianceWidget from './ComplianceWidget.svelte';
@@ -220,23 +209,6 @@
 		} finally {
 			loadingJoinRequests = false;
 		}
-	}
-
-	function formatDuration(minutes: number): string {
-		const hours = Math.floor(minutes / 60);
-		const mins = minutes % 60;
-		if (hours > 0) {
-			return `${hours}h ${mins}m`;
-		}
-		return `${mins}m`;
-	}
-
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('es-ES', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric'
-		});
 	}
 
 	function handleTimerStop() {

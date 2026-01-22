@@ -89,7 +89,9 @@
 		}
 	}
 
-	async function handleSave(data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto) {
+	async function handleSave(
+		data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto
+	) {
 		const actualData = data as CreateCostActualDto | UpdateCostActualDto;
 		if (selectedActual) {
 			// Update
@@ -125,7 +127,9 @@
 	</div>
 
 	{#if actuals.length === 0}
-		<div class="flex flex-col items-center justify-center py-6 text-muted-foreground border rounded-lg border-dashed">
+		<div
+			class="flex flex-col items-center justify-center py-6 text-muted-foreground border rounded-lg border-dashed"
+		>
 			<span class="material-symbols-rounded text-3xl! mb-2">receipt_long</span>
 			<p class="text-sm">No hay costes reales registrados</p>
 			<Button variant="ghost" size="sm" class="mt-2" onclick={handleAdd}>

@@ -568,10 +568,7 @@
 				let startTimeIso: string;
 				let endTimeIso: string;
 
-				if (
-					seg.originalStartTime &&
-					formatTimeForInput(seg.originalStartTime) === seg.startTime
-				) {
+				if (seg.originalStartTime && formatTimeForInput(seg.originalStartTime) === seg.startTime) {
 					startTimeIso = seg.originalStartTime; // Preserve original precision
 				} else {
 					startTimeIso = new Date(`${baseDateStr}T${seg.startTime}`).toISOString();
@@ -728,9 +725,7 @@
 						{@const segmentIsWorkType = segmentType?.name === 'Trabajo'}
 						{@const segmentDuration = getSegmentDuration(segment)}
 
-						<div
-							class="relative rounded-lg border p-4 transition-all hover:border-primary/30"
-						>
+						<div class="relative rounded-lg border p-4 transition-all hover:border-primary/30">
 							<button
 								type="button"
 								class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"

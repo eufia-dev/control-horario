@@ -34,7 +34,11 @@
 		mode: 'estimate' | 'actual';
 		item: CostEstimate | CostActual | null;
 		onSave: (
-			data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto
+			data:
+				| CreateCostEstimateDto
+				| UpdateCostEstimateDto
+				| CreateCostActualDto
+				| UpdateCostActualDto
 		) => Promise<void>;
 		onClose: () => void;
 	};
@@ -270,7 +274,10 @@
 								<SelectItem value="" label="Sin especificar" />
 							{/if}
 							{#each providers as provider (provider.id)}
-								<SelectItem value={provider.id} label="{provider.name} ({provider.paymentPeriod} días)" />
+								<SelectItem
+									value={provider.id}
+									label="{provider.name} ({provider.paymentPeriod} días)"
+								/>
 							{/each}
 						</SelectContent>
 					</Select>
@@ -326,12 +333,7 @@
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent class="w-auto p-0" align="start">
-							<Calendar
-								type="single"
-								bind:value={issueDate}
-								initialFocus
-								locale="es"
-							/>
+							<Calendar type="single" bind:value={issueDate} initialFocus locale="es" />
 						</PopoverContent>
 					</Popover>
 				</div>

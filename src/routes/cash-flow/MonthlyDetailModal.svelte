@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import {
 		Dialog,
 		DialogContent,
@@ -52,7 +51,9 @@
 
 	const monthName = $derived(getMonthName(month));
 	const dialogWidth = $derived(activeTab === 'costes' ? 'sm:max-w-4xl' : 'sm:max-w-2xl');
-	const dialogTitle = $derived(project ? `${project.name} - ${monthName} ${year}` : 'Flujo de Caja');
+	const dialogTitle = $derived(
+		project ? `${project.name} - ${monthName} ${year}` : 'Flujo de Caja'
+	);
 
 	// Calculated values
 	const netEstimated = $derived(() => {
@@ -250,7 +251,8 @@
 							class="min-w-28"
 						>
 							{#if savingRevenue}
-								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span>
+								<span class="material-symbols-rounded animate-spin text-lg!">progress_activity</span
+								>
 							{:else if revenueSuccess}
 								<span class="material-symbols-rounded text-lg! animate-in zoom-in duration-200"
 									>check_circle</span

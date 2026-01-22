@@ -85,7 +85,9 @@
 		}
 	}
 
-	async function handleSave(data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto) {
+	async function handleSave(
+		data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto
+	) {
 		const estimateData = data as CreateCostEstimateDto | UpdateCostEstimateDto;
 		if (selectedEstimate) {
 			// Update
@@ -121,7 +123,9 @@
 	</div>
 
 	{#if estimates.length === 0}
-		<div class="flex flex-col items-center justify-center py-6 text-muted-foreground border rounded-lg border-dashed">
+		<div
+			class="flex flex-col items-center justify-center py-6 text-muted-foreground border rounded-lg border-dashed"
+		>
 			<span class="material-symbols-rounded text-3xl! mb-2">receipt</span>
 			<p class="text-sm">No hay estimaciones de coste</p>
 			<Button variant="ghost" size="sm" class="mt-2" onclick={handleAdd}>

@@ -183,8 +183,13 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 
 // ==================== Revenue API ====================
 
-export async function fetchMonthlyRevenues(projectId: string, year: number): Promise<MonthlyRevenue[]> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/projects/${projectId}/revenue?year=${year}`);
+export async function fetchMonthlyRevenues(
+	projectId: string,
+	year: number
+): Promise<MonthlyRevenue[]> {
+	const response = await fetchWithAuth(
+		`${API_BASE}/cash-flow/projects/${projectId}/revenue?year=${year}`
+	);
 	return handleJsonResponse<MonthlyRevenue[]>(response);
 }
 
@@ -275,16 +280,13 @@ export async function createCostActual(
 	projectId: string,
 	data: CreateCostActualDto
 ): Promise<CostActual> {
-	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/cost-actuals`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data)
-		}
-	);
+	const response = await fetchWithAuth(`${API_BASE}/cash-flow/projects/${projectId}/cost-actuals`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(data)
+	});
 	return handleJsonResponse<CostActual>(response);
 }
 
