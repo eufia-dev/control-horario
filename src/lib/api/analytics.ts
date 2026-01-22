@@ -8,11 +8,7 @@ export type ProjectSummary = {
 	name: string;
 	code: string;
 	totalMinutes: number;
-	internalMinutes: number;
-	externalMinutes: number;
 	totalCost: number;
-	internalCost: number;
-	externalCost: number;
 };
 
 export type ProjectsSummaryResponse = {
@@ -22,7 +18,6 @@ export type ProjectsSummaryResponse = {
 export type WorkerBreakdown = {
 	id: string;
 	name: string;
-	type: 'internal' | 'external';
 	minutes: number;
 	hourlyCost: number;
 	totalCost: number;
@@ -35,7 +30,6 @@ export type ProjectBreakdownResponse = {
 export type WorkerSummary = {
 	id: string;
 	name: string;
-	type: 'internal' | 'external';
 	hourlyCost: number;
 	totalMinutes: number;
 	totalCost: number;
@@ -54,7 +48,6 @@ export type ProjectBreakdown = {
 };
 
 export type WorkerBreakdownResponse = {
-	workerType: 'internal' | 'external';
 	worker: {
 		id: string;
 		name: string;
@@ -133,13 +126,8 @@ export async function fetchWorkersSummary(): Promise<WorkersSummaryResponse> {
 	return handleJsonResponse<WorkersSummaryResponse>(response);
 }
 
-export async function fetchWorkerBreakdown(
-	workerId: string,
-	type: 'internal' | 'external'
-): Promise<WorkerBreakdownResponse> {
-	const response = await fetchWithAuth(
-		`${API_BASE}/analytics/workers/${workerId}/breakdown?type=${type}`
-	);
+export async function fetchWorkerBreakdown(workerId: string): Promise<WorkerBreakdownResponse> {
+	const response = await fetchWithAuth(`${API_BASE}/analytics/workers/${workerId}/breakdown`);
 	return handleJsonResponse<WorkerBreakdownResponse>(response);
 }
 

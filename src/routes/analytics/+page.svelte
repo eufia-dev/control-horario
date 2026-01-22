@@ -34,8 +34,6 @@
 	const totalCost = $derived(projects.reduce((sum, p) => sum + p.totalCost, 0));
 	const activeProjectsCount = $derived(projects.length);
 	const totalWorkersCount = $derived(workers.length);
-	const internalWorkersCount = $derived(workers.filter((w) => w.type === 'internal').length);
-	const externalWorkersCount = $derived(workers.filter((w) => w.type === 'external').length);
 
 	async function loadProjects() {
 		loadingProjects = true;
@@ -179,9 +177,7 @@
 							<Skeleton class="h-8 w-20" />
 						{:else}
 							<div class="text-2xl font-bold">{totalWorkersCount}</div>
-							<p class="text-xs text-muted-foreground mt-1">
-								{internalWorkersCount} internos · {externalWorkersCount} externos
-							</p>
+							<p class="text-xs text-muted-foreground mt-1">con actividad registrada</p>
 						{/if}
 					</CardContent>
 				</Card>

@@ -142,14 +142,6 @@ export function canSendInvitations(role: UserRole): boolean {
 }
 
 /**
- * Check if a user can manage external workers
- * Only OWNER and ADMIN can manage externals
- */
-export function canManageExternals(role: UserRole): boolean {
-	return role === 'OWNER' || role === 'ADMIN';
-}
-
-/**
  * Check if a user is a full admin (OWNER or ADMIN)
  */
 export function isFullAdmin(role: UserRole): boolean {

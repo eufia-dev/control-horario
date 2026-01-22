@@ -36,13 +36,9 @@
 	};
 
 	const breakdownChartConfig: ChartConfig = {
-		internal: {
-			label: 'Interno',
+		worker: {
+			label: 'Trabajador',
 			color: 'var(--chart-1)'
-		},
-		external: {
-			label: 'Externo',
-			color: 'var(--chart-2)'
 		}
 	};
 
@@ -95,7 +91,7 @@
 			label: w.name.split(' ')[0],
 			fullName: w.name,
 			value: breakdownViewMode === 'cost' ? w.totalCost : w.minutes / 60,
-			color: stringToColor(w.id + w.type),
+			color: stringToColor(w.id),
 			workerCost: w.totalCost,
 			workerHours: w.minutes / 60
 		}))
@@ -331,7 +327,7 @@
 								format={(key: string) => breakdownKeyToLabelMap[key] ?? key}
 							/>
 							<Bars radius={3} strokeWidth={0}>
-								{#each breakdownChartData as item (`${item.id}:${item.type}`)}
+								{#each breakdownChartData as item (item.id)}
 									<Bar data={item} fill={item.color} radius={3} strokeWidth={0} />
 								{/each}
 							</Bars>
@@ -344,9 +340,7 @@
 									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
 										<div class="text-muted-foreground text-[10px] mb-1.5">
-											{data.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(
-												data.hourlyCost
-											)}/h
+											{formatCost(data.hourlyCost)}/h
 										</div>
 										<div class="flex items-center justify-between gap-4">
 											<span class="text-muted-foreground">Coste</span>
@@ -366,7 +360,7 @@
 				<div
 					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
 				>
-					{#each breakdownChartData as worker (`${worker.id}:${worker.type}`)}
+					{#each breakdownChartData as worker (worker.id)}
 						<div class="flex items-center gap-1.5">
 							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {worker.color}"></span>
 							<span>{worker.label}</span>

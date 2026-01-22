@@ -27,18 +27,13 @@
 	let mainViewMode = $state<'hours' | 'cost'>('hours');
 	let breakdownViewMode = $state<'hours' | 'cost'>('hours');
 	let selectedWorkerId = $state<string | null>(null);
-	let selectedWorkerType = $state<'internal' | 'external' | null>(null);
 	let breakdownData = $state<ProjectBreakdown[]>([]);
 	let loadingBreakdown = $state(false);
 
 	const chartConfig: ChartConfig = {
-		internal: {
-			label: 'Internos',
+		worker: {
+			label: 'Trabajador',
 			color: 'var(--chart-1)'
-		},
-		external: {
-			label: 'Externos',
-			color: 'var(--chart-2)'
 		}
 	};
 
@@ -56,7 +51,7 @@
 			label: w.name.split(' ')[0],
 			fullName: w.name,
 			value: mainViewMode === 'cost' ? w.totalCost : w.totalMinutes / 60,
-			color: stringToColor(w.id + w.type),
+			color: stringToColor(w.id),
 			cost: w.totalCost,
 			hours: w.totalMinutes / 60
 		}));
@@ -67,35 +62,28 @@
 
 	const maxValue = $derived(Math.max(...chartData.map((d) => d.value), 1));
 
-	const selectedWorker = $derived(
-		workers.find((w) => w.id === selectedWorkerId && w.type === selectedWorkerType)
-	);
-
-	const selectedWorkerKey = $derived(
-		selectedWorkerId && selectedWorkerType ? `${selectedWorkerId}:${selectedWorkerType}` : undefined
-	);
+	const selectedWorker = $derived(workers.find((w) => w.id === selectedWorkerId));
 
 	$effect(() => {
 		if (workers.length > 0 && !selectedWorkerId) {
 			if (currentUserId) {
-				const currentUser = workers.find((w) => w.id === currentUserId && w.type === 'internal');
+				const currentUser = workers.find((w) => w.id === currentUserId);
 				if (currentUser) {
-					selectWorker(currentUser.id, currentUser.type);
+					selectWorker(currentUser.id);
 					return;
 				}
 			}
-			selectWorker(workers[0].id, workers[0].type);
+			selectWorker(workers[0].id);
 		}
 	});
 
-	async function selectWorker(workerId: string, type: 'internal' | 'external') {
-		if (selectedWorkerId === workerId && selectedWorkerType === type) return;
+	async function selectWorker(workerId: string) {
+		if (selectedWorkerId === workerId) return;
 
 		selectedWorkerId = workerId;
-		selectedWorkerType = type;
 		loadingBreakdown = true;
 		try {
-			const response = await fetchWorkerBreakdown(workerId, type);
+			const response = await fetchWorkerBreakdown(workerId);
 			breakdownData = response.projects;
 		} catch (e) {
 			console.error('Error loading worker breakdown:', e);
@@ -106,9 +94,8 @@
 	}
 
 	function handleWorkerChange(value: string) {
-		const [id, type] = value.split(':');
-		if (id && (type === 'internal' || type === 'external')) {
-			selectWorker(id, type);
+		if (value) {
+			selectWorker(value);
 		}
 	}
 
@@ -206,7 +193,7 @@
 								format={(key: string) => keyToLabelMap[key] ?? key}
 							/>
 							<Bars radius={4} strokeWidth={0}>
-								{#each chartData as item (`${item.id}:${item.type}`)}
+								{#each chartData as item (item.id)}
 									<Bar data={item} fill={item.color} radius={4} strokeWidth={0} />
 								{/each}
 							</Bars>
@@ -219,9 +206,7 @@
 									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
 										<div class="text-muted-foreground text-[10px] mb-1.5">
-											{data.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(
-												data.hourlyCost
-											)}/h
+											{formatCost(data.hourlyCost)}/h
 										</div>
 										<div class="flex items-center justify-between gap-4">
 											<span class="text-muted-foreground">Coste total</span>
@@ -241,7 +226,7 @@
 				<div
 					class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-muted-foreground"
 				>
-					{#each chartData as worker (`${worker.id}:${worker.type}`)}
+					{#each chartData as worker (worker.id)}
 						<div class="flex items-center gap-1.5">
 							<span class="w-2.5 h-2.5 rounded-sm" style="background-color: {worker.color}"></span>
 							<span>{worker.label}</span>
@@ -258,9 +243,7 @@
 				<CardTitle class="text-xl font-semibold">Por trabajador</CardTitle>
 				{#if selectedWorker}
 					<p class="text-xs text-muted-foreground mt-1">
-						{selectedWorker.type === 'internal' ? 'Interno' : 'Externo'} · {formatCost(
-							selectedWorker.hourlyCost
-						)}/h · {formatValue(
+						{formatCost(selectedWorker.hourlyCost)}/h · {formatValue(
 							breakdownViewMode === 'cost'
 								? selectedWorker.totalCost
 								: selectedWorker.totalMinutes / 60,
@@ -273,10 +256,10 @@
 				{#if workers.length > 0}
 					<Combobox
 						items={workers}
-						value={selectedWorkerKey}
+						value={selectedWorkerId ?? undefined}
 						onValueChange={(value) => value && handleWorkerChange(value)}
-						getItemValue={(w) => `${w.id}:${w.type}`}
-						getItemLabel={(w) => `${w.name} (${w.type === 'internal' ? 'Int' : 'Ext'})`}
+						getItemValue={(w) => w.id}
+						getItemLabel={(w) => w.name}
 						placeholder="Seleccionar..."
 						searchPlaceholder="Buscar trabajador..."
 						emptyMessage="No se encontraron trabajadores."
@@ -286,12 +269,7 @@
 							<span class="truncate">{item.name.split(' ')[0]}</span>
 						{/snippet}
 						{#snippet itemSnippet({ item })}
-							<div class="flex flex-col">
-								<span class="font-medium">{item.name}</span>
-								<span class="text-muted-foreground text-xs">
-									{item.type === 'internal' ? 'Interno' : 'Externo'}
-								</span>
-							</div>
+							<span class="font-medium">{item.name}</span>
 						{/snippet}
 					</Combobox>
 				{/if}
