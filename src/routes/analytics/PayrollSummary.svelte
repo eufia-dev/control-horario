@@ -253,6 +253,8 @@
 						</div>
 						<RangeCalendar
 							bind:value={dateRange}
+							numberOfMonths={2}
+							disableDaysOutsideMonth={true}
 							onValueChange={() => {
 								if (dateRange?.start && dateRange?.end) {
 									dateRangePopoverOpen = false;

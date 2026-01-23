@@ -10,7 +10,7 @@
 	import { auth } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
-	import PayrollSummary from '$lib/components/charts/payroll-summary.svelte';
+	import PayrollSummary from './PayrollSummary.svelte';
 	import {
 		fetchProjectsSummary,
 		fetchWorkersSummary,
