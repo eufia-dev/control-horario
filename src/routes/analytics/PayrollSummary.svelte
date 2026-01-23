@@ -302,6 +302,7 @@
 							<TableHead class="min-w-[250px]">Empleado</TableHead>
 							<TableHead class="text-right min-w-[100px]">H. Esperadas</TableHead>
 							<TableHead class="text-right min-w-[100px]">H. Trabajadas</TableHead>
+							<TableHead class="text-right min-w-[70px]">H. Café</TableHead>
 							<TableHead class="text-right min-w-[90px]">Diferencia</TableHead>
 							<TableHead class="text-right min-w-[80px]">Ausencias</TableHead>
 							<TableHead class="text-right min-w-[100px]">Coste</TableHead>
@@ -333,6 +334,13 @@
 								</TableCell>
 								<TableCell class="text-right tabular-nums font-medium">
 									{formatHours(user.loggedMinutes)}
+								</TableCell>
+								<TableCell class="text-right tabular-nums text-muted-foreground">
+									{#if user.coffeePauseMinutes > 0}
+										{formatHours(user.coffeePauseMinutes)}
+									{:else}
+										<span class="text-muted-foreground/50">-</span>
+									{/if}
 								</TableCell>
 								<TableCell class="text-right tabular-nums font-semibold {diff.class}">
 									{diff.text}
@@ -408,6 +416,10 @@
 								(sum, u) => sum + u.loggedMinutes,
 								0
 							)}
+							{@const filteredCoffeePauseMinutes = filteredUsers.reduce(
+								(sum, u) => sum + u.coffeePauseMinutes,
+								0
+							)}
 							{@const filteredDifferenceMinutes = filteredUsers.reduce(
 								(sum, u) => sum + u.differenceMinutes,
 								0
@@ -441,6 +453,13 @@
 							</TableCell>
 							<TableCell class="text-right tabular-nums">
 								{formatHours(filteredLoggedMinutes)}
+							</TableCell>
+							<TableCell class="text-right tabular-nums text-muted-foreground">
+								{#if filteredCoffeePauseMinutes > 0}
+									{formatHours(filteredCoffeePauseMinutes)}
+								{:else}
+									<span class="text-muted-foreground/50">-</span>
+								{/if}
 							</TableCell>
 							<TableCell class="text-right tabular-nums {totalDiff.class}">
 								{totalDiff.text}

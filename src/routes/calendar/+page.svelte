@@ -140,21 +140,19 @@
 
 	function briefToTimeEntry(briefEntry: TimeEntryBrief): TimeEntry {
 		// Convert TimeEntryBrief to TimeEntry
-		// Note: isInOffice defaults to true since it's not in the brief data
+		// Note: Some fields default to empty since they're not needed for editing/deleting
 		return {
 			id: briefEntry.id,
-			userId: '', // Not needed for editing/deleting
-			companyId: '', // Not needed for editing/deleting
-			projectId: briefEntry.projectId ?? '',
+			userId: '',
+			companyId: '',
+			projectId: briefEntry.project?.id ?? '',
 			entryType: briefEntry.entryType,
 			startTime: briefEntry.startTime,
 			endTime: briefEntry.endTime,
 			durationMinutes: briefEntry.durationMinutes,
-			isInOffice: true, // Default value since not in TimeEntryBrief
-			createdAt: '', // Not needed for editing/deleting
-			project: briefEntry.projectName
-				? { id: briefEntry.projectId ?? '', name: briefEntry.projectName, code: '' }
-				: undefined
+			isInOffice: true,
+			createdAt: '',
+			project: briefEntry.project
 		};
 	}
 

@@ -65,6 +65,7 @@ export type PayrollUserSummary = {
 	hourlyCost: number;
 	expectedMinutes: number;
 	loggedMinutes: number;
+	coffeePauseMinutes: number;
 	differenceMinutes: number; // positive = extra, negative = missing
 	expectedWorkDays: number;
 	daysWorked: number;
@@ -78,6 +79,7 @@ export type PayrollUserSummary = {
 export type PayrollSummaryTotals = {
 	expectedMinutes: number;
 	loggedMinutes: number;
+	coffeePauseMinutes: number;
 	differenceMinutes: number;
 	vacationDays: number;
 	sickLeaveDays: number;

@@ -10,6 +10,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { CalendarDay, EntryType, TimeEntryBrief } from '$lib/api/calendar';
 	import { DAY_STATUS_STYLES, DAY_STATUS_LABELS, ABSENCE_TYPE_LABELS } from '$lib/types/calendar';
+	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 
 	type Props = {
 		open: boolean;
@@ -75,6 +76,14 @@
 	const styles = $derived(day ? DAY_STATUS_STYLES[day.status] : null);
 	const statusLabel = $derived(day ? DAY_STATUS_LABELS[day.status] : '');
 
+	// Calculate coffee pause minutes from entries
+	const coffeePauseMinutes = $derived(() => {
+		if (!day?.entries) return 0;
+		return day.entries
+			.filter((e) => e.entryType === 'PAUSE_COFFEE')
+			.reduce((sum, e) => sum + e.durationMinutes, 0);
+	});
+
 	// Check if the day is in the future (no entries allowed)
 	const isFutureDay = $derived(() => {
 		if (!day) return false;
@@ -95,10 +104,10 @@
 					<Badge class="{styles?.bgClass} {styles?.textClass}">
 						{statusLabel}
 					</Badge>
-					{#if day.isOvertime}
+					{#if day.overtimeMinutes && day.overtimeMinutes > 0}
 						<Badge variant="outline" class="text-yellow-600">
-							<span class="material-symbols-rounded text-sm! mr-1">schedule</span>
-							Horas extra
+							<span class="material-symbols-rounded text-sm! mr-1">more_time</span>
+							+{formatMinutes(day.overtimeMinutes)} extra
 						</Badge>
 					{/if}
 				</DialogDescription>
@@ -132,8 +141,15 @@
 					</div>
 					<div class="p-3 bg-muted rounded-lg">
 						<p class="text-sm text-muted-foreground">Horas registradas</p>
-						<p class="text-lg font-semibold {day.loggedMinutes > 0 ? 'text-success' : ''}">
-							{day.loggedMinutes > 0 ? formatMinutes(day.loggedMinutes) : '-'}
+						<p class="text-lg font-semibold">
+							<span class:text-success={day.loggedMinutes > 0}>
+								{day.loggedMinutes > 0 ? formatMinutes(day.loggedMinutes) : '-'}
+							</span>
+							{#if coffeePauseMinutes() > 0}
+								<span class="text-sm font-normal text-muted-foreground">
+									({formatMinutes(coffeePauseMinutes())} café)
+								</span>
+							{/if}
 						</p>
 					</div>
 				</div>
@@ -145,8 +161,10 @@
 						<div class="space-y-2">
 							{#each day.entries as entry (entry.id)}
 								{@const isPause = isPauseEntry(entry.entryType)}
+								{@const isCoffeePause = entry.entryType === 'PAUSE_COFFEE'}
+								{@const isRegularPause = isPause && !isCoffeePause}
 								<div
-									class="flex items-center justify-between p-3 border rounded-lg transition-opacity {isPause
+									class="flex items-center justify-between p-3 border rounded-lg transition-opacity {isRegularPause
 										? 'opacity-60 hover:opacity-80 bg-muted/30'
 										: ''}"
 								>
@@ -157,15 +175,17 @@
 											<span class="font-medium">{formatTime(entry.endTime)}</span>
 										</div>
 										{#if isPause}
-											<Badge variant="outline" class="text-xs text-muted-foreground">
+											<Badge variant="outline" class="text-sm text-muted-foreground">
 												{ENTRY_TYPE_LABELS[entry.entryType]}
 											</Badge>
-										{:else if entry.projectName}
-											<Badge variant="secondary">{entry.projectName}</Badge>
+										{:else if entry.project}
+											<Badge variant="secondary" class="text-sm">
+												<ProjectLabel project={entry.project} />
+											</Badge>
 										{/if}
 									</div>
 									<div class="flex items-center gap-1">
-										<span class="text-sm font-medium {isPause ? 'text-muted-foreground' : ''}"
+										<span class="text-sm font-medium mr-1 {isPause ? 'text-muted-foreground' : ''}"
 											>{formatMinutes(entry.durationMinutes)}</span
 										>
 										{#if onEditEntry && !isFutureDay()}

@@ -24,8 +24,11 @@ export type TimeEntryBrief = {
 	endTime: string;
 	durationMinutes: number;
 	entryType: EntryType;
-	projectId: string | null;
-	projectName: string | null;
+	project?: {
+		id: string;
+		name: string;
+		code: string;
+	};
 };
 
 export type CalendarDay = {
@@ -37,7 +40,7 @@ export type CalendarDay = {
 	expectedMinutes: number;
 	loggedMinutes: number;
 	entries: TimeEntryBrief[];
-	isOvertime?: boolean;
+	overtimeMinutes?: number; // loggedMinutes - expectedMinutes, > 0 indicates overtime
 	isOutsideMonth?: boolean; // true for padding days from previous/next month
 };
 

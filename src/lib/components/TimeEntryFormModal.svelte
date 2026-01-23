@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import {
 		Dialog,
 		DialogContent,
@@ -150,6 +151,7 @@
 	let submitting = $state(false);
 	let success = $state(false);
 	let error = $state<string | null>(null);
+	let scrollContainer = $state<HTMLDivElement | null>(null);
 
 	const hasExistingEntries = $derived(originalEntryIds.size > 0);
 	const dialogTitle = $derived(hasExistingEntries ? 'Registros del día' : 'Nuevo Registro');
@@ -163,20 +165,41 @@
 		return activeProjects.length > 0 ? activeProjects[0].id : undefined;
 	});
 
-	// Calculate total duration across all segments
-	const totalDuration = $derived(() => {
-		return segments.reduce((total, seg) => {
-			if (seg.startTime && seg.endTime && baseDate) {
-				const baseDateStr = dateValueToString(baseDate);
-				const start = new Date(`${baseDateStr}T${seg.startTime}`);
-				const end = new Date(`${baseDateStr}T${seg.endTime}`);
-				const diffMs = end.getTime() - start.getTime();
-				if (diffMs > 0) {
-					return total + Math.round(diffMs / 60000);
+	// Helper to check if segment is a pause type
+	function isSegmentPauseType(segment: TimeSegment): boolean {
+		return segment.entryType?.toUpperCase().startsWith('PAUSE') ?? false;
+	}
+
+	// Calculate time breakdown across all segments
+	const timeBreakdown = $derived(() => {
+		let workMinutes = 0;
+		let coffeeMinutes = 0;
+		let pauseMinutes = 0;
+
+		for (const seg of segments) {
+			const duration = getSegmentDuration(seg);
+
+			if (isSegmentPauseType(seg)) {
+				if (seg.entryType === 'PAUSE_COFFEE') {
+					// Coffee pauses count as work time
+					workMinutes += duration;
+					coffeeMinutes += duration;
+				} else {
+					// Other pauses (lunch, etc.) don't count as work
+					pauseMinutes += duration;
 				}
+			} else {
+				// Regular work entries
+				workMinutes += duration;
 			}
-			return total;
-		}, 0);
+		}
+
+		return {
+			workMinutes,
+			coffeeMinutes,
+			pauseMinutes,
+			totalMinutes: workMinutes + pauseMinutes
+		};
 	});
 
 	// Helper to check if a segment type is work type
@@ -322,6 +345,12 @@
 		}
 
 		segments = [...segments, newSegment];
+
+		// Scroll to bottom to show the new segment
+		await tick();
+		if (scrollContainer) {
+			scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
+		}
 	}
 
 	function removeSegment(id: string) {
@@ -637,14 +666,14 @@
 </script>
 
 <Dialog bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
-	<DialogContent class="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-		<DialogHeader>
+	<DialogContent class="sm:max-w-lg overflow-hidden flex flex-col">
+		<DialogHeader class="shrink-0">
 			<DialogTitle>{dialogTitle}</DialogTitle>
 		</DialogHeader>
 
-		<form onsubmit={handleSubmit} class="grid gap-4 py-4">
+		<form onsubmit={handleSubmit} class="flex flex-col gap-4 min-h-0 mt-2 flex-1">
 			<!-- Date picker -->
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 shrink-0 mb-2">
 				<Label class="px-1">Fecha</Label>
 				<Popover.Root bind:open={baseDatePopoverOpen}>
 					<Popover.Trigger>
@@ -687,7 +716,10 @@
 			</div>
 
 			<!-- Segments list -->
-			<div class="flex flex-col gap-3">
+			<div
+				bind:this={scrollContainer}
+				class="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto pt-2 -mt-2 pr-2 -mr-2"
+			>
 				{#if loading}
 					<!-- Loading skeletons -->
 					{#each [1, 2] as i (i)}
@@ -719,7 +751,7 @@
 						<p class="text-sm">No hay registros para este día</p>
 					</div>
 				{:else}
-					{#each segments as segment, index (segment.id)}
+					{#each segments as segment (segment.id)}
 						{@const segmentType = timeEntryTypes.find((t) => t.value === segment.entryType)}
 						{@const segmentProject = activeProjects.find((p) => p.id === segment.projectId)}
 						{@const segmentIsWorkType = segmentType?.name === 'Trabajo'}
@@ -734,18 +766,6 @@
 							>
 								<span class="material-symbols-rounded text-sm! pl-px">close</span>
 							</button>
-
-							<!-- Segment header with number -->
-							<div class="mb-3 flex items-center gap-2">
-								<span
-									class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary"
-								>
-									{index + 1}
-								</span>
-								<span class="text-sm text-muted-foreground">
-									{segmentDuration > 0 ? formatDuration(segmentDuration) : '—'}
-								</span>
-							</div>
 
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<div class="grid gap-1.5">
@@ -834,16 +854,22 @@
 								</div>
 							</div>
 
-							<div class="mt-3 flex items-center gap-3">
-								<Switch
-									id={`isInOffice-${segment.id}`}
-									checked={segment.isInOffice}
-									onCheckedChange={(checked) => updateSegment(segment.id, { isInOffice: checked })}
-									disabled={submitting}
-								/>
-								<Label for={`isInOffice-${segment.id}`} class="cursor-pointer text-sm">
-									{segment.isInOffice ? 'Oficina' : 'Remoto'}
-								</Label>
+							<div class="flex items-center justify-between gap-3 mt-3">
+								<div class="flex items-center gap-3">
+									<Switch
+										id={`isInOffice-${segment.id}`}
+										checked={segment.isInOffice}
+										onCheckedChange={(checked) =>
+											updateSegment(segment.id, { isInOffice: checked })}
+										disabled={submitting}
+									/>
+									<Label for={`isInOffice-${segment.id}`} class="cursor-pointer text-sm">
+										{segment.isInOffice ? 'Oficina' : 'Remoto'}
+									</Label>
+								</div>
+								<span class="font-medium text-muted-foreground"
+									>{formatDuration(segmentDuration)}</span
+								>
 							</div>
 						</div>
 					{/each}
@@ -856,31 +882,62 @@
 					type="button"
 					onclick={addSegment}
 					disabled={submitting || addingSegment}
-					class="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 py-3 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary hover:bg-primary/5"
+					class="flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 border-dashed border-muted-foreground/25 text-sm text-muted-foreground transition-colors hover:text-primary hover:border-primary/50 hover:bg-primary/5 shrink-0"
 				>
 					{#if addingSegment}
-						<span class="material-symbols-rounded text-xl! animate-spin">progress_activity</span>
+						<span class="material-symbols-rounded text-base! animate-spin">progress_activity</span>
 					{:else}
-						<span class="material-symbols-rounded text-xl!">add</span>
+						<span class="material-symbols-rounded text-base!">add</span>
 					{/if}
-					<span class="text-sm font-medium">Añadir segmento</span>
+					<span>Añadir segmento</span>
 				</button>
 			{/if}
 
-			<!-- Total duration -->
-			<div class="flex items-center justify-end pt-2">
-				<div class="text-sm text-muted-foreground">
-					Duración total: <span class="font-medium text-foreground"
-						>{formatDuration(totalDuration())}</span
-					>
-				</div>
-			</div>
+			<!-- Time summary -->
+			{#if segments.length > 0}
+				{@const breakdown = timeBreakdown()}
+				<div class="flex items-center justify-between shrink-0 pt-2 border-t">
+					<!-- Left side: breakdown details -->
+					<div class="flex items-center gap-3">
+						<!-- Work time (includes coffee) -->
+						<div class="flex items-center gap-1">
+							<span class="material-symbols-rounded text-base!">work</span>
+							<span class="text-sm font-semibold text-foreground leading-tight"
+								>{formatDuration(breakdown.workMinutes)}</span
+							>
+							{#if breakdown.coffeeMinutes > 0}
+								<span class="flex items-center text-muted-foreground ml-1">
+									(<span class="material-symbols-rounded text-base! mr-1">coffee</span>
+									<span class="text-sm font-medium">{formatDuration(breakdown.coffeeMinutes)}</span
+									>)
+								</span>
+							{/if}
+						</div>
 
-			{#if error}
-				<div class="text-sm text-destructive">{error}</div>
+						<!-- Pause time (if any) -->
+						{#if breakdown.pauseMinutes > 0}
+							<div class="flex items-center gap-1 text-muted-foreground">
+								<span class="material-symbols-rounded text-base!">pause</span>
+								<span class="text-sm font-medium">{formatDuration(breakdown.pauseMinutes)}</span>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Right side: total -->
+					<div class="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1">
+						<span class="material-symbols-rounded text-base! text-primary">schedule</span>
+						<span class="text-sm font-semibold text-foreground"
+							>{formatDuration(breakdown.totalMinutes)}</span
+						>
+					</div>
+				</div>
 			{/if}
 
-			<DialogFooter class="gap-2">
+			{#if error}
+				<div class="text-sm text-destructive shrink-0">{error}</div>
+			{/if}
+
+			<DialogFooter class="gap-2 shrink-0 mt-2">
 				<Button
 					type="button"
 					variant="outline"

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import type { TimeEntry, TimeEntryType } from '$lib/api/time-entries';
 	import ProjectLabel from './ProjectLabel.svelte';
@@ -52,6 +53,7 @@
 		totalMinutes: number;
 		workMinutes: number;
 		pauseMinutes: number;
+		coffeeMinutes: number;
 	};
 
 	function isPauseEntry(entry: TimeEntry): boolean {
@@ -74,7 +76,8 @@
 					entries: [],
 					totalMinutes: 0,
 					workMinutes: 0,
-					pauseMinutes: 0
+					pauseMinutes: 0,
+					coffeeMinutes: 0
 				};
 			}
 
@@ -82,7 +85,12 @@
 			groups[dateKey].totalMinutes += entry.durationMinutes;
 
 			if (isPauseEntry(entry)) {
-				groups[dateKey].pauseMinutes += entry.durationMinutes;
+				if (entry.entryType === 'PAUSE_COFFEE') {
+					groups[dateKey].workMinutes += entry.durationMinutes;
+					groups[dateKey].coffeeMinutes += entry.durationMinutes;
+				} else {
+					groups[dateKey].pauseMinutes += entry.durationMinutes;
+				}
 			} else {
 				groups[dateKey].workMinutes += entry.durationMinutes;
 			}
@@ -177,17 +185,23 @@
 						</span>
 					</div>
 					<div class="h-px flex-1 bg-border"></div>
-					<div class="flex items-center gap-2 sm:gap-3">
+					<div class="flex items-center gap-2">
 						{#if day.workMinutes > 0}
 							<span
 								class="flex items-center gap-1 text-xs sm:text-sm font-semibold text-primary tabular-nums"
 							>
 								{formatDuration(day.workMinutes)}
+								{#if day.coffeeMinutes > 0}
+									<span class="text-xs font-normal text-muted-foreground flex items-center">
+										(<span class="material-symbols-rounded text-sm! mr-1">coffee</span
+										>{formatDuration(day.coffeeMinutes)})
+									</span>
+								{/if}
 							</span>
 						{/if}
 						{#if day.pauseMinutes > 0}
 							<span
-								class="hidden xs:flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums"
+								class="hidden sm:flex items-center gap-1 text-xs text-muted-foreground tabular-nums"
 							>
 								<span class="material-symbols-rounded text-sm!">pause</span>
 								{formatDuration(day.pauseMinutes)}
@@ -200,11 +214,13 @@
 				<div class="border border-border rounded-lg overflow-hidden bg-card">
 					{#each day.entries as entry, idx (entry.id)}
 						{@const isPause = isPauseEntry(entry)}
+						{@const isCoffeePause = entry.entryType === 'PAUSE_COFFEE'}
+						{@const isRegularPause = isPause && !isCoffeePause}
 						<div
 							class="group/entry flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-2.5 transition-colors hover:bg-muted/50 {idx >
 							0
 								? 'border-t border-border'
-								: ''} {isPause ? 'opacity-60 hover:opacity-80' : ''}"
+								: ''} {isRegularPause ? 'opacity-60 hover:opacity-80' : ''}"
 						>
 							<!-- Mobile: Top row with time + duration + actions -->
 							<div class="flex items-center gap-2 sm:contents">
@@ -217,7 +233,8 @@
 
 								<!-- Duration -->
 								<span
-									class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isPause
+									class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isRegularPause ||
+									isCoffeePause
 										? 'text-muted-foreground bg-muted'
 										: 'text-primary bg-primary/8'}"
 								>
@@ -228,7 +245,9 @@
 								<span
 									class="hidden sm:flex text-sm shrink-0 items-center gap-1 text-muted-foreground"
 								>
-									{#if isPause}
+									{#if isCoffeePause}
+										<span class="material-symbols-rounded text-sm!">coffee</span>
+									{:else if isPause}
 										<span class="material-symbols-rounded text-sm!">pause</span>
 									{/if}
 									{getEntryTypeName(
@@ -245,18 +264,12 @@
 								{/if}
 
 								<!-- Location indicator - icon only on mobile -->
-								<span
-									class="inline-flex items-center gap-1 text-xs px-1.5 sm:px-2 py-1 rounded-full shrink-0"
-									class:bg-foreground={entry.isInOffice}
-									class:text-background={entry.isInOffice}
-									class:bg-muted={!entry.isInOffice}
-									class:text-muted-foreground={!entry.isInOffice}
-								>
+								<Badge variant={entry.isInOffice ? 'default' : 'secondary'} class="shrink-0">
 									<span class="material-symbols-rounded text-xs!">
 										{entry.isInOffice ? 'apartment' : 'home'}
 									</span>
 									<span class="hidden sm:inline">{entry.isInOffice ? 'Oficina' : 'Remoto'}</span>
-								</span>
+								</Badge>
 
 								<!-- Source -->
 								{#if showSourceColumn}
@@ -333,7 +346,9 @@
 								class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap"
 							>
 								<span class="flex items-center gap-1">
-									{#if isPause}
+									{#if isCoffeePause}
+										<span class="material-symbols-rounded text-xs!">coffee</span>
+									{:else if isPause}
 										<span class="material-symbols-rounded text-xs!">pause</span>
 									{/if}
 									{getEntryTypeName(

@@ -16,7 +16,7 @@
 	$: fullLabel = code ? `${code} - ${name}` : name;
 </script>
 
-<Tooltip>
+<Tooltip ignoreNonKeyboardFocus>
 	<TooltipTrigger
 		class={cn('inline-flex items-center gap-1 text-left min-w-0 cursor-default', className)}
 	>

@@ -160,8 +160,11 @@
 										{dayLabel}
 									</span>
 								{/if}
-								{#if day.isOvertime}
-									<span class="material-symbols-rounded text-yellow-500 text-sm!"> schedule </span>
+								{#if day.overtimeMinutes && day.overtimeMinutes > 0}
+									<span class="flex items-center gap-0.5 text-yellow-600 text-xs">
+										<span class="material-symbols-rounded text-sm!">more_time</span>
+										<span>+{formatMinutes(day.overtimeMinutes)}</span>
+									</span>
 								{/if}
 							</button>
 						</TooltipTrigger>
@@ -180,8 +183,8 @@
 								{#if day.loggedMinutes > 0}
 									<p>Registrado: {formatMinutes(day.loggedMinutes)}</p>
 								{/if}
-								{#if day.isOvertime}
-									<p class="text-yellow-500">Horas extra</p>
+								{#if day.overtimeMinutes && day.overtimeMinutes > 0}
+									<p class="text-yellow-500">Horas extra: +{formatMinutes(day.overtimeMinutes)}</p>
 								{/if}
 							</div>
 						</TooltipContent>
