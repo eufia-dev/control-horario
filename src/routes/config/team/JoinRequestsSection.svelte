@@ -88,7 +88,7 @@
 <Card class="w-full max-w-6xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0">
 		<div class="flex items-center gap-4">
-			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de acceso</CardTitle>
+			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de Acceso</CardTitle>
 			{#if pendingJoinRequestsCount > 0}
 				<Badge variant="default">
 					{pendingJoinRequestsCount}

@@ -145,12 +145,12 @@
 			<div class="mb-4 overflow-x-auto">
 				<TabsList class="w-fit">
 					<TabsTrigger value="company">
-						<span class="material-symbols-rounded mr-2 text-lg!">business</span>
-						Horario por Defecto
+						<span class="material-symbols-rounded mr-1 text-lg!">business</span>
+						Horario por defecto
 					</TabsTrigger>
 					<TabsTrigger value="users">
-						<span class="material-symbols-rounded mr-2 text-lg!">person</span>
-						Horarios de Mi Equipo
+						<span class="material-symbols-rounded mr-1 text-lg!">person</span>
+						Horarios de mi equipo
 					</TabsTrigger>
 				</TabsList>
 			</div>
