@@ -6,8 +6,8 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
-	import CompanyHolidayFormModal from './CompanyHolidayFormModal.svelte';
-	import CompanyHolidayDeleteDialog from './CompanyHolidayDeleteDialog.svelte';
+	import CompanyHolidayFormModal from '../company/CompanyHolidayFormModal.svelte';
+	import CompanyHolidayDeleteDialog from '../company/CompanyHolidayDeleteDialog.svelte';
 	import {
 		fetchHolidays,
 		fetchCompanyHolidays,

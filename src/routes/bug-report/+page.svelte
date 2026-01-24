@@ -27,13 +27,12 @@
 	let success = $state(false);
 	let isUserAdmin = $state(false);
 
-	// All available routes/views
 	const allRoutes = [
 		{ value: '/', label: 'Fichajes' },
 		{ value: '/calendar', label: 'Calendario' },
 		{ value: '/absences', label: 'Ausencias' },
 		{ value: '/profile', label: 'Perfil' },
-		{ value: '/admin', label: 'Configuración', adminOnly: true },
+		{ value: '/config', label: 'Configuración', adminOnly: true },
 		{ value: '/analytics', label: 'Analíticas', adminOnly: true },
 		{ value: '/contact', label: 'Contacto' },
 		{ value: '/login', label: 'Iniciar sesión' },
@@ -42,7 +41,6 @@
 		{ value: '/onboarding', label: 'Onboarding' }
 	];
 
-	// Filter routes based on admin status
 	const availableRoutes = $derived(allRoutes.filter((route) => !route.adminOnly || isUserAdmin));
 
 	$effect(() => {
@@ -52,7 +50,6 @@
 		return unsubscribe;
 	});
 
-	// Set initial pageUrl when availableRoutes changes and pageUrl is empty
 	$effect(() => {
 		if (!pageUrl && availableRoutes.length > 0) {
 			const currentPath = $page.url.pathname;

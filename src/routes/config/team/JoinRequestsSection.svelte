@@ -16,7 +16,7 @@
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 	import JoinRequestDialog from './JoinRequestDialog.svelte';
 	import { fetchJoinRequests, type AdminJoinRequest } from '$lib/api/invitations';
-	import { formatDate } from './helpers';
+	import { formatDate } from '../helpers';
 
 	type Props = {
 		onRequestsChange?: (requests: AdminJoinRequest[]) => void;

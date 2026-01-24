@@ -87,22 +87,19 @@
 	});
 </script>
 
-<div class="container mx-auto px-4 py-8">
+<div class="grow flex flex-col gap-6 p-6">
 	<!-- Header -->
-	<div class="mb-8">
-		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
-				<span class="material-symbols-rounded text-lg!">arrow_back</span>
-			</Button>
-			<h1 class="text-2xl font-semibold tracking-tight flex items-center gap-2">
-				<span class="material-symbols-rounded text-3xl!">analytics</span>
-				Analíticas
-			</h1>
-		</div>
-		<p class="text-muted-foreground mt-1">Dashboard con métricas y gráficos de proyectos</p>
+	<div class="flex items-center gap-2">
+		<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+			<span class="material-symbols-rounded text-lg!">arrow_back</span>
+		</Button>
+		<h1 class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+			<span class="material-symbols-rounded text-3xl!">analytics</span>
+			Analíticas
+		</h1>
 	</div>
 
-	<Tabs bind:value={activeTab} class="w-full">
+	<Tabs bind:value={activeTab} class="w-full mx-auto px-10">
 		<div class="mb-6 overflow-x-auto">
 			<TabsList class="w-fit">
 				<TabsTrigger value="proyectos" class="gap-1.5">

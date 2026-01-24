@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { SvelteDate } from 'svelte/reactivity';
 	import {
 		Dialog,
 		DialogContent,
@@ -515,7 +516,7 @@
 		}
 
 		// Validate not in the future
-		const todayDate = new Date();
+		const todayDate = new SvelteDate();
 		todayDate.setHours(23, 59, 59, 999);
 		if (baseDate.toDate(getLocalTimeZone()) > todayDate) {
 			error = 'No se pueden crear registros para días futuros';

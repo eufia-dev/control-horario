@@ -15,11 +15,9 @@
 
 	function handleClick() {
 		if (onScrollToSection) {
-			// Already on admin page, just scroll
 			onScrollToSection();
 		} else {
-			// Navigate to admin page (no scroll, just go to the tab)
-			goto(`${resolve('/admin')}?tab=equipo`);
+			goto(`${resolve('/config/equipo')}#join-requests`);
 		}
 	}
 </script>

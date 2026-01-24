@@ -26,7 +26,7 @@
 						</p>
 					</div>
 				</div>
-				<Button variant="outline" size="sm" href="{resolve('/admin')}?tab=ausencias">
+				<Button variant="outline" size="sm" href={resolve('/config/ausencias')}>
 					<Badge variant="destructive" class="mr-2">{pendingCount}</Badge>
 					Revisar
 				</Button>

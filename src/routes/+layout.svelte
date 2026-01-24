@@ -60,7 +60,7 @@
 
 	const onboardingRoutes = ['/onboarding', '/onboarding/join', '/onboarding/status'];
 
-	const adminOnlyRoutes = ['/admin', '/analytics'];
+	const adminOnlyRoutes = ['/config', '/analytics', '/cash-flow'];
 
 	const inviteRoutePrefix = '/invite/';
 	const authCallbackPrefix = '/auth/callback';
@@ -282,7 +282,7 @@
 								</Button>
 							{/if}
 							{#if userCanAccessAdmin}
-								<Button href={resolve('/admin')} variant="ghost" size="sm" class="gap-1.5">
+								<Button href={resolve('/config')} variant="ghost" size="sm" class="gap-1.5">
 									<span class="material-symbols-rounded text-lg!">settings</span>
 									<span>Configuración</span>
 								</Button>
@@ -302,7 +302,7 @@
 				</div>
 
 				{#if signedIn}
-					<div class="flex items-center gap-2">
+					<div class="flex items-center">
 						{#if isAuthed && hasMultiProfiles}
 							<div class="hidden md:block">
 								<ProfileSwitcher />
@@ -420,7 +420,7 @@
 							{/if}
 							{#if userCanAccessAdmin}
 								<Button
-									href={resolve('/admin')}
+									href={resolve('/config')}
 									variant="ghost"
 									size="lg"
 									class="justify-start gap-4 h-14 text-lg"

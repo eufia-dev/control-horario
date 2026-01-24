@@ -17,7 +17,7 @@
 	import InvitationFormModal from '$lib/components/InvitationFormModal.svelte';
 	import InvitationDeleteDialog from './InvitationDeleteDialog.svelte';
 	import { fetchInvitations, type Invitation } from '$lib/api/invitations';
-	import { formatDate, getRoleBadge, getRelationTypeBadge } from './helpers';
+	import { formatDate, getRoleBadge, getRelationTypeBadge } from '../helpers';
 
 	let invitations = $state<Invitation[]>([]);
 	let loadingInvitations = $state(true);

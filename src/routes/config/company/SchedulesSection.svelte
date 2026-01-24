@@ -4,33 +4,32 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import { Switch } from '$lib/components/ui/switch';
+	import { Label } from '$lib/components/ui/label';
 	import { Combobox } from '$lib/components/ui/combobox';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
-	import ScheduleEditor from './ScheduleEditor.svelte';
+	import ScheduleEditor from '../ScheduleEditor.svelte';
 	import {
 		fetchCompanyDefaultSchedule,
 		fetchUserSchedule,
+		updateCompanyDefaultSchedule,
 		updateUserOverrides,
 		deleteUserOverrides,
 		validateSchedule,
 		type WorkScheduleDay
 	} from '$lib/api/work-schedules';
+	import { fetchMyCompany, updateCompanySettings, type Company } from '$lib/api/companies';
 	import { fetchUsers, type User } from '$lib/api/users';
-	import { userTeamId as userTeamIdStore } from '$lib/stores/auth';
 
-	let activeTab = $state<'company' | 'users'>('users');
+	let activeTab = $state<'company' | 'users'>('company');
 
-	let currentUserTeamId = $state<string | null>(null);
-
-	$effect(() => {
-		const unsub = userTeamIdStore.subscribe((value) => {
-			currentUserTeamId = value;
-		});
-		return unsub;
-	});
+	let company = $state<Company | null>(null);
+	let loadingCompany = $state(true);
+	let savingSettings = $state(false);
 
 	let companySchedule = $state<WorkScheduleDay[]>([]);
 	let loadingCompanySchedule = $state(true);
+	let savingCompanySchedule = $state(false);
 	let companyScheduleError = $state<string | null>(null);
 
 	let users = $state<User[]>([]);
@@ -43,8 +42,18 @@
 	let deletingUserOverrides = $state(false);
 	let userScheduleError = $state<string | null>(null);
 
-	// Filter to only show team members (active users in the team leader's team)
-	const teamMembers = $derived(users.filter((u) => u.isActive && u.team?.id === currentUserTeamId));
+	const activeUsers = $derived(users.filter((u) => u.isActive));
+
+	async function loadCompany() {
+		loadingCompany = true;
+		try {
+			company = await fetchMyCompany();
+		} catch (e) {
+			console.error('Error loading company:', e);
+		} finally {
+			loadingCompany = false;
+		}
+	}
 
 	async function loadCompanySchedule() {
 		loadingCompanySchedule = true;
@@ -80,6 +89,37 @@
 			userScheduleError = e instanceof Error ? e.message : 'Error al cargar el horario';
 		} finally {
 			loadingUserSchedule = false;
+		}
+	}
+
+	async function handleToggleAllowUserEdit(checked: boolean) {
+		if (!company) return;
+		savingSettings = true;
+		try {
+			company = await updateCompanySettings({ allowUserEditSchedule: checked });
+		} catch (e) {
+			console.error('Error updating company settings:', e);
+		} finally {
+			savingSettings = false;
+		}
+	}
+
+	async function handleSaveCompanySchedule() {
+		const validation = validateSchedule({ days: companySchedule });
+		if (!validation.valid) {
+			companyScheduleError = validation.error;
+			return;
+		}
+
+		savingCompanySchedule = true;
+		companyScheduleError = null;
+		try {
+			const response = await updateCompanyDefaultSchedule({ days: companySchedule });
+			companySchedule = response.days;
+		} catch (e) {
+			companyScheduleError = e instanceof Error ? e.message : 'Error al guardar el horario';
+		} finally {
+			savingCompanySchedule = false;
 		}
 	}
 
@@ -128,6 +168,7 @@
 	});
 
 	onMount(() => {
+		loadCompany();
 		loadCompanySchedule();
 		loadUsers();
 	});
@@ -139,6 +180,26 @@
 			<span class="material-symbols-rounded text-2xl!">schedule</span>
 			Horarios de Trabajo
 		</CardTitle>
+		{#if !loadingCompany && company}
+			<Tooltip>
+				<TooltipTrigger>
+					<div class="flex items-center gap-2">
+						<Switch
+							id="allowUserEdit"
+							checked={company.allowUserEditSchedule}
+							onCheckedChange={handleToggleAllowUserEdit}
+							disabled={savingSettings}
+						/>
+						<Label for="allowUserEdit" class="cursor-pointer text-sm">
+							Permitir a empleados personalizar horario
+						</Label>
+					</div>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Si está activado, los empleados pueden definir su propio horario</p>
+				</TooltipContent>
+			</Tooltip>
+		{/if}
 	</CardHeader>
 	<CardContent>
 		<Tabs bind:value={activeTab} class="w-full">
@@ -150,7 +211,7 @@
 					</TabsTrigger>
 					<TabsTrigger value="users">
 						<span class="material-symbols-rounded mr-2 text-lg!">person</span>
-						Horarios de Mi Equipo
+						Horarios de Usuario
 					</TabsTrigger>
 				</TabsList>
 			</div>
@@ -174,11 +235,31 @@
 				{:else}
 					<div class="space-y-4">
 						<p class="text-sm text-muted-foreground">
-							Este es el horario de trabajo por defecto de la empresa. Solo los administradores
-							pueden modificarlo.
+							Define el horario de trabajo por defecto para todos los empleados de la empresa. Los
+							días no habilitados se consideran no laborables.
 						</p>
 
-						<ScheduleEditor bind:schedule={companySchedule} readonly={true} />
+						<ScheduleEditor bind:schedule={companySchedule} disabled={savingCompanySchedule} />
+
+						{#if companyScheduleError}
+							<div class="text-sm text-destructive flex items-center gap-1">
+								<span class="material-symbols-rounded text-base">error</span>
+								{companyScheduleError}
+							</div>
+						{/if}
+
+						<div class="flex justify-end">
+							<Button onclick={handleSaveCompanySchedule} disabled={savingCompanySchedule}>
+								{#if savingCompanySchedule}
+									<span class="material-symbols-rounded animate-spin text-lg!"
+										>progress_activity</span
+									>
+								{:else}
+									<span class="material-symbols-rounded text-lg! mr-2">save</span>
+								{/if}
+								Guardar cambios
+							</Button>
+						</div>
 					</div>
 				{/if}
 			</TabsContent>
@@ -186,19 +267,19 @@
 			<TabsContent value="users">
 				<div class="space-y-4">
 					<p class="text-sm text-muted-foreground">
-						Configura horarios personalizados para los miembros de tu equipo. Estos horarios
-						sobrescriben el horario por defecto de la empresa.
+						Configura horarios personalizados para usuarios específicos. Estos horarios sobrescriben
+						el horario por defecto de la empresa.
 					</p>
 
 					<div class="flex items-center gap-4">
 						<Combobox
-							items={teamMembers}
+							items={activeUsers}
 							bind:value={selectedUserId}
 							getItemValue={(user) => user.id}
 							getItemLabel={(user) => user.name}
-							placeholder="Seleccionar miembro del equipo"
-							searchPlaceholder="Buscar miembro..."
-							emptyMessage="No se encontraron miembros en tu equipo."
+							placeholder="Seleccionar usuario"
+							searchPlaceholder="Buscar usuario..."
+							emptyMessage="No se encontraron usuarios."
 							disabled={loadingUsers || loadingUserSchedule}
 							class="w-full max-w-xs"
 						/>
@@ -278,7 +359,7 @@
 					{:else}
 						<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
 							<span class="material-symbols-rounded text-4xl! mb-2">person_search</span>
-							<p>Selecciona un miembro de tu equipo para ver y editar su horario</p>
+							<p>Selecciona un usuario para ver y editar su horario</p>
 						</div>
 					{/if}
 				</div>

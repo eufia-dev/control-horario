@@ -116,7 +116,6 @@
 		loadAbsences();
 	});
 
-	// Load admin stats when isAdmin becomes true
 	$effect(() => {
 		if (isAdmin) {
 			loadAdminStats();
@@ -141,7 +140,7 @@
 				Nueva solicitud
 			</Button>
 			{#if isAdmin}
-				<Button variant="outline" href="{resolve('/admin')}?tab=ausencias">
+				<Button variant="outline" href={resolve('/config/ausencias')}>
 					<span class="material-symbols-rounded text-lg! mr-2">admin_panel_settings</span>
 					Gestionar
 				</Button>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { SvelteDate } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
@@ -132,9 +133,9 @@
 	}
 
 	function setLastWeek() {
-		const now = new Date();
-		const endDate = new Date(now);
-		const startDate = new Date(now);
+		const now = new SvelteDate();
+		const endDate = new SvelteDate(now);
+		const startDate = new SvelteDate(now);
 		startDate.setDate(startDate.getDate() - 7);
 		dateRange = {
 			start: new CalendarDate(
@@ -392,7 +393,7 @@
 												variant="ghost"
 												size="sm"
 												class="h-8 w-8 p-0"
-												onclick={() => goto(resolve(`/admin/users/${user.id}`))}
+												onclick={() => goto(resolve(`/config/team/users/${user.id}`))}
 											>
 												<span class="material-symbols-rounded text-xl!">schedule</span>
 												<span class="sr-only">Ver registros</span>

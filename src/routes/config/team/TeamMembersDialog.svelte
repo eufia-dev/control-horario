@@ -18,7 +18,7 @@
 		type TeamDetail
 	} from '$lib/api/teams';
 	import { fetchUsers, type User } from '$lib/api/users';
-	import { getRoleBadge } from './helpers';
+	import { getRoleBadge } from '../helpers';
 
 	type Props = {
 		open: boolean;

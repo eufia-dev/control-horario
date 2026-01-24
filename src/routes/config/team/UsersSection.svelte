@@ -24,7 +24,7 @@
 	import TeamMemberRemoveDialog from './TeamMemberRemoveDialog.svelte';
 	import { fetchUsers, type User } from '$lib/api/users';
 	import { fetchTeams, addMyTeamMember, type Team } from '$lib/api/teams';
-	import { formatCurrency, formatDate, getRoleBadge, getRelationTypeBadge } from './helpers';
+	import { formatCurrency, formatDate, getRoleBadge, getRelationTypeBadge } from '../helpers';
 	import {
 		isAdmin as isAdminStore,
 		userTeamId as userTeamIdStore,
@@ -447,7 +447,7 @@
 												variant="ghost"
 												size="sm"
 												class="h-8 w-8 p-0"
-												onclick={() => goto(resolve(`/admin/users/${user.id}`))}
+												onclick={() => goto(resolve(`/config/team/users/${user.id}`))}
 											>
 												<span class="material-symbols-rounded text-xl!">schedule</span>
 												<span class="sr-only">Ver registros</span>

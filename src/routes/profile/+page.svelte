@@ -27,7 +27,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
-	import ScheduleEditor from '../admin/ScheduleEditor.svelte';
+	import ScheduleEditor from '../config/ScheduleEditor.svelte';
 	import AddCompanyModal from '$lib/components/AddCompanyModal.svelte';
 	import RelationTypeBadge from '$lib/components/RelationTypeBadge.svelte';
 	import { fetchMyCompany, type Company } from '$lib/api/companies';

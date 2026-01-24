@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteDate } from 'svelte/reactivity';
 	import {
 		Dialog,
 		DialogContent,
@@ -87,9 +88,9 @@
 	// Check if the day is in the future (no entries allowed)
 	const isFutureDay = $derived(() => {
 		if (!day) return false;
-		const dayDate = new Date(day.date);
+		const dayDate = new SvelteDate(day.date);
 		dayDate.setHours(0, 0, 0, 0);
-		const today = new Date();
+		const today = new SvelteDate();
 		today.setHours(0, 0, 0, 0);
 		return dayDate > today;
 	});

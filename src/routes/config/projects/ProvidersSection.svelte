@@ -16,7 +16,7 @@
 	import ProviderFormModal from './ProviderFormModal.svelte';
 	import ProviderDeleteDialog from './ProviderDeleteDialog.svelte';
 	import { fetchProviders, type Provider } from '$lib/api/providers';
-	import { formatDate } from './helpers';
+	import { formatDate } from '../helpers';
 
 	let providers = $state<Provider[]>([]);
 	let loadingProviders = $state(true);

@@ -18,7 +18,7 @@
 	import TeamDeleteDialog from './TeamDeleteDialog.svelte';
 	import TeamMembersDialog from './TeamMembersDialog.svelte';
 	import { fetchTeams, type Team } from '$lib/api/teams';
-	import { formatDate } from './helpers';
+	import { formatDate } from '../helpers';
 
 	let teams = $state<Team[]>([]);
 	let loadingTeams = $state(true);

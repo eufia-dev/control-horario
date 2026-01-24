@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import WorkingCalendar from '../../../calendar/WorkingCalendar.svelte';
-	import CalendarDayDetail from '../../../calendar/CalendarDayDetail.svelte';
+	import WorkingCalendar from '../../../../calendar/WorkingCalendar.svelte';
+	import CalendarDayDetail from '../../../../calendar/CalendarDayDetail.svelte';
 	import TimeEntriesCard from '$lib/components/TimeEntriesCard.svelte';
 	import { canAccessAdmin as canAccessAdminStore } from '$lib/stores/auth';
 	import { fetchUsers, type User } from '$lib/api/users';
@@ -163,7 +164,7 @@
 	<div class="grow flex flex-col gap-6 p-6">
 		<!-- Header -->
 		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto('/admin?tab=equipo')}>
+			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/config/equipo'))}>
 				<span class="material-symbols-rounded text-lg!">arrow_back</span>
 			</Button>
 			<span class="material-symbols-rounded text-3xl!">person</span>
@@ -185,7 +186,7 @@
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-4xl! mb-2">error</span>
 						<p>{userError}</p>
-						<Button variant="outline" class="mt-4" onclick={() => goto('/admin?tab=equipo')}>
+						<Button variant="outline" class="mt-4" onclick={() => goto(resolve('/config/equipo'))}>
 							Volver al equipo
 						</Button>
 					</div>

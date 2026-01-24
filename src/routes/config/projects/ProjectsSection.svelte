@@ -19,7 +19,7 @@
 	import ProjectDeleteDialog from './ProjectDeleteDialog.svelte';
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTeams, type Team } from '$lib/api/teams';
-	import { formatDate } from './helpers';
+	import { formatDate } from '../helpers';
 	import {
 		isAdmin as isAdminStore,
 		userTeamId as userTeamIdStore,
