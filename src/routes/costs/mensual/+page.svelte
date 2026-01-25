@@ -130,7 +130,8 @@
 			}
 		}
 
-		const netResult = totalRevenue - totalExternalCosts - totalInternalCosts;
+		// For non-admins (team leaders), exclude internal costs from net result
+		const netResult = totalRevenue - totalExternalCosts - (isAdmin ? totalInternalCosts : 0);
 
 		return {
 			totalRevenue,
@@ -291,7 +292,7 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+<div class="grid gap-4 md:grid-cols-2 {isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}">
 	<Card class="gap-2">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 			<CardTitle class="text-sm font-medium text-muted-foreground">Producción Total</CardTitle>
@@ -328,22 +329,24 @@
 		</CardContent>
 	</Card>
 
-	<Card class="gap-2">
-		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-			<CardTitle class="text-sm font-medium text-muted-foreground">Costes Internos</CardTitle>
-			<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
-		</CardHeader>
-		<CardContent>
-			{#if loading}
-				<Skeleton class="h-8 w-28" />
-			{:else}
-				<div class="text-2xl font-bold text-orange-600">
-					{formatCurrency(summaryTotals().totalInternalCosts)}
-				</div>
-				<p class="text-xs text-muted-foreground mt-1">Horas de equipo</p>
-			{/if}
-		</CardContent>
-	</Card>
+	{#if isAdmin}
+		<Card class="gap-2">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium text-muted-foreground">Costes Internos</CardTitle>
+				<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
+			</CardHeader>
+			<CardContent>
+				{#if loading}
+					<Skeleton class="h-8 w-28" />
+				{:else}
+					<div class="text-2xl font-bold text-orange-600">
+						{formatCurrency(summaryTotals().totalInternalCosts)}
+					</div>
+					<p class="text-xs text-muted-foreground mt-1">Horas de equipo</p>
+				{/if}
+			</CardContent>
+		</Card>
+	{/if}
 
 	<Card class="gap-2">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -387,7 +390,9 @@
 						<TableHead class="text-right">Prod. Real</TableHead>
 						<TableHead class="text-right">Costes Ext. Est.</TableHead>
 						<TableHead class="text-right">Costes Ext. Real</TableHead>
-						<TableHead class="text-right">Costes Int.</TableHead>
+						{#if isAdmin}
+							<TableHead class="text-right">Costes Int.</TableHead>
+						{/if}
 						<TableHead class="text-right">Resultado</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -402,7 +407,9 @@
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
-							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+							{#if isAdmin}
+								<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+							{/if}
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 						</TableRow>
 					{/each}
@@ -431,7 +438,9 @@
 							<TableHead class="text-right">Prod. Real</TableHead>
 							<TableHead class="text-right">Costes Ext. Est.</TableHead>
 							<TableHead class="text-right">Costes Ext. Real</TableHead>
-							<TableHead class="text-right">Costes Int.</TableHead>
+							{#if isAdmin}
+								<TableHead class="text-right">Costes Int.</TableHead>
+							{/if}
 							<TableHead class="text-right">Resultado</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -439,7 +448,7 @@
 						{#each filteredProjects as project (project.id)}
 							{@const data = getProjectMonthData(project.id)}
 							{@const netResult = data
-								? (data.revenue.actual ?? 0) - data.externalCosts.actual - data.internalCosts
+								? (data.revenue.actual ?? 0) - data.externalCosts.actual - (isAdmin ? data.internalCosts : 0)
 								: 0}
 							<TableRow
 								class="cursor-pointer hover:bg-muted/50"
@@ -482,11 +491,13 @@
 										{formatCurrency(data?.externalCosts.actual ?? 0)}
 									</span>
 								</TableCell>
-								<TableCell class="text-right">
-									<span class="text-orange-600">
-										{formatCurrency(data?.internalCosts ?? 0)}
-									</span>
-								</TableCell>
+								{#if isAdmin}
+									<TableCell class="text-right">
+										<span class="text-orange-600">
+											{formatCurrency(data?.internalCosts ?? 0)}
+										</span>
+									</TableCell>
+								{/if}
 								<TableCell class="text-right">
 									<span class="font-semibold {netResult >= 0 ? 'text-green-600' : 'text-red-600'}">
 										{formatCurrency(netResult)}

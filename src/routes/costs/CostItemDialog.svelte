@@ -318,11 +318,12 @@
 			</div>
 
 			{#if isActual}
-				<div class="flex items-center gap-3">
-					<Switch id="isBilled" bind:checked={isBilled} disabled={submitting} />
-					<Label for="isBilled" class="cursor-pointer">Factura emitida</Label>
-				</div>
+			<div class="flex items-center gap-3">
+				<Switch id="isBilled" bind:checked={isBilled} disabled={submitting} />
+				<Label for="isBilled" class="cursor-pointer">Factura emitida</Label>
+			</div>
 
+			{#if isBilled}
 				<div class="grid gap-2">
 					<Label>Fecha de Emisión</Label>
 					<Popover>
@@ -337,6 +338,7 @@
 						</PopoverContent>
 					</Popover>
 				</div>
+			{/if}
 
 				{#if selectedProviderPaymentPeriod() !== null}
 					<div class="p-3 bg-muted rounded-lg text-sm text-muted-foreground">

@@ -22,6 +22,7 @@
 		getMonthName,
 		type MonthlyCostsSummary
 	} from '$lib/api/costs';
+	import { isAdmin as isAdminStore } from '$lib/stores/auth';
 	import CostEstimatesSection from './CostEstimatesSection.svelte';
 	import CostActualsSection from './CostActualsSection.svelte';
 
@@ -35,6 +36,15 @@
 	};
 
 	let { open = $bindable(), project, year, month, onClose, onSuccess }: Props = $props();
+
+	let isAdmin = $state(false);
+
+	$effect(() => {
+		const unsub = isAdminStore.subscribe((value) => {
+			isAdmin = value ?? false;
+		});
+		return unsub;
+	});
 
 	let costsData = $state<MonthlyCostsSummary | null>(null);
 	let loading = $state(false);
@@ -53,12 +63,12 @@
 	const dialogWidth = $derived(activeTab === 'costes' ? 'sm:max-w-4xl' : 'sm:max-w-2xl');
 	const dialogTitle = $derived(project ? `${project.name} - ${monthName} ${year}` : 'Costes');
 
-	// Calculated values
+	// Calculated values - exclude internal costs for non-admins (team leaders)
 	const netEstimated = $derived(() => {
 		if (costsData === null) return null;
 		const revenue = estimatedRevenue ?? 0;
 		const externalCosts = costsData.externalCosts.estimated.total;
-		const internalCosts = costsData.internalCosts;
+		const internalCosts = isAdmin ? costsData.internalCosts : 0;
 		return revenue - externalCosts - internalCosts;
 	});
 
@@ -66,7 +76,7 @@
 		if (costsData === null) return null;
 		const revenue = actualRevenue ?? 0;
 		const externalCosts = costsData.externalCosts.actual.total;
-		const internalCosts = costsData.internalCosts;
+		const internalCosts = isAdmin ? costsData.internalCosts : 0;
 		return revenue - externalCosts - internalCosts;
 	});
 
@@ -304,12 +314,14 @@
 										-{formatCurrency(costsData.externalCosts.estimated.total)}
 									</span>
 								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm">Costes Internos</span>
-									<span class="font-medium text-orange-600">
-										-{formatCurrency(costsData.internalCosts)}
-									</span>
-								</div>
+								{#if isAdmin}
+									<div class="flex justify-between items-center">
+										<span class="text-sm">Costes Internos</span>
+										<span class="font-medium text-orange-600">
+											-{formatCurrency(costsData.internalCosts)}
+										</span>
+									</div>
+								{/if}
 								<Separator />
 								<div class="flex justify-between items-center">
 									<span class="text-sm font-semibold">Resultado Neto</span>
@@ -342,12 +354,14 @@
 										-{formatCurrency(costsData.externalCosts.actual.total)}
 									</span>
 								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm">Costes Internos</span>
-									<span class="font-medium text-orange-600">
-										-{formatCurrency(costsData.internalCosts)}
-									</span>
-								</div>
+								{#if isAdmin}
+									<div class="flex justify-between items-center">
+										<span class="text-sm">Costes Internos</span>
+										<span class="font-medium text-orange-600">
+											-{formatCurrency(costsData.internalCosts)}
+										</span>
+									</div>
+								{/if}
 								<Separator />
 								<div class="flex justify-between items-center">
 									<span class="text-sm font-semibold">Resultado Neto</span>
@@ -363,18 +377,20 @@
 						</Card>
 					</div>
 
-					<Card class="bg-muted/50">
-						<CardContent>
-							<div class="flex items-start justify-center gap-3 text-sm text-muted-foreground">
-								<span class="material-symbols-rounded text-lg!">info</span>
-								<p>
-									Los costes internos se calculan automáticamente a partir de las horas registradas
-									por el equipo en este proyecto durante el mes, multiplicadas por el coste por hora
-									de cada trabajador.
-								</p>
-							</div>
-						</CardContent>
-					</Card>
+					{#if isAdmin}
+						<Card class="bg-muted/50">
+							<CardContent>
+								<div class="flex items-start justify-center gap-3 text-sm text-muted-foreground">
+									<span class="material-symbols-rounded text-lg!">info</span>
+									<p>
+										Los costes internos se calculan automáticamente a partir de las horas registradas
+										por el equipo en este proyecto durante el mes, multiplicadas por el coste por hora
+										de cada trabajador.
+									</p>
+								</div>
+							</CardContent>
+						</Card>
+					{/if}
 				</TabsContent>
 			</Tabs>
 		{/if}

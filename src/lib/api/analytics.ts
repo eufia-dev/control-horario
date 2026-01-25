@@ -56,8 +56,8 @@ export type WorkerBreakdownResponse = {
 	projects: ProjectBreakdown[];
 };
 
-// Payroll Summary Types
-export type PayrollUserSummary = {
+// Users Summary Types
+export type UsersSummaryUser = {
 	id: string;
 	name: string;
 	email: string;
@@ -76,7 +76,7 @@ export type PayrollUserSummary = {
 	totalCost: number;
 };
 
-export type PayrollSummaryTotals = {
+export type UsersSummaryTotals = {
 	expectedMinutes: number;
 	loggedMinutes: number;
 	coffeePauseMinutes: number;
@@ -87,11 +87,11 @@ export type PayrollSummaryTotals = {
 	totalCost: number;
 };
 
-export type PayrollSummaryResponse = {
+export type UsersSummaryResponse = {
 	startDate: string;
 	endDate: string;
-	users: PayrollUserSummary[];
-	totals: PayrollSummaryTotals;
+	users: UsersSummaryUser[];
+	totals: UsersSummaryTotals;
 };
 
 async function handleJsonResponse<T>(response: Response): Promise<T> {
@@ -133,17 +133,17 @@ export async function fetchWorkerBreakdown(workerId: string): Promise<WorkerBrea
 	return handleJsonResponse<WorkerBreakdownResponse>(response);
 }
 
-export async function fetchPayrollSummary(
+export async function fetchUsersSummary(
 	startDate: string,
 	endDate: string
-): Promise<PayrollSummaryResponse> {
+): Promise<UsersSummaryResponse> {
 	const params = new URLSearchParams();
 	params.set('startDate', startDate);
 	params.set('endDate', endDate);
 	const response = await fetchWithAuth(
 		`${API_BASE}/analytics/payroll-summary?${params.toString()}`
 	);
-	return handleJsonResponse<PayrollSummaryResponse>(response);
+	return handleJsonResponse<UsersSummaryResponse>(response);
 }
 
 export function formatHours(minutes: number): string {

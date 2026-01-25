@@ -20,13 +20,14 @@
 		TableRow
 	} from '$lib/components/ui/table';
 	import {
-		fetchPayrollSummary,
+		fetchUsersSummary,
 		formatCost,
 		formatHours,
-		type PayrollSummaryResponse,
-		type PayrollUserSummary
+		type UsersSummaryResponse,
+		type UsersSummaryUser
 	} from '$lib/api/analytics';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
+	import { isAdmin } from '$lib/stores/auth';
 
 	type DateRange = {
 		start: DateValue | undefined;
@@ -48,7 +49,7 @@
 
 	// State
 	let dateRange = $state<DateRange>(getDefaultDateRange());
-	let payrollData = $state<PayrollSummaryResponse | null>(null);
+	let usersData = $state<UsersSummaryResponse | null>(null);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 	let dateRangePopoverOpen = $state(false);
@@ -66,9 +67,12 @@
 			: null
 	);
 
+	// Whether costs should be shown - only for OWNER and ADMIN (not TEAM_LEADER)
+	const showCosts = $derived($isAdmin);
+
 	// Filtered users based on search query
 	const filteredUsers = $derived(
-		payrollData?.users.filter((user) => {
+		usersData?.users.filter((user) => {
 			if (!searchQuery.trim()) return true;
 			const query = searchQuery.toLowerCase();
 			return user.name.toLowerCase().includes(query);
@@ -105,7 +109,7 @@
 	}
 
 	// Calculate total absence days for a user
-	function getTotalAbsenceDays(user: PayrollUserSummary): number {
+	function getTotalAbsenceDays(user: UsersSummaryUser): number {
 		return user.vacationDays + user.sickLeaveDays + user.otherAbsenceDays;
 	}
 
@@ -165,10 +169,10 @@
 		loading = true;
 		error = null;
 		try {
-			payrollData = await fetchPayrollSummary(startDateStr, endDateStr);
+			usersData = await fetchUsersSummary(startDateStr, endDateStr);
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Error al cargar los datos de nóminas';
-			payrollData = null;
+			error = e instanceof Error ? e.message : 'Error al cargar los datos de usuarios';
+			usersData = null;
 		} finally {
 			loading = false;
 		}
@@ -186,10 +190,10 @@
 	<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
 		<div>
 			<CardTitle class="text-xl font-semibold flex items-center gap-2">
-				<span class="material-symbols-rounded text-2xl!">payments</span>
-				Resumen de Nóminas
+				<span class="material-symbols-rounded text-2xl!">group</span>
+				Resumen de Usuarios
 			</CardTitle>
-			<p class="text-sm text-muted-foreground mt-1">Horas trabajadas y costes por empleado</p>
+			<p class="text-sm text-muted-foreground mt-1">Horas trabajadas{#if showCosts} y costes{/if} por empleado</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<div class="relative">
@@ -285,10 +289,10 @@
 					Reintentar
 				</Button>
 			</div>
-		{:else if !payrollData || payrollData.users.length === 0}
+		{:else if !usersData || usersData.users.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
 				<span class="material-symbols-rounded text-4xl! mb-2">group_off</span>
-				<p>No hay datos de empleados para este período</p>
+				<p>No hay datos de usuarios para este período</p>
 			</div>
 		{:else if filteredUsers.length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -306,7 +310,9 @@
 							<TableHead class="text-right min-w-[70px]">H. Café</TableHead>
 							<TableHead class="text-right min-w-[90px]">Diferencia</TableHead>
 							<TableHead class="text-right min-w-[80px]">Ausencias</TableHead>
-							<TableHead class="text-right min-w-[100px]">Coste</TableHead>
+							{#if showCosts}
+								<TableHead class="text-right min-w-[100px]">Coste</TableHead>
+							{/if}
 							<TableHead class="w-[80px]">Acciones</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -325,9 +331,11 @@
 												</Badge>
 											{/if}
 										</div>
-										<span class="text-xs text-muted-foreground">
-											{formatCost(user.hourlyCost)}/h
-										</span>
+										{#if showCosts}
+											<span class="text-xs text-muted-foreground">
+												{formatCost(user.hourlyCost)}/h
+											</span>
+										{/if}
 									</div>
 								</TableCell>
 								<TableCell class="text-right tabular-nums">
@@ -383,9 +391,11 @@
 										<span class="text-muted-foreground">-</span>
 									{/if}
 								</TableCell>
-								<TableCell class="text-right tabular-nums font-semibold">
-									{formatCost(user.totalCost)}
-								</TableCell>
+								{#if showCosts}
+									<TableCell class="text-right tabular-nums font-semibold">
+										{formatCost(user.totalCost)}
+									</TableCell>
+								{/if}
 								<TableCell>
 									<Tooltip>
 										<TooltipTrigger>
@@ -444,8 +454,8 @@
 							<TableCell>
 								<span class="flex items-center gap-1.5">
 									<span class="material-symbols-rounded text-lg!">functions</span>
-									Total ({filteredUsers.length} empleados{searchQuery.trim()
-										? ` de ${payrollData.users.length}`
+									Total ({filteredUsers.length} usuarios{searchQuery.trim()
+										? ` de ${usersData.users.length}`
 										: ''})
 								</span>
 							</TableCell>
@@ -502,9 +512,11 @@
 									<span class="text-muted-foreground">-</span>
 								{/if}
 							</TableCell>
-							<TableCell class="text-right tabular-nums">
-								{formatCost(filteredTotalCost)}
-							</TableCell>
+							{#if showCosts}
+								<TableCell class="text-right tabular-nums">
+									{formatCost(filteredTotalCost)}
+								</TableCell>
+							{/if}
 							<TableCell></TableCell>
 						</TableRow>
 					</TableFooter>

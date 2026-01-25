@@ -6,11 +6,11 @@
 
 	let { children } = $props();
 
-	type TabValue = 'projects' | 'payroll';
+	type TabValue = 'projects' | 'users';
 
 	const tabs: { value: TabValue; label: string; icon: string }[] = [
 		{ value: 'projects', label: 'Proyectos', icon: 'work' },
-		{ value: 'payroll', label: 'Nóminas', icon: 'payments' }
+		{ value: 'users', label: 'Usuarios', icon: 'group' }
 	];
 
 	function isActiveTab(tabValue: TabValue): boolean {
