@@ -14,7 +14,11 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { updateUser, type User, type UpdateUserDto } from '$lib/api/users';
 	import { fetchTeams, type Team } from '$lib/api/teams';
-	import { isAdmin as isAdminStore, type UserRole } from '$lib/stores/auth';
+	import {
+		isAdmin as isAdminStore,
+		currentUserId as currentUserIdStore,
+		type UserRole
+	} from '$lib/stores/auth';
 	import type { RelationType } from '$lib/api/invitations';
 
 	type Props = {
@@ -41,6 +45,7 @@
 	let success = $state(false);
 	let error = $state<string | null>(null);
 	let isAdmin = $state(false);
+	let currentUserId = $state<string | null>(null);
 
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -48,6 +53,15 @@
 		});
 		return unsub;
 	});
+
+	$effect(() => {
+		const unsub = currentUserIdStore.subscribe((value) => {
+			currentUserId = value;
+		});
+		return unsub;
+	});
+
+	const isEditingSelf = $derived(user?.id === currentUserId);
 
 	const isAuditor = $derived(role === 'AUDITOR');
 	const isWorker = $derived(role === 'WORKER');
@@ -295,7 +309,7 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="grid gap-2">
 					<Label>Rol</Label>
-					<Select type="single" bind:value={role} disabled={submitting}>
+					<Select type="single" bind:value={role} disabled={submitting || isEditingSelf}>
 						<SelectTrigger class="w-full">
 							{selectedRoleLabel}
 						</SelectTrigger>
@@ -305,6 +319,9 @@
 							{/each}
 						</SelectContent>
 					</Select>
+					{#if isEditingSelf}
+						<p class="text-xs text-muted-foreground">No puedes cambiar tu propio rol</p>
+					{/if}
 				</div>
 
 				<div class="grid gap-2">

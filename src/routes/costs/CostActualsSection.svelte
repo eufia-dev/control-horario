@@ -20,63 +20,67 @@
 		AlertDialogTitle
 	} from '$lib/components/ui/alert-dialog';
 	import {
-		createCostEstimate,
-		updateCostEstimate,
-		deleteCostEstimate,
+		createCostActual,
+		updateCostActual,
+		deleteCostActual,
 		formatCurrency,
 		EXPENSE_TYPE_LABELS,
-		type CostEstimate,
-		type CreateCostEstimateDto,
-		type UpdateCostEstimateDto,
+		type CostActual,
 		type CreateCostActualDto,
-		type UpdateCostActualDto
-	} from '$lib/api/cash-flow';
+		type UpdateCostActualDto,
+		type CreateCostEstimateDto,
+		type UpdateCostEstimateDto
+	} from '$lib/api/costs';
 	import CostItemDialog from './CostItemDialog.svelte';
 
 	type Props = {
 		projectId: string;
 		year: number;
 		month: number;
-		estimates: CostEstimate[];
+		actuals: CostActual[];
 		onChange: () => void;
 	};
 
-	let { projectId, year, month, estimates, onChange }: Props = $props();
+	let { projectId, year, month, actuals, onChange }: Props = $props();
 
 	let dialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
-	let selectedEstimate = $state<CostEstimate | null>(null);
+	let selectedActual = $state<CostActual | null>(null);
 	let deleting = $state(false);
 	let deleteError = $state<string | null>(null);
 
-	const totalEstimated = $derived(estimates.reduce((sum, e) => sum + e.amount, 0));
+	const totalActual = $derived(actuals.reduce((sum, a) => sum + a.amount, 0));
+
+	function formatPaymentPeriod(days: number): string {
+		return `${days} días`;
+	}
 
 	function handleAdd() {
-		selectedEstimate = null;
+		selectedActual = null;
 		dialogOpen = true;
 	}
 
-	function handleEdit(estimate: CostEstimate) {
-		selectedEstimate = estimate;
+	function handleEdit(actual: CostActual) {
+		selectedActual = actual;
 		dialogOpen = true;
 	}
 
-	function handleDeleteClick(estimate: CostEstimate) {
-		selectedEstimate = estimate;
+	function handleDeleteClick(actual: CostActual) {
+		selectedActual = actual;
 		deleteError = null;
 		deleteDialogOpen = true;
 	}
 
 	async function handleDelete() {
-		if (!selectedEstimate || deleting) return;
+		if (!selectedActual || deleting) return;
 
 		deleting = true;
 		deleteError = null;
 
 		try {
-			await deleteCostEstimate(selectedEstimate.id);
+			await deleteCostActual(selectedActual.id);
 			deleteDialogOpen = false;
-			selectedEstimate = null;
+			selectedActual = null;
 			onChange();
 		} catch (e) {
 			deleteError = e instanceof Error ? e.message : 'Error al eliminar';
@@ -88,32 +92,32 @@
 	async function handleSave(
 		data: CreateCostEstimateDto | UpdateCostEstimateDto | CreateCostActualDto | UpdateCostActualDto
 	) {
-		const estimateData = data as CreateCostEstimateDto | UpdateCostEstimateDto;
-		if (selectedEstimate) {
+		const actualData = data as CreateCostActualDto | UpdateCostActualDto;
+		if (selectedActual) {
 			// Update
-			await updateCostEstimate(selectedEstimate.id, estimateData as UpdateCostEstimateDto);
+			await updateCostActual(selectedActual.id, actualData as UpdateCostActualDto);
 		} else {
 			// Create
-			await createCostEstimate(projectId, {
+			await createCostActual(projectId, {
 				year,
 				month,
-				...estimateData
-			} as CreateCostEstimateDto);
+				...actualData
+			} as CreateCostActualDto);
 		}
 		onChange();
 	}
 
 	function handleDialogClose() {
-		selectedEstimate = null;
+		selectedActual = null;
 	}
 </script>
 
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
 		<div>
-			<h3 class="text-sm font-semibold">Estimaciones de Coste</h3>
+			<h3 class="text-sm font-semibold">Costes Reales</h3>
 			<p class="text-xs text-muted-foreground">
-				Total estimado: <span class="font-medium">{formatCurrency(totalEstimated)}</span>
+				Total real: <span class="font-medium">{formatCurrency(totalActual)}</span>
 			</p>
 		</div>
 		<Button size="sm" onclick={handleAdd}>
@@ -122,44 +126,54 @@
 		</Button>
 	</div>
 
-	{#if estimates.length === 0}
+	{#if actuals.length === 0}
 		<div
 			class="flex flex-col items-center justify-center py-6 text-muted-foreground border rounded-lg border-dashed"
 		>
-			<span class="material-symbols-rounded text-3xl! mb-2">receipt</span>
-			<p class="text-sm">No hay estimaciones de coste</p>
+			<span class="material-symbols-rounded text-3xl! mb-2">receipt_long</span>
+			<p class="text-sm">No hay costes reales registrados</p>
 			<Button variant="ghost" size="sm" class="mt-2" onclick={handleAdd}>
 				<span class="material-symbols-rounded mr-1 text-lg!">add</span>
-				Añadir primera estimación
+				Añadir primer coste
 			</Button>
 		</div>
 	{:else}
 		<Table>
 			<TableHeader>
 				<TableRow>
-					<TableHead>Importe</TableHead>
 					<TableHead>Proveedor</TableHead>
 					<TableHead>Tipo</TableHead>
-					<TableHead>Descripción</TableHead>
+					<TableHead>Importe</TableHead>
+					<TableHead>Facturado</TableHead>
+					<TableHead>Plazo Pago</TableHead>
 					<TableHead class="w-[80px]">Acciones</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each estimates as estimate (estimate.id)}
+				{#each actuals as actual (actual.id)}
 					<TableRow>
-						<TableCell class="font-medium">{formatCurrency(estimate.amount)}</TableCell>
-						<TableCell>{estimate.provider?.name ?? '—'}</TableCell>
+						<TableCell class="font-medium">{actual.provider.name}</TableCell>
 						<TableCell>
-							{#if estimate.expenseType}
-								<Badge variant="outline" class="text-xs">
-									{EXPENSE_TYPE_LABELS[estimate.expenseType]}
+							<Badge variant="outline" class="text-xs">
+								{EXPENSE_TYPE_LABELS[actual.expenseType]}
+							</Badge>
+						</TableCell>
+						<TableCell>{formatCurrency(actual.amount)}</TableCell>
+						<TableCell>
+							{#if actual.isBilled}
+								<Badge variant="success" class="text-xs">
+									<span class="material-symbols-rounded text-sm! mr-1">check_circle</span>
+									Facturado
 								</Badge>
 							{:else}
-								<span class="text-muted-foreground">—</span>
+								<Badge variant="secondary" class="text-xs">
+									<span class="material-symbols-rounded text-sm! mr-1">schedule</span>
+									Pendiente
+								</Badge>
 							{/if}
 						</TableCell>
-						<TableCell class="max-w-[150px] truncate text-muted-foreground">
-							{estimate.description ?? '—'}
+						<TableCell class="text-muted-foreground">
+							{formatPaymentPeriod(actual.provider.paymentPeriod)}
 						</TableCell>
 						<TableCell>
 							<div class="flex items-center gap-1">
@@ -167,7 +181,7 @@
 									variant="ghost"
 									size="sm"
 									class="h-8 w-8 p-0"
-									onclick={() => handleEdit(estimate)}
+									onclick={() => handleEdit(actual)}
 								>
 									<span class="material-symbols-rounded text-lg!">edit</span>
 									<span class="sr-only">Editar</span>
@@ -176,7 +190,7 @@
 									variant="ghost"
 									size="sm"
 									class="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-									onclick={() => handleDeleteClick(estimate)}
+									onclick={() => handleDeleteClick(actual)}
 								>
 									<span class="material-symbols-rounded text-lg!">delete</span>
 									<span class="sr-only">Eliminar</span>
@@ -192,8 +206,8 @@
 
 <CostItemDialog
 	bind:open={dialogOpen}
-	mode="estimate"
-	item={selectedEstimate}
+	mode="actual"
+	item={selectedActual}
 	onSave={handleSave}
 	onClose={handleDialogClose}
 />
@@ -201,11 +215,11 @@
 <AlertDialog bind:open={deleteDialogOpen}>
 	<AlertDialogContent>
 		<AlertDialogHeader>
-			<AlertDialogTitle>¿Eliminar estimación?</AlertDialogTitle>
+			<AlertDialogTitle>¿Eliminar coste?</AlertDialogTitle>
 			<AlertDialogDescription>
-				Esta acción no se puede deshacer. Se eliminará la estimación de coste de {formatCurrency(
-					selectedEstimate?.amount ?? 0
-				)}.
+				Esta acción no se puede deshacer. Se eliminará el coste de {formatCurrency(
+					selectedActual?.amount ?? 0
+				)} de {selectedActual?.provider?.name ?? 'este proveedor'}.
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 		{#if deleteError}

@@ -16,12 +16,12 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import type { Project } from '$lib/api/projects';
 	import {
-		fetchMonthlyCashFlow,
+		fetchMonthlyCosts,
 		upsertMonthlyRevenue,
 		formatCurrency,
 		getMonthName,
-		type MonthlyCashFlowSummary
-	} from '$lib/api/cash-flow';
+		type MonthlyCostsSummary
+	} from '$lib/api/costs';
 	import CostEstimatesSection from './CostEstimatesSection.svelte';
 	import CostActualsSection from './CostActualsSection.svelte';
 
@@ -36,7 +36,7 @@
 
 	let { open = $bindable(), project, year, month, onClose, onSuccess }: Props = $props();
 
-	let cashFlowData = $state<MonthlyCashFlowSummary | null>(null);
+	let costsData = $state<MonthlyCostsSummary | null>(null);
 	let loading = $state(false);
 	let savingRevenue = $state(false);
 	let revenueSuccess = $state(false);
@@ -51,24 +51,22 @@
 
 	const monthName = $derived(getMonthName(month));
 	const dialogWidth = $derived(activeTab === 'costes' ? 'sm:max-w-4xl' : 'sm:max-w-2xl');
-	const dialogTitle = $derived(
-		project ? `${project.name} - ${monthName} ${year}` : 'Flujo de Caja'
-	);
+	const dialogTitle = $derived(project ? `${project.name} - ${monthName} ${year}` : 'Costes');
 
 	// Calculated values
 	const netEstimated = $derived(() => {
-		if (cashFlowData === null) return null;
+		if (costsData === null) return null;
 		const revenue = estimatedRevenue ?? 0;
-		const externalCosts = cashFlowData.externalCosts.estimated.total;
-		const internalCosts = cashFlowData.internalCosts;
+		const externalCosts = costsData.externalCosts.estimated.total;
+		const internalCosts = costsData.internalCosts;
 		return revenue - externalCosts - internalCosts;
 	});
 
 	const netActual = $derived(() => {
-		if (cashFlowData === null) return null;
+		if (costsData === null) return null;
 		const revenue = actualRevenue ?? 0;
-		const externalCosts = cashFlowData.externalCosts.actual.total;
-		const internalCosts = cashFlowData.internalCosts;
+		const externalCosts = costsData.externalCosts.actual.total;
+		const internalCosts = costsData.internalCosts;
 		return revenue - externalCosts - internalCosts;
 	});
 
@@ -79,12 +77,10 @@
 		error = null;
 
 		try {
-			cashFlowData = await fetchMonthlyCashFlow(project.id, year, month);
-			// Populate form with existing data
-			estimatedRevenue = cashFlowData.revenue.estimated;
-			actualRevenue = cashFlowData.revenue.actual;
-			// Notes would need to be fetched separately if needed
-			notes = '';
+			costsData = await fetchMonthlyCosts(project.id, year, month);
+			estimatedRevenue = costsData.revenue.estimated;
+			actualRevenue = costsData.revenue.actual;
+			notes = costsData.revenue.notes ?? '';
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al cargar datos';
 		} finally {
@@ -130,7 +126,7 @@
 	}
 
 	function resetState() {
-		cashFlowData = null;
+		costsData = null;
 		estimatedRevenue = null;
 		actualRevenue = null;
 		notes = '';
@@ -173,7 +169,7 @@
 				<Skeleton class="h-32 w-full" />
 				<Skeleton class="h-32 w-full" />
 			</div>
-		{:else if error && !cashFlowData}
+		{:else if error && !costsData}
 			<div class="flex flex-col items-center justify-center py-8 text-destructive">
 				<span class="material-symbols-rounded text-3xl! mb-2">error</span>
 				<p>{error}</p>
@@ -182,7 +178,7 @@
 					Reintentar
 				</Button>
 			</div>
-		{:else if cashFlowData && project}
+		{:else if costsData && project}
 			<Tabs bind:value={activeTab} class="w-full">
 				<TabsList class="w-full grid grid-cols-3">
 					<TabsTrigger value="produccion" class="gap-1.5">
@@ -272,7 +268,7 @@
 						projectId={project.id}
 						{year}
 						{month}
-						estimates={cashFlowData.externalCosts.estimated.items}
+						estimates={costsData.externalCosts.estimated.items}
 						onChange={handleCostsChange}
 					/>
 
@@ -282,7 +278,7 @@
 						projectId={project.id}
 						{year}
 						{month}
-						actuals={cashFlowData.externalCosts.actual.items}
+						actuals={costsData.externalCosts.actual.items}
 						onChange={handleCostsChange}
 					/>
 				</TabsContent>
@@ -305,13 +301,13 @@
 								<div class="flex justify-between items-center">
 									<span class="text-sm">Costes Externos</span>
 									<span class="font-medium text-red-600">
-										-{formatCurrency(cashFlowData.externalCosts.estimated.total)}
+										-{formatCurrency(costsData.externalCosts.estimated.total)}
 									</span>
 								</div>
 								<div class="flex justify-between items-center">
 									<span class="text-sm">Costes Internos</span>
 									<span class="font-medium text-orange-600">
-										-{formatCurrency(cashFlowData.internalCosts)}
+										-{formatCurrency(costsData.internalCosts)}
 									</span>
 								</div>
 								<Separator />
@@ -343,13 +339,13 @@
 								<div class="flex justify-between items-center">
 									<span class="text-sm">Costes Externos</span>
 									<span class="font-medium text-red-600">
-										-{formatCurrency(cashFlowData.externalCosts.actual.total)}
+										-{formatCurrency(costsData.externalCosts.actual.total)}
 									</span>
 								</div>
 								<div class="flex justify-between items-center">
 									<span class="text-sm">Costes Internos</span>
 									<span class="font-medium text-orange-600">
-										-{formatCurrency(cashFlowData.internalCosts)}
+										-{formatCurrency(costsData.internalCosts)}
 									</span>
 								</div>
 								<Separator />

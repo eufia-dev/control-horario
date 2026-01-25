@@ -164,7 +164,7 @@
 	<div class="grow flex flex-col gap-6 p-6">
 		<!-- Header -->
 		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/config/equipo'))}>
+			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/config/team'))}>
 				<span class="material-symbols-rounded text-lg!">arrow_back</span>
 			</Button>
 			<span class="material-symbols-rounded text-3xl!">person</span>
@@ -186,7 +186,7 @@
 					<div class="flex flex-col items-center justify-center text-destructive">
 						<span class="material-symbols-rounded text-4xl! mb-2">error</span>
 						<p>{userError}</p>
-						<Button variant="outline" class="mt-4" onclick={() => goto(resolve('/config/equipo'))}>
+						<Button variant="outline" class="mt-4" onclick={() => goto(resolve('/config/team'))}>
 							Volver al equipo
 						</Button>
 					</div>

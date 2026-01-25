@@ -140,7 +140,7 @@
 				Nueva solicitud
 			</Button>
 			{#if isAdmin}
-				<Button variant="outline" href={resolve('/config/ausencias')}>
+				<Button variant="outline" href={resolve('/config/absences')}>
 					<span class="material-symbols-rounded text-lg! mr-2">admin_panel_settings</span>
 					Gestionar
 				</Button>

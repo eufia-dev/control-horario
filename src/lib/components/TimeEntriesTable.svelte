@@ -280,11 +280,11 @@
 
 								<!-- Status indicators -->
 								{#if showStatusColumn}
-									<div class="hidden sm:flex items-center gap-1">
+									<div class="hidden sm:flex items-center gap-2">
 										{#if entry.isManual}
 											<Tooltip>
-												<TooltipTrigger>
-													<span class="material-symbols-rounded text-sm! text-muted-foreground/60"
+												<TooltipTrigger class="flex items-center">
+													<span class="material-symbols-rounded text-lg! text-muted-foreground"
 														>edit_note</span
 													>
 												</TooltipTrigger>
@@ -295,9 +295,8 @@
 										{/if}
 										{#if entry.isModified}
 											<Tooltip>
-												<TooltipTrigger>
-													<span class="material-symbols-rounded text-sm! text-amber-500"
-														>history</span
+												<TooltipTrigger class="flex items-center">
+													<span class="material-symbols-rounded text-lg! text-warning">history</span
 													>
 												</TooltipTrigger>
 												<TooltipContent>

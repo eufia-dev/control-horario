@@ -50,12 +50,10 @@ export function canEditUser(
 	currentUserTeamId: string | null,
 	targetUser: User
 ): boolean {
-	if (currentUserRole === 'OWNER') {
+	if (currentUserRole === 'OWNER' || currentUserRole === 'ADMIN') {
 		return true;
 	}
-	if (currentUserRole === 'ADMIN') {
-		return targetUser.role !== 'OWNER';
-	}
+
 	if (currentUserRole === 'TEAM_LEADER') {
 		return (
 			targetUser.team?.id === currentUserTeamId &&
@@ -72,21 +70,11 @@ export function canEditUser(
  * - ADMIN can delete non-OWNER users
  * - TEAM_LEADER cannot delete users (only remove from team)
  */
-export function canDeleteUser(
-	currentUserRole: UserRole,
-	currentUserTeamId: string | null,
-	targetUser: User
-): boolean {
-	if (targetUser.role === 'OWNER') {
-		return false; // Cannot delete owner
-	}
-	if (currentUserRole === 'OWNER') {
+export function canDeleteUser(currentUserRole: UserRole): boolean {
+	if (currentUserRole === 'OWNER' || currentUserRole === 'ADMIN') {
 		return true;
 	}
-	if (currentUserRole === 'ADMIN') {
-		return targetUser.role !== 'OWNER';
-	}
-	// TEAM_LEADER cannot delete users, only remove them from the team
+
 	return false;
 }
 

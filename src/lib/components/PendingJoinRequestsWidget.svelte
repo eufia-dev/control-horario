@@ -17,7 +17,7 @@
 		if (onScrollToSection) {
 			onScrollToSection();
 		} else {
-			goto(`${resolve('/config/equipo')}#join-requests`);
+			goto(`${resolve('/config/team')}#join-requests`);
 		}
 	}
 </script>

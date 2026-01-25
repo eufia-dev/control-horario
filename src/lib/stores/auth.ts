@@ -18,7 +18,7 @@ export type Profile = {
 		logoUrl: string | null;
 	};
 	hasProjectsFeature: boolean;
-	hasCashFlowFeature: boolean;
+	hasCostsFeature: boolean;
 };
 
 export type AuthUser = {
@@ -201,19 +201,21 @@ export const userTeamId = derived(auth, ($auth) => {
 	return $auth.activeProfile?.teamId ?? $auth.user?.teamId ?? null;
 });
 
+export const currentUserId = derived(auth, ($auth) => $auth.activeProfile?.id ?? null);
+
 export const hasProjectsFeature = derived(
 	auth,
 	($auth) => $auth.activeProfile?.hasProjectsFeature ?? false
 );
 
-export const hasCashFlowFeature = derived(
+export const hasCostsFeature = derived(
 	auth,
-	($auth) => $auth.activeProfile?.hasCashFlowFeature ?? false
+	($auth) => $auth.activeProfile?.hasCostsFeature ?? false
 );
 
-export const canAccessCashFlow = derived(auth, ($auth) => {
+export const canAccessCosts = derived(auth, ($auth) => {
 	const role = $auth.activeProfile?.role ?? $auth.user?.role;
 	const hasFeature =
-		$auth.activeProfile?.hasProjectsFeature && $auth.activeProfile?.hasCashFlowFeature;
+		$auth.activeProfile?.hasProjectsFeature && $auth.activeProfile?.hasCostsFeature;
 	return hasFeature && (role === 'OWNER' || role === 'ADMIN' || role === 'TEAM_LEADER');
 });

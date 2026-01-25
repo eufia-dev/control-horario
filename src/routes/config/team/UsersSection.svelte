@@ -28,7 +28,8 @@
 	import {
 		isAdmin as isAdminStore,
 		userTeamId as userTeamIdStore,
-		isTeamLeader as isTeamLeaderStore
+		isTeamLeader as isTeamLeaderStore,
+		currentUserId as currentUserIdStore
 	} from '$lib/stores/auth';
 	import { canEditUser, canDeleteUser } from '$lib/permissions';
 
@@ -47,6 +48,7 @@
 	let isAdmin = $state(false);
 	let isTeamLeader = $state(false);
 	let currentUserTeamId = $state<string | null>(null);
+	let currentUserId = $state<string | null>(null);
 
 	// Team leader mode state
 	let addingMember = $state(false);
@@ -73,6 +75,13 @@
 	$effect(() => {
 		const unsub = userTeamIdStore.subscribe((value) => {
 			currentUserTeamId = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = currentUserIdStore.subscribe((value) => {
+			currentUserId = value;
 		});
 		return unsub;
 	});
@@ -395,7 +404,7 @@
 						{@const relationBadge = getRelationTypeBadge(user.relation)}
 						{@const userRole = isAdmin ? 'ADMIN' : 'TEAM_LEADER'}
 						{@const canEdit = canEditUser(userRole, currentUserTeamId, user)}
-						{@const canDelete = canDeleteUser(userRole, currentUserTeamId, user)}
+						{@const canDelete = canDeleteUser(userRole) && user.id !== currentUserId}
 						<TableRow>
 							<TableCell class="font-medium">
 								<Tooltip>

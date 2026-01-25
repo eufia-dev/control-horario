@@ -61,13 +61,14 @@ export type CostActual = {
 	updatedAt: string | null;
 };
 
-export type MonthlyCashFlowSummary = {
+export type MonthlyCostsSummary = {
 	projectId: string;
 	year: number;
 	month: number;
 	revenue: {
 		estimated: number | null;
 		actual: number | null;
+		notes: string | null;
 	};
 	externalCosts: {
 		estimated: {
@@ -87,7 +88,7 @@ export type MonthlyCashFlowSummary = {
 };
 
 // Types for all-projects summary endpoint
-export type MonthCashFlow = {
+export type MonthCosts = {
 	month: number;
 	revenue: {
 		estimated: number | null;
@@ -104,16 +105,77 @@ export type MonthCashFlow = {
 	};
 };
 
-export type ProjectCashFlowSummary = {
+export type ProjectCostsSummary = {
 	projectId: string;
 	projectName: string;
 	teamId: string | null;
+	teamName: string | null;
 	year: number;
-	months: MonthCashFlow[];
+	months: MonthCosts[];
 };
 
-export type AllProjectsCashFlowResponse = {
-	projects: ProjectCashFlowSummary[];
+export type AllProjectsCostsResponse = {
+	projects: ProjectCostsSummary[];
+};
+
+// ==================== Annual Costs Types (Bulk Matrix View) ====================
+
+export type AnnualCostsResponse = {
+	year: number;
+	projects: AnnualProjectCosts[];
+};
+
+export type AnnualProjectCosts = {
+	projectId: string;
+	projectName: string;
+	projectCode: string;
+	teamId: string | null;
+	teamName: string | null;
+	months: AnnualMonthCosts[];
+};
+
+export type AnnualMonthCosts = {
+	month: number; // 1-12
+
+	// Revenue - includes ID for upsert logic
+	revenueId: string | null; // null if no record exists yet
+	estimatedRevenue: number | null;
+	actualRevenue: number | null;
+
+	// Cost Estimates - full array for inline editing logic
+	estimatedCosts: CostEstimate[];
+	estimatedCostsTotal: number;
+
+	// Cost Actuals - full array for dialog editing
+	actualCosts: CostActual[];
+	actualCostsTotal: number;
+};
+
+export type SaveAnnualCostsDto = {
+	year: number;
+	items: SaveAnnualCostItem[];
+};
+
+export type SaveAnnualCostItem = {
+	projectId: string;
+	month: number; // 1-12
+
+	// Revenue upsert (optional - only include if changed)
+	revenue?: {
+		estimatedRevenue?: number | null;
+		actualRevenue?: number | null;
+	};
+
+	// Cost estimate operation (optional - explicit action)
+	costEstimate?: {
+		action: 'create' | 'update';
+		id?: string; // Required for 'update'
+		amount: number;
+		// Optional fields for 'create'
+		providerId?: string;
+		expenseType?: ExternalCostExpenseType;
+		description?: string;
+	};
 };
 
 // ==================== DTOs ====================
@@ -188,7 +250,7 @@ export async function fetchMonthlyRevenues(
 	year: number
 ): Promise<MonthlyRevenue[]> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/revenue?year=${year}`
+		`${API_BASE}/costs/projects/${projectId}/revenue?year=${year}`
 	);
 	return handleJsonResponse<MonthlyRevenue[]>(response);
 }
@@ -200,7 +262,7 @@ export async function upsertMonthlyRevenue(
 	data: UpsertRevenueDto
 ): Promise<MonthlyRevenue> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/revenue/${year}/${month}`,
+		`${API_BASE}/costs/projects/${projectId}/revenue/${year}/${month}`,
 		{
 			method: 'PUT',
 			headers: {
@@ -220,7 +282,7 @@ export async function fetchCostEstimates(
 	month: number
 ): Promise<CostEstimate[]> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/cost-estimates?year=${year}&month=${month}`
+		`${API_BASE}/costs/projects/${projectId}/cost-estimates?year=${year}&month=${month}`
 	);
 	return handleJsonResponse<CostEstimate[]>(response);
 }
@@ -229,16 +291,13 @@ export async function createCostEstimate(
 	projectId: string,
 	data: CreateCostEstimateDto
 ): Promise<CostEstimate> {
-	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/cost-estimates`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data)
-		}
-	);
+	const response = await fetchWithAuth(`${API_BASE}/costs/projects/${projectId}/cost-estimates`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(data)
+	});
 	return handleJsonResponse<CostEstimate>(response);
 }
 
@@ -246,7 +305,7 @@ export async function updateCostEstimate(
 	id: string,
 	data: UpdateCostEstimateDto
 ): Promise<CostEstimate> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/cost-estimates/${id}`, {
+	const response = await fetchWithAuth(`${API_BASE}/costs/cost-estimates/${id}`, {
 		method: 'PATCH',
 		headers: {
 			'Content-Type': 'application/json'
@@ -257,7 +316,7 @@ export async function updateCostEstimate(
 }
 
 export async function deleteCostEstimate(id: string): Promise<void> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/cost-estimates/${id}`, {
+	const response = await fetchWithAuth(`${API_BASE}/costs/cost-estimates/${id}`, {
 		method: 'DELETE'
 	});
 	await handleJsonResponse<unknown>(response);
@@ -271,7 +330,7 @@ export async function fetchCostActuals(
 	month: number
 ): Promise<CostActual[]> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/cost-actuals?year=${year}&month=${month}`
+		`${API_BASE}/costs/projects/${projectId}/cost-actuals?year=${year}&month=${month}`
 	);
 	return handleJsonResponse<CostActual[]>(response);
 }
@@ -280,7 +339,7 @@ export async function createCostActual(
 	projectId: string,
 	data: CreateCostActualDto
 ): Promise<CostActual> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/projects/${projectId}/cost-actuals`, {
+	const response = await fetchWithAuth(`${API_BASE}/costs/projects/${projectId}/cost-actuals`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
@@ -291,7 +350,7 @@ export async function createCostActual(
 }
 
 export async function updateCostActual(id: string, data: UpdateCostActualDto): Promise<CostActual> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/cost-actuals/${id}`, {
+	const response = await fetchWithAuth(`${API_BASE}/costs/cost-actuals/${id}`, {
 		method: 'PATCH',
 		headers: {
 			'Content-Type': 'application/json'
@@ -302,7 +361,7 @@ export async function updateCostActual(id: string, data: UpdateCostActualDto): P
 }
 
 export async function deleteCostActual(id: string): Promise<void> {
-	const response = await fetchWithAuth(`${API_BASE}/cash-flow/cost-actuals/${id}`, {
+	const response = await fetchWithAuth(`${API_BASE}/costs/cost-actuals/${id}`, {
 		method: 'DELETE'
 	});
 	await handleJsonResponse<unknown>(response);
@@ -310,25 +369,43 @@ export async function deleteCostActual(id: string): Promise<void> {
 
 // ==================== Monthly Summary API ====================
 
-export async function fetchMonthlyCashFlow(
+export async function fetchMonthlyCosts(
 	projectId: string,
 	year: number,
 	month: number
-): Promise<MonthlyCashFlowSummary> {
+): Promise<MonthlyCostsSummary> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects/${projectId}/monthly/${year}/${month}`
+		`${API_BASE}/costs/projects/${projectId}/monthly/${year}/${month}`
 	);
-	return handleJsonResponse<MonthlyCashFlowSummary>(response);
+	return handleJsonResponse<MonthlyCostsSummary>(response);
 }
 
-export async function fetchAllProjectsCashFlow(
+export async function fetchAllProjectsCosts(
 	year: number,
 	month: number
-): Promise<AllProjectsCashFlowResponse> {
+): Promise<AllProjectsCostsResponse> {
 	const response = await fetchWithAuth(
-		`${API_BASE}/cash-flow/projects-summary?year=${year}&month=${month}`
+		`${API_BASE}/costs/projects-summary?year=${year}&month=${month}`
 	);
-	return handleJsonResponse<AllProjectsCashFlowResponse>(response);
+	return handleJsonResponse<AllProjectsCostsResponse>(response);
+}
+
+// ==================== Annual Costs API (Bulk Matrix View) ====================
+
+export async function fetchAnnualCosts(year: number): Promise<AnnualCostsResponse> {
+	const response = await fetchWithAuth(`${API_BASE}/costs/projects-annual?year=${year}`);
+	return handleJsonResponse<AnnualCostsResponse>(response);
+}
+
+export async function saveAnnualCosts(data: SaveAnnualCostsDto): Promise<void> {
+	const response = await fetchWithAuth(`${API_BASE}/costs/projects-annual`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(data)
+	});
+	await handleJsonResponse<void>(response);
 }
 
 // ==================== Utility Functions ====================

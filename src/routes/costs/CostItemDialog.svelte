@@ -25,7 +25,7 @@
 		type UpdateCostEstimateDto,
 		type CreateCostActualDto,
 		type UpdateCostActualDto
-	} from '$lib/api/cash-flow';
+	} from '$lib/api/costs';
 	import { fetchProviders, type Provider } from '$lib/api/providers';
 	import { CalendarDate } from '@internationalized/date';
 

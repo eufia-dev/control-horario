@@ -4,8 +4,8 @@
 	import { resolve } from '$app/paths';
 
 	onMount(() => {
-		goto(resolve('/analytics/projects'), { replaceState: true });
+		goto(resolve('/costs/anual'), { replaceState: true });
 	});
 </script>
 
-<!-- This page redirects to the appropriate tab -->
+<!-- This page redirects to the anual tab -->
