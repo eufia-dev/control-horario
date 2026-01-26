@@ -16,14 +16,16 @@
 
 	let {
 		projects,
-		loading = false
+		loading = false,
+		showCosts = true
 	}: {
 		projects: ProjectSummary[];
 		loading?: boolean;
+		showCosts?: boolean;
 	} = $props();
 
-	let mainViewMode = $state<'hours' | 'cost'>('cost');
-	let breakdownViewMode = $state<'hours' | 'cost'>('cost');
+	let mainViewMode = $state<'hours' | 'cost'>('hours');
+	let breakdownViewMode = $state<'hours' | 'cost'>('hours');
 	let selectedProjectId = $state<string | null>(null);
 	let breakdownData = $state<WorkerBreakdown[]>([]);
 	let loadingBreakdown = $state(false);
@@ -115,24 +117,26 @@
 	<Card class="overflow-hidden">
 		<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 			<CardTitle class="text-xl font-semibold">Proyectos</CardTitle>
-			<div class="flex gap-1 rounded-lg bg-muted p-1">
-				<Button
-					variant={mainViewMode === 'hours' ? 'default' : 'ghost'}
-					size="sm"
-					class="h-7 px-3 text-xs"
-					onclick={() => (mainViewMode = 'hours')}
-				>
-					Horas
-				</Button>
-				<Button
-					variant={mainViewMode === 'cost' ? 'default' : 'ghost'}
-					size="sm"
-					class="h-7 px-3 text-xs"
-					onclick={() => (mainViewMode = 'cost')}
-				>
-					Coste
-				</Button>
-			</div>
+			{#if showCosts}
+				<div class="flex gap-1 rounded-lg bg-muted p-1">
+					<Button
+						variant={mainViewMode === 'hours' ? 'default' : 'ghost'}
+						size="sm"
+						class="h-7 px-3 text-xs"
+						onclick={() => (mainViewMode = 'hours')}
+					>
+						Horas
+					</Button>
+					<Button
+						variant={mainViewMode === 'cost' ? 'default' : 'ghost'}
+						size="sm"
+						class="h-7 px-3 text-xs"
+						onclick={() => (mainViewMode = 'cost')}
+					>
+						Coste
+					</Button>
+				</div>
+			{/if}
 		</CardHeader>
 		<CardContent>
 			{#if loading}
@@ -190,10 +194,12 @@
 										class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl"
 									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
-										<div class="flex items-center justify-between gap-4">
-											<span class="text-muted-foreground">Coste total</span>
-											<span class="font-mono font-medium">{formatCost(data.cost)}</span>
-										</div>
+										{#if showCosts}
+											<div class="flex items-center justify-between gap-4">
+												<span class="text-muted-foreground">Coste total</span>
+												<span class="font-mono font-medium">{formatCost(data.cost)}</span>
+											</div>
+										{/if}
 										<div class="flex items-center justify-between gap-4 mt-1">
 											<span class="text-muted-foreground">Horas</span>
 											<span class="font-mono font-medium">{data.hours.toFixed(1)}h</span>
@@ -226,10 +232,10 @@
 				{#if selectedProject}
 					<p class="text-xs text-muted-foreground mt-1">
 						{selectedProject.code} · {formatValue(
-							breakdownViewMode === 'cost'
+							showCosts && breakdownViewMode === 'cost'
 								? selectedProject.totalCost
 								: selectedProject.totalMinutes / 60,
-							breakdownViewMode
+							showCosts ? breakdownViewMode : 'hours'
 						)} total
 					</p>
 				{/if}
@@ -258,24 +264,26 @@
 						{/snippet}
 					</Combobox>
 				{/if}
-				<div class="flex gap-1 rounded-lg bg-muted p-1">
-					<Button
-						variant={breakdownViewMode === 'hours' ? 'default' : 'ghost'}
-						size="sm"
-						class="h-7 px-3 text-xs"
-						onclick={() => (breakdownViewMode = 'hours')}
-					>
-						Horas
-					</Button>
-					<Button
-						variant={breakdownViewMode === 'cost' ? 'default' : 'ghost'}
-						size="sm"
-						class="h-7 px-3 text-xs"
-						onclick={() => (breakdownViewMode = 'cost')}
-					>
-						Coste
-					</Button>
-				</div>
+				{#if showCosts}
+					<div class="flex gap-1 rounded-lg bg-muted p-1">
+						<Button
+							variant={breakdownViewMode === 'hours' ? 'default' : 'ghost'}
+							size="sm"
+							class="h-7 px-3 text-xs"
+							onclick={() => (breakdownViewMode = 'hours')}
+						>
+							Horas
+						</Button>
+						<Button
+							variant={breakdownViewMode === 'cost' ? 'default' : 'ghost'}
+							size="sm"
+							class="h-7 px-3 text-xs"
+							onclick={() => (breakdownViewMode = 'cost')}
+						>
+							Coste
+						</Button>
+					</div>
+				{/if}
 			</div>
 		</CardHeader>
 		<CardContent>
@@ -339,13 +347,15 @@
 										class="border-border/50 bg-background min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl"
 									>
 										<div class="font-medium mb-1.5">{data.fullName}</div>
-										<div class="text-muted-foreground text-[10px] mb-1.5">
-											{formatCost(data.hourlyCost)}/h
-										</div>
-										<div class="flex items-center justify-between gap-4">
-											<span class="text-muted-foreground">Coste</span>
-											<span class="font-mono font-medium">{formatCost(data.workerCost)}</span>
-										</div>
+										{#if showCosts}
+											<div class="text-muted-foreground text-[10px] mb-1.5">
+												{formatCost(data.hourlyCost)}/h
+											</div>
+											<div class="flex items-center justify-between gap-4">
+												<span class="text-muted-foreground">Coste</span>
+												<span class="font-mono font-medium">{formatCost(data.workerCost)}</span>
+											</div>
+										{/if}
 										<div class="flex items-center justify-between gap-4 mt-1">
 											<span class="text-muted-foreground">Horas</span>
 											<span class="font-mono font-medium">{data.workerHours.toFixed(1)}h</span>

@@ -340,7 +340,9 @@
 						<TableHead>Nombre</TableHead>
 						<TableHead>Email</TableHead>
 						<TableHead>Relación</TableHead>
-						<TableHead>Coste/hora</TableHead>
+						{#if isAdmin}
+							<TableHead>Coste/hora</TableHead>
+						{/if}
 						<TableHead>Estado</TableHead>
 						<TableHead>Rol</TableHead>
 						<TableHead>Equipo</TableHead>
@@ -354,7 +356,9 @@
 							<TableCell><Skeleton class="h-4 w-28" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-40" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
-							<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+							{#if isAdmin}
+								<TableCell><Skeleton class="h-4 w-16" /></TableCell>
+							{/if}
 							<TableCell><Skeleton class="h-5 w-14 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-16 rounded-full" /></TableCell>
 							<TableCell><Skeleton class="h-5 w-20 rounded-full" /></TableCell>
@@ -390,7 +394,9 @@
 						<TableHead>Nombre</TableHead>
 						<TableHead>Email</TableHead>
 						<TableHead>Relación</TableHead>
-						<TableHead>Coste/hora</TableHead>
+						{#if isAdmin}
+							<TableHead>Coste/hora</TableHead>
+						{/if}
 						<TableHead>Estado</TableHead>
 						<TableHead>Rol</TableHead>
 						<TableHead>Equipo</TableHead>
@@ -429,7 +435,9 @@
 							<TableCell>
 								<Badge variant={relationBadge.variant}>{relationBadge.label}</Badge>
 							</TableCell>
-							<TableCell>{formatCurrency(user.hourlyCost)}</TableCell>
+							{#if isAdmin}
+								<TableCell>{formatCurrency(user.hourlyCost)}</TableCell>
+							{/if}
 							<TableCell>
 								{#if user.isActive}
 									<Badge variant="success">Activo</Badge>

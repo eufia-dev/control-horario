@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { auth } from '$lib/stores/auth';
+	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import {
@@ -14,6 +14,7 @@
 	} from '$lib/api/analytics';
 
 	const currentUserId = $derived($auth.user?.id ?? null);
+	const showCosts = $derived($isAdminStore);
 
 	let projects = $state<ProjectSummary[]>([]);
 	let workers = $state<WorkerSummary[]>([]);
@@ -62,8 +63,8 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		<Card class="gap-2">
+	<div class="flex gap-4">
+		<Card class="gap-2 flex-1">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">schedule</span>
@@ -80,22 +81,24 @@
 			</CardContent>
 		</Card>
 
-		<Card class="gap-2">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
-				<span class="material-symbols-rounded text-xl! text-muted-foreground">euro</span>
-			</CardHeader>
-			<CardContent>
-				{#if loadingProjects}
-					<Skeleton class="h-8 w-28" />
-				{:else}
-					<div class="text-2xl font-bold">{formatCost(totalCost)}</div>
-					<p class="text-xs text-muted-foreground mt-1">inversión acumulada</p>
-				{/if}
-			</CardContent>
-		</Card>
+		{#if showCosts}
+			<Card class="gap-2 flex-1">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium text-muted-foreground">Coste Total</CardTitle>
+					<span class="material-symbols-rounded text-xl! text-muted-foreground">euro</span>
+				</CardHeader>
+				<CardContent>
+					{#if loadingProjects}
+						<Skeleton class="h-8 w-28" />
+					{:else}
+						<div class="text-2xl font-bold">{formatCost(totalCost)}</div>
+						<p class="text-xs text-muted-foreground mt-1">inversión acumulada</p>
+					{/if}
+				</CardContent>
+			</Card>
+		{/if}
 
-		<Card class="gap-2">
+		<Card class="gap-2 flex-1">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Proyectos Activos</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">folder</span>
@@ -110,7 +113,7 @@
 			</CardContent>
 		</Card>
 
-		<Card class="gap-2">
+		<Card class="gap-2 flex-1">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium text-muted-foreground">Trabajadores</CardTitle>
 				<span class="material-symbols-rounded text-xl! text-muted-foreground">group</span>
@@ -143,7 +146,7 @@
 				</CardContent>
 			</Card>
 		{:else}
-			<ProjectsChart {projects} loading={loadingProjects} />
+			<ProjectsChart {projects} loading={loadingProjects} {showCosts} />
 		{/if}
 
 		{#if workersError}
@@ -159,7 +162,7 @@
 				</CardContent>
 			</Card>
 		{:else}
-			<WorkersChart {workers} loading={loadingWorkers} {currentUserId} />
+			<WorkersChart {workers} loading={loadingWorkers} {currentUserId} {showCosts} />
 		{/if}
 	</div>
 </div>

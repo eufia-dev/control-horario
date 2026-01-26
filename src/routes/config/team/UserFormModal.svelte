@@ -189,7 +189,7 @@
 			return;
 		}
 
-		if (hourlyCost < 0) {
+		if (isAdmin && hourlyCost < 0) {
 			error = 'El coste por hora debe ser mayor o igual a 0';
 			return;
 		}
@@ -211,13 +211,16 @@
 			const data: UpdateUserDto = {
 				name: name.trim(),
 				phone: phone.trim() || undefined,
-				salary: salary ?? undefined,
-				hourlyCost,
 				isActive,
 				role,
 				relation,
 				teamId: teamId || null
 			};
+			// Only include salary/hourlyCost if user is admin
+			if (isAdmin) {
+				data.salary = salary ?? undefined;
+				data.hourlyCost = hourlyCost;
+			}
 			await updateUser(user.id, data);
 			submitting = false;
 			success = true;
@@ -278,33 +281,35 @@
 				/>
 			</div>
 
-			<div class="grid gap-2">
-				<Label for="salary">Salario mensual (€)</Label>
-				<Input
-					id="salary"
-					type="number"
-					min="0"
-					step="0.01"
-					bind:value={salary}
-					placeholder="Salario bruto mensual"
-					disabled={submitting}
-				/>
-				<p class="text-xs text-muted-foreground">
-					Si se indica el salario, el coste por hora se calculará automáticamente
-				</p>
-			</div>
+			{#if isAdmin}
+				<div class="grid gap-2">
+					<Label for="salary">Salario mensual (€)</Label>
+					<Input
+						id="salary"
+						type="number"
+						min="0"
+						step="0.01"
+						bind:value={salary}
+						placeholder="Salario bruto mensual"
+						disabled={submitting}
+					/>
+					<p class="text-xs text-muted-foreground">
+						Si se indica el salario, el coste por hora se calculará automáticamente
+					</p>
+				</div>
 
-			<div class="grid gap-2">
-				<Label for="hourlyCost">Coste por hora (€)</Label>
-				<Input
-					id="hourlyCost"
-					type="number"
-					min="0"
-					step="0.01"
-					bind:value={hourlyCost}
-					disabled={submitting}
-				/>
-			</div>
+				<div class="grid gap-2">
+					<Label for="hourlyCost">Coste por hora (€)</Label>
+					<Input
+						id="hourlyCost"
+						type="number"
+						min="0"
+						step="0.01"
+						bind:value={hourlyCost}
+						disabled={submitting}
+					/>
+				</div>
+			{/if}
 
 			<div class="grid grid-cols-2 gap-4">
 				<div class="grid gap-2">
@@ -319,9 +324,6 @@
 							{/each}
 						</SelectContent>
 					</Select>
-					{#if isEditingSelf}
-						<p class="text-xs text-muted-foreground">No puedes cambiar tu propio rol</p>
-					{/if}
 				</div>
 
 				<div class="grid gap-2">
