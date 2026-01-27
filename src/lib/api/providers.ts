@@ -9,6 +9,13 @@ export type Provider = {
 	id: string;
 	name: string;
 	paymentPeriod: number; // in days
+	fiscalName?: string;
+	cif?: string;
+	phone?: string;
+	email?: string;
+	notes?: string;
+	type?: string;
+	location?: string;
 	createdAt: string;
 };
 
@@ -23,11 +30,25 @@ export type ProviderInfo = {
 export type CreateProviderDto = {
 	name: string;
 	paymentPeriod: number;
+	fiscalName?: string;
+	cif?: string;
+	phone?: string;
+	email?: string;
+	notes?: string;
+	type?: string;
+	location?: string;
 };
 
 export type UpdateProviderDto = {
 	name?: string;
 	paymentPeriod?: number;
+	fiscalName?: string;
+	cif?: string;
+	phone?: string;
+	email?: string;
+	notes?: string;
+	type?: string;
+	location?: string;
 };
 
 // ==================== Helper ====================

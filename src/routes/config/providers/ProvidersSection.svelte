@@ -16,7 +16,6 @@
 	import ProviderFormModal from './ProviderFormModal.svelte';
 	import ProviderDeleteDialog from './ProviderDeleteDialog.svelte';
 	import { fetchProviders, type Provider } from '$lib/api/providers';
-	import { formatDate } from '../helpers';
 
 	let providers = $state<Provider[]>([]);
 	let loadingProviders = $state(true);
@@ -27,7 +26,12 @@
 		providers.filter((provider) => {
 			if (!searchQuery.trim()) return true;
 			const query = searchQuery.toLowerCase();
-			return provider.name.toLowerCase().includes(query);
+			return (
+				provider.name.toLowerCase().includes(query) ||
+				provider.fiscalName?.toLowerCase().includes(query) ||
+				provider.cif?.toLowerCase().includes(query) ||
+				provider.type?.toLowerCase().includes(query)
+			);
 		})
 	);
 
@@ -86,7 +90,7 @@
 				>
 				<Input
 					type="text"
-					placeholder="Buscar por nombre..."
+					placeholder="Buscar por nombre, CIF, tipo..."
 					bind:value={searchQuery}
 					class="pl-9 mr-9"
 				/>
@@ -103,8 +107,10 @@
 				<TableHeader>
 					<TableRow>
 						<TableHead>Nombre</TableHead>
+						<TableHead>Tipo</TableHead>
+						<TableHead>CIF</TableHead>
+						<TableHead>Contacto</TableHead>
 						<TableHead>Periodo de Pago</TableHead>
-						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -113,6 +119,8 @@
 						<TableRow data-placeholder-index={i}>
 							<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
+							<TableCell><Skeleton class="h-4 w-24" /></TableCell>
+							<TableCell><Skeleton class="h-4 w-32" /></TableCell>
 							<TableCell><Skeleton class="h-4 w-20" /></TableCell>
 							<TableCell><Skeleton class="h-8 w-20" /></TableCell>
 						</TableRow>
@@ -143,8 +151,10 @@
 				<TableHeader>
 					<TableRow>
 						<TableHead>Nombre</TableHead>
+						<TableHead>Tipo</TableHead>
+						<TableHead>CIF</TableHead>
+						<TableHead>Contacto</TableHead>
 						<TableHead>Periodo de Pago</TableHead>
-						<TableHead>Creado</TableHead>
 						<TableHead class="w-[100px]">Acciones</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -153,18 +163,65 @@
 						<TableRow>
 							<TableCell class="font-medium">
 								<Tooltip>
-									<TooltipTrigger class="max-w-[250px] truncate block text-left">
+									<TooltipTrigger class="max-w-[200px] truncate block text-left">
 										{provider.name}
 									</TooltipTrigger>
 									<TooltipContent>
-										<p>{provider.name}</p>
+										<div class="space-y-1">
+											<p class="font-medium">{provider.name}</p>
+											{#if provider.fiscalName}
+												<p class="text-xs text-muted-foreground">{provider.fiscalName}</p>
+											{/if}
+											{#if provider.location}
+												<p class="text-xs text-muted-foreground">{provider.location}</p>
+											{/if}
+											{#if provider.notes}
+												<p class="text-xs text-muted-foreground mt-2">{provider.notes}</p>
+											{/if}
+										</div>
 									</TooltipContent>
 								</Tooltip>
 							</TableCell>
 							<TableCell class="text-muted-foreground">
+								{#if provider.type}
+									<span class="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs">
+										{provider.type}
+									</span>
+								{:else}
+									<span class="text-muted-foreground/50">—</span>
+								{/if}
+							</TableCell>
+							<TableCell class="text-muted-foreground font-mono text-sm">
+								{provider.cif ?? '—'}
+							</TableCell>
+							<TableCell class="text-muted-foreground">
+								{#if provider.email || provider.phone}
+									<div class="flex flex-col gap-0.5 text-sm">
+										{#if provider.email}
+											<Tooltip>
+												<TooltipTrigger class="flex items-center gap-1 text-left max-w-[180px] truncate">
+													<span class="material-symbols-rounded text-base!">mail</span>
+													<span class="truncate">{provider.email}</span>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>{provider.email}</p>
+												</TooltipContent>
+											</Tooltip>
+										{/if}
+										{#if provider.phone}
+											<span class="flex items-center gap-1">
+												<span class="material-symbols-rounded text-base!">phone</span>
+												{provider.phone}
+											</span>
+										{/if}
+									</div>
+								{:else}
+									<span class="text-muted-foreground/50">—</span>
+								{/if}
+							</TableCell>
+							<TableCell class="text-muted-foreground">
 								{provider.paymentPeriod} días
 							</TableCell>
-							<TableCell class="text-muted-foreground">{formatDate(provider.createdAt)}</TableCell>
 							<TableCell>
 								<div class="flex items-center gap-1">
 									<Tooltip>

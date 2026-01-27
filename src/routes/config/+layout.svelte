@@ -6,7 +6,8 @@
 	import {
 		isAdmin as isAdminStore,
 		canAccessAdmin as canAccessAdminStore,
-		isTeamLeader as isTeamLeaderStore
+		isTeamLeader as isTeamLeaderStore,
+		hasCostsFeature as hasCostsFeatureStore
 	} from '$lib/stores/auth';
 	import { Button } from '$lib/components/ui/button';
 	import PendingAbsencesWidget from '$lib/components/PendingAbsencesWidget.svelte';
@@ -19,6 +20,7 @@
 	let isAdmin = $state(false);
 	let canAccessAdmin = $state(false);
 	let isTeamLeader = $state(false);
+	let hasCostsFeature = $state(false);
 
 	let absenceStats = $state<AbsenceStats | null>(null);
 	let joinRequests = $state<AdminJoinRequest[]>([]);
@@ -74,21 +76,35 @@
 		return unsub;
 	});
 
+	$effect(() => {
+		const unsub = hasCostsFeatureStore.subscribe((value) => {
+			hasCostsFeature = value;
+		});
+		return unsub;
+	});
+
 	onMount(() => {
 		loadAbsenceStats();
 		loadJoinRequests();
 	});
 
-	type TabValue = 'company' | 'team' | 'projects' | 'absences';
+	type TabValue = 'company' | 'team' | 'absences' | 'projects' | 'providers';
 
-	const tabs: { value: TabValue; label: string; icon: string; adminOnly: boolean }[] = [
-		{ value: 'company', label: 'Empresa', icon: 'business', adminOnly: true },
-		{ value: 'team', label: 'Equipo', icon: 'group', adminOnly: false },
-		{ value: 'projects', label: 'Proyectos', icon: 'work', adminOnly: false },
-		{ value: 'absences', label: 'Ausencias', icon: 'event_available', adminOnly: false }
+	const tabs: { value: TabValue; label: string; icon: string; adminOnly: boolean; costsOnly: boolean }[] = [
+		{ value: 'company', label: 'Empresa', icon: 'business', adminOnly: true, costsOnly: false },
+		{ value: 'team', label: 'Equipo', icon: 'group', adminOnly: false, costsOnly: false },
+		{ value: 'absences', label: 'Ausencias', icon: 'event_available', adminOnly: false, costsOnly: false },
+		{ value: 'projects', label: 'Proyectos', icon: 'work', adminOnly: false, costsOnly: false },
+		{ value: 'providers', label: 'Proveedores', icon: 'business_center', adminOnly: false, costsOnly: true }
 	];
 
-	const visibleTabs = $derived(tabs.filter((tab) => !tab.adminOnly || isAdmin));
+	const visibleTabs = $derived(
+		tabs.filter((tab) => {
+			if (tab.adminOnly && !isAdmin) return false;
+			if (tab.costsOnly && !hasCostsFeature) return false;
+			return true;
+		})
+	);
 
 	function isActiveTab(tabValue: TabValue): boolean {
 		const currentPath = $page.url.pathname;
