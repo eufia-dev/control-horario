@@ -252,6 +252,14 @@
 		return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
 	}
 
+	function addMinutesToTime(time: string, minutes: number): string {
+		const [h, m] = time.split(':').map(Number);
+		const totalMinutes = h * 60 + m + minutes;
+		const newH = Math.floor(totalMinutes / 60) % 24;
+		const newM = totalMinutes % 60;
+		return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+	}
+
 	async function addSegment() {
 		const trabajoType = timeEntryTypes.find((t) => t.name === 'Trabajo');
 		const pausaComidaType = timeEntryTypes.find((t) => t.value === 'PAUSE_LUNCH');
@@ -313,9 +321,9 @@
 			let endTime: string;
 
 			if (lastSegment) {
-				// Continue from last segment
-				startTime = lastSegment.endTime;
-				endTime = addHoursToTime(startTime, 1);
+				// Continue from last segment - start 1 minute after the previous segment ends
+				startTime = addMinutesToTime(lastSegment.endTime, 1);
+				endTime = addMinutesToTime(startTime, 59);
 			} else {
 				// No segments and no schedule - use today-based defaults
 				const now = new Date();
@@ -328,10 +336,10 @@
 				if (isToday) {
 					const currentHour = now.getHours();
 					startTime = `${String(currentHour).padStart(2, '0')}:00`;
-					endTime = `${String(Math.min(currentHour + 1, 23)).padStart(2, '0')}:00`;
+					endTime = `${String(currentHour).padStart(2, '0')}:59`;
 				} else {
 					startTime = '09:00';
-					endTime = '13:00';
+					endTime = '09:59';
 				}
 			}
 
