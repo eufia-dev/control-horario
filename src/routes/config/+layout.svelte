@@ -90,12 +90,30 @@
 
 	type TabValue = 'company' | 'team' | 'absences' | 'projects' | 'providers';
 
-	const tabs: { value: TabValue; label: string; icon: string; adminOnly: boolean; costsOnly: boolean }[] = [
+	const tabs: {
+		value: TabValue;
+		label: string;
+		icon: string;
+		adminOnly: boolean;
+		costsOnly: boolean;
+	}[] = [
 		{ value: 'company', label: 'Empresa', icon: 'business', adminOnly: true, costsOnly: false },
 		{ value: 'team', label: 'Equipo', icon: 'group', adminOnly: false, costsOnly: false },
-		{ value: 'absences', label: 'Ausencias', icon: 'event_available', adminOnly: false, costsOnly: false },
+		{
+			value: 'absences',
+			label: 'Ausencias',
+			icon: 'event_available',
+			adminOnly: false,
+			costsOnly: false
+		},
 		{ value: 'projects', label: 'Proyectos', icon: 'work', adminOnly: false, costsOnly: false },
-		{ value: 'providers', label: 'Proveedores', icon: 'business_center', adminOnly: false, costsOnly: true }
+		{
+			value: 'providers',
+			label: 'Proveedores',
+			icon: 'business_center',
+			adminOnly: false,
+			costsOnly: true
+		}
 	];
 
 	const visibleTabs = $derived(

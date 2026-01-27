@@ -17,18 +17,16 @@
 		open: boolean;
 		year: number;
 		month: number;
-		currentReason?: string | null;
 		onSuccess: (closingData: MonthlyClosingResponse) => void;
 	};
 
-	let { open = $bindable(), year, month, currentReason = null, onSuccess }: Props = $props();
+	let { open = $bindable(), year, month, onSuccess }: Props = $props();
 
 	let reason = $state('');
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
 
 	const monthName = $derived(getMonthName(month));
-	const isEditing = $derived(!!currentReason);
 
 	async function handleReopen() {
 		if (submitting) return;
@@ -59,7 +57,7 @@
 
 	$effect(() => {
 		if (open) {
-			reason = currentReason ?? '';
+			reason = '';
 			error = null;
 		}
 	});
@@ -76,37 +74,32 @@
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
 			<DialogTitle>
-				{isEditing ? 'Editar Motivo' : 'Reabrir'} {monthName} {year}
+				Reabrir {monthName}
+				{year}
 			</DialogTitle>
 			<DialogDescription>
-				{#if isEditing}
-					Actualiza el motivo por el que se reabrió este mes.
-				{:else}
-					Indica el motivo por el que necesitas reabrir este mes. La distribución de costes
-					actual quedará invalidada.
-				{/if}
+				Indica el motivo por el que necesitas reabrir este mes. La distribución de costes actual
+				quedará invalidada.
 			</DialogDescription>
 		</DialogHeader>
 
 		<div class="space-y-4 py-4">
-			{#if !isEditing}
-				<!-- Warning -->
-				<div
-					class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
-				>
-					<div class="flex items-start gap-2">
-						<span class="material-symbols-rounded text-amber-600 text-lg!">warning</span>
-						<div class="text-sm text-amber-800 dark:text-amber-200">
-							<p class="font-medium">Atención</p>
-							<p class="text-amber-600 dark:text-amber-400 mt-1">
-								Al reabrir el mes, la distribución de costes actual quedará invalidada y el mes
-								volverá a estado "Reabierto". Necesitarás volver a cerrar el mes cuando termines
-								de hacer los cambios.
-							</p>
-						</div>
+			<!-- Warning -->
+			<div
+				class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
+			>
+				<div class="flex items-start gap-2">
+					<span class="material-symbols-rounded text-amber-600 text-lg!">warning</span>
+					<div class="text-sm text-amber-800 dark:text-amber-200">
+						<p class="font-medium">Atención</p>
+						<p class="text-amber-600 dark:text-amber-400 mt-1">
+							Al reabrir el mes, la distribución de costes actual quedará invalidada y el mes
+							volverá a estado "Reabierto". Necesitarás volver a cerrar el mes cuando termines de
+							hacer los cambios.
+						</p>
 					</div>
 				</div>
-			{/if}
+			</div>
 
 			<!-- Reason Field -->
 			<div class="grid gap-2">
@@ -119,7 +112,7 @@
 					rows={3}
 				/>
 				<p class="text-xs text-muted-foreground">
-					Indica brevemente por qué necesitas {isEditing ? 'actualizar el motivo' : 'reabrir este mes'}
+					Indica brevemente por qué necesitas reabrir este mes
 				</p>
 			</div>
 		</div>
@@ -138,12 +131,10 @@
 			<Button onclick={handleReopen} disabled={submitting} class="min-w-28">
 				{#if submitting}
 					<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
-					{isEditing ? 'Guardando...' : 'Reabriendo...'}
+					Reabriendo...
 				{:else}
-					<span class="material-symbols-rounded text-lg! mr-1">
-						{isEditing ? 'save' : 'lock_open'}
-					</span>
-					{isEditing ? 'Guardar' : 'Reabrir Mes'}
+					<span class="material-symbols-rounded text-lg! mr-1">lock_open</span>
+					Reabrir Mes
 				{/if}
 			</Button>
 		</DialogFooter>

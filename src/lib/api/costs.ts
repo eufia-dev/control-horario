@@ -6,21 +6,6 @@ const API_BASE = PUBLIC_API_URL;
 
 // ==================== Types ====================
 
-export type ExternalCostExpenseType =
-	| 'TRANSFER_PRICING'
-	| 'PROJECT_EXTERNALS'
-	| 'OTHER_PROFESSIONALS'
-	| 'STRUCTURE_COSTS'
-	| 'OTHER';
-
-export const EXPENSE_TYPE_LABELS: Record<ExternalCostExpenseType, string> = {
-	TRANSFER_PRICING: 'Precios de Transferencia',
-	PROJECT_EXTERNALS: 'Profesionales Externos de Proyectos',
-	OTHER_PROFESSIONALS: 'Otros Profesionales',
-	STRUCTURE_COSTS: 'Costes de Estructura',
-	OTHER: 'Otros'
-};
-
 export type MonthlyRevenue = {
 	id: string;
 	projectId: string;
@@ -40,7 +25,6 @@ export type CostEstimate = {
 	month: number;
 	amount: number;
 	provider: ProviderInfo | null;
-	expenseType: ExternalCostExpenseType | null;
 	description: string | null;
 	createdAt: string;
 	updatedAt: string | null;
@@ -53,7 +37,6 @@ export type CostActual = {
 	month: number;
 	amount: number;
 	provider: ProviderInfo;
-	expenseType: ExternalCostExpenseType;
 	description: string | null;
 	isBilled: boolean;
 	issueDate: string | null;
@@ -173,7 +156,6 @@ export type SaveAnnualCostItem = {
 		amount: number;
 		// Optional fields for 'create'
 		providerId?: string;
-		expenseType?: ExternalCostExpenseType;
 		description?: string;
 	};
 };
@@ -191,14 +173,12 @@ export type CreateCostEstimateDto = {
 	month: number;
 	amount: number;
 	providerId?: string;
-	expenseType?: ExternalCostExpenseType;
 	description?: string;
 };
 
 export type UpdateCostEstimateDto = {
 	amount?: number;
 	providerId?: string | null;
-	expenseType?: ExternalCostExpenseType | null;
 	description?: string | null;
 };
 
@@ -207,7 +187,6 @@ export type CreateCostActualDto = {
 	month: number;
 	amount: number;
 	providerId: string;
-	expenseType: ExternalCostExpenseType;
 	description?: string;
 	isBilled?: boolean;
 	issueDate?: string;
@@ -216,7 +195,6 @@ export type CreateCostActualDto = {
 export type UpdateCostActualDto = {
 	amount?: number;
 	providerId?: string;
-	expenseType?: ExternalCostExpenseType;
 	description?: string | null;
 	isBilled?: boolean;
 	issueDate?: string | null;

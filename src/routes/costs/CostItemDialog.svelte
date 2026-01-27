@@ -17,10 +17,8 @@
 	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import {
-		EXPENSE_TYPE_LABELS,
 		type CostEstimate,
 		type CostActual,
-		type ExternalCostExpenseType,
 		type CreateCostEstimateDto,
 		type UpdateCostEstimateDto,
 		type CreateCostActualDto,
@@ -52,7 +50,6 @@
 	// Form state
 	let amount = $state<number | null>(null);
 	let providerId = $state<string>('');
-	let expenseType = $state<ExternalCostExpenseType | ''>('');
 	let description = $state('');
 	let isBilled = $state(false);
 	let issueDate = $state<CalendarDate | undefined>(undefined);
@@ -81,15 +78,6 @@
 			? 'Modifica los datos de la estimación.'
 			: 'Añade una estimación de coste para el presupuesto.';
 	});
-
-	const expenseTypeOptions = Object.entries(EXPENSE_TYPE_LABELS).map(([value, label]) => ({
-		value: value as ExternalCostExpenseType,
-		label
-	}));
-
-	const selectedExpenseTypeLabel = $derived(
-		expenseType ? EXPENSE_TYPE_LABELS[expenseType] : 'Seleccionar tipo'
-	);
 
 	const selectedProviderLabel = $derived(() => {
 		if (!providerId) return 'Seleccionar proveedor';
@@ -138,7 +126,6 @@
 	function resetForm() {
 		amount = null;
 		providerId = '';
-		expenseType = '';
 		description = '';
 		isBilled = false;
 		issueDate = undefined;
@@ -150,7 +137,6 @@
 		if (item) {
 			amount = item.amount;
 			providerId = item.provider?.id ?? '';
-			expenseType = item.expenseType ?? '';
 			description = item.description ?? '';
 
 			if (mode === 'actual' && 'isBilled' in item) {
@@ -179,10 +165,6 @@
 				error = 'El proveedor es obligatorio';
 				return;
 			}
-			if (!expenseType) {
-				error = 'El tipo de gasto es obligatorio';
-				return;
-			}
 		}
 
 		submitting = true;
@@ -192,7 +174,6 @@
 				const data: CreateCostActualDto | UpdateCostActualDto = {
 					amount,
 					providerId,
-					expenseType: expenseType as ExternalCostExpenseType,
 					description: description.trim() || undefined,
 					isBilled,
 					issueDate: calendarDateToISO(issueDate)
@@ -202,7 +183,6 @@
 				const data: CreateCostEstimateDto | UpdateCostEstimateDto = {
 					amount,
 					providerId: providerId || undefined,
-					expenseType: expenseType ? (expenseType as ExternalCostExpenseType) : undefined,
 					description: description.trim() || undefined
 				};
 				await onSave(data);
@@ -290,23 +270,6 @@
 			</div>
 
 			<div class="grid gap-2">
-				<Label>Tipo de Gasto {isActual ? '*' : ''}</Label>
-				<Select type="single" bind:value={expenseType} disabled={submitting}>
-					<SelectTrigger class="w-full">
-						{selectedExpenseTypeLabel}
-					</SelectTrigger>
-					<SelectContent>
-						{#if !isActual}
-							<SelectItem value="" label="Sin especificar" />
-						{/if}
-						{#each expenseTypeOptions as option (option.value)}
-							<SelectItem value={option.value} label={option.label} />
-						{/each}
-					</SelectContent>
-				</Select>
-			</div>
-
-			<div class="grid gap-2">
 				<Label for="description">Descripción</Label>
 				<Textarea
 					id="description"
@@ -318,27 +281,27 @@
 			</div>
 
 			{#if isActual}
-			<div class="flex items-center gap-3">
-				<Switch id="isBilled" bind:checked={isBilled} disabled={submitting} />
-				<Label for="isBilled" class="cursor-pointer">Factura emitida</Label>
-			</div>
-
-			{#if isBilled}
-				<div class="grid gap-2">
-					<Label>Fecha de Emisión</Label>
-					<Popover>
-						<PopoverTrigger>
-							<Button variant="outline" class="w-full justify-start text-left font-normal">
-								<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
-								{formatDateLabel(issueDate)}
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent class="w-auto p-0" align="start">
-							<Calendar type="single" bind:value={issueDate} initialFocus locale="es" />
-						</PopoverContent>
-					</Popover>
+				<div class="flex items-center gap-3">
+					<Switch id="isBilled" bind:checked={isBilled} disabled={submitting} />
+					<Label for="isBilled" class="cursor-pointer">Factura emitida</Label>
 				</div>
-			{/if}
+
+				{#if isBilled}
+					<div class="grid gap-2">
+						<Label>Fecha de Emisión</Label>
+						<Popover>
+							<PopoverTrigger>
+								<Button variant="outline" class="w-full justify-start text-left font-normal">
+									<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>
+									{formatDateLabel(issueDate)}
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent class="w-auto p-0" align="start">
+								<Calendar type="single" bind:value={issueDate} initialFocus locale="es" />
+							</PopoverContent>
+						</Popover>
+					</div>
+				{/if}
 
 				{#if selectedProviderPaymentPeriod() !== null}
 					<div class="p-3 bg-muted rounded-lg text-sm text-muted-foreground">

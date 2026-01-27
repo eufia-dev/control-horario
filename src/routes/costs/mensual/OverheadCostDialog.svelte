@@ -267,8 +267,8 @@
 		<AlertDialogHeader>
 			<AlertDialogTitle>Mes cerrado</AlertDialogTitle>
 			<AlertDialogDescription>
-				Este mes está cerrado. Los cambios recalcularán la distribución de costes y el mes pasará
-				a estado "Reabierto". ¿Deseas continuar?
+				Este mes está cerrado. Los cambios recalcularán la distribución de costes y el mes pasará a
+				estado "Reabierto". ¿Deseas continuar?
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 		<AlertDialogFooter>

@@ -72,8 +72,8 @@
 		<DialogHeader>
 			<DialogTitle>Cerrar {monthName} {year}</DialogTitle>
 			<DialogDescription>
-				Revisa la distribución de costes antes de cerrar el mes. Esta acción creará un snapshot
-				de los datos actuales.
+				Revisa la distribución de costes antes de cerrar el mes. Esta acción creará un snapshot de
+				los datos actuales.
 			</DialogDescription>
 		</DialogHeader>
 
@@ -91,38 +91,14 @@
 					</div>
 					<div class="p-3 bg-muted rounded-lg text-center">
 						<div class="text-xs text-muted-foreground mb-1">Ingresos</div>
-						<div class="font-semibold text-green-600">{formatCurrency(preview.totalRevenue)}</div>
+						<div class="font-semibold text-success">{formatCurrency(preview.totalRevenue)}</div>
 					</div>
-				</div>
-
-				<!-- Validation Checklist -->
-				<div class="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-					<div class="flex items-center gap-2 mb-2">
-						<span class="material-symbols-rounded text-green-600 text-lg!">check_circle</span>
-						<span class="text-sm font-medium text-green-800 dark:text-green-200">
-							Validación completada
-						</span>
-					</div>
-					<ul class="space-y-1 text-sm text-green-700 dark:text-green-300">
-						<li class="flex items-center gap-2">
-							<span class="material-symbols-rounded text-sm!">check</span>
-							Todos los empleados tienen salario base configurado
-						</li>
-						<li class="flex items-center gap-2">
-							<span class="material-symbols-rounded text-sm!">check</span>
-							Todos los proyectos activos tienen ingresos
-						</li>
-						<li class="flex items-center gap-2">
-							<span class="material-symbols-rounded text-sm!">check</span>
-							{preview.distributions.length} proyecto{preview.distributions.length !== 1 ? 's' : ''} activo{preview.distributions.length !== 1 ? 's' : ''} incluido{preview.distributions.length !== 1 ? 's' : ''}
-						</li>
-					</ul>
 				</div>
 
 				<!-- Distribution Preview Table -->
 				<div>
 					<h4 class="text-sm font-medium mb-2">Distribución por Proyecto</h4>
-					<ScrollArea class="max-h-[200px] border rounded-lg">
+					<ScrollArea class="max-h-80 border rounded-lg overflow-y-auto">
 						<Table>
 							<TableHeader>
 								<TableRow>
@@ -160,20 +136,6 @@
 						</Table>
 					</ScrollArea>
 				</div>
-
-				<!-- Warning -->
-				<div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-					<div class="flex items-start gap-2">
-						<span class="material-symbols-rounded text-amber-600 text-lg!">info</span>
-						<div class="text-sm text-amber-800 dark:text-amber-200">
-							<p class="font-medium">Importante</p>
-							<p class="text-amber-600 dark:text-amber-400 mt-1">
-								Una vez cerrado, el mes quedará en modo "soft lock". Podrás editar datos, pero el
-								mes pasará a estado "Reabierto" y necesitará ser cerrado de nuevo.
-							</p>
-						</div>
-					</div>
-				</div>
 			</div>
 		{/if}
 
@@ -188,11 +150,7 @@
 			<Button type="button" variant="outline" onclick={handleCancel} disabled={submitting}>
 				Cancelar
 			</Button>
-			<Button
-				onclick={handleClose}
-				disabled={submitting || !preview?.canClose}
-				class="min-w-28"
-			>
+			<Button onclick={handleClose} disabled={submitting || !preview?.canClose} class="min-w-28">
 				{#if submitting}
 					<span class="material-symbols-rounded animate-spin text-lg! mr-2">progress_activity</span>
 					Cerrando...

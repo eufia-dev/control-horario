@@ -8,27 +8,15 @@ const API_BASE = PUBLIC_API_URL;
 export type MonthClosingStatus = 'OPEN' | 'CLOSED' | 'REOPENED';
 
 export type OverheadCostType =
-	| 'RENT'
-	| 'UTILITIES'
-	| 'INSURANCE'
-	| 'SOFTWARE_LICENSES'
-	| 'MARKETING'
-	| 'OFFICE_SUPPLIES'
-	| 'PROFESSIONAL_SERVICES'
-	| 'TAXES_FEES'
-	| 'DEPRECIATION'
+	| 'TRANSFER_PRICING'
+	| 'OTHER_PROFESSIONALS'
+	| 'STRUCTURE_COSTS'
 	| 'OTHER';
 
 export const OVERHEAD_COST_TYPE_LABELS: Record<OverheadCostType, string> = {
-	RENT: 'Alquiler',
-	UTILITIES: 'Suministros',
-	INSURANCE: 'Seguros',
-	SOFTWARE_LICENSES: 'Licencias de software',
-	MARKETING: 'Marketing',
-	OFFICE_SUPPLIES: 'Material de oficina',
-	PROFESSIONAL_SERVICES: 'Servicios profesionales',
-	TAXES_FEES: 'Impuestos y tasas',
-	DEPRECIATION: 'Amortización',
+	TRANSFER_PRICING: 'Precios de Transferencia',
+	OTHER_PROFESSIONALS: 'Otros Profesionales',
+	STRUCTURE_COSTS: 'Costes de Estructura',
 	OTHER: 'Otros'
 };
 
@@ -41,7 +29,6 @@ export type UserMonthlySalary = {
 	userEmail: string;
 	baseSalary: number | null; // From User.salary (null if user has no salary set)
 	extras: number; // From MonthlyUserSalary.extras (0 if no record)
-	extrasDescription: string | null;
 	totalSalary: number | null; // baseSalary + extras (null if baseSalary is null)
 	notes: string | null;
 };
@@ -64,7 +51,6 @@ export type UpsertMonthlySalaryDto = {
 	month: number;
 	baseSalary?: number;
 	extras?: number;
-	extrasDescription?: string;
 	notes?: string;
 };
 
@@ -75,7 +61,6 @@ export type MonthlySalaryResponse = {
 	month: number;
 	baseSalary: number;
 	extras: number;
-	extrasDescription: string | null;
 	totalSalary: number;
 	notes: string | null;
 	warning?: string;

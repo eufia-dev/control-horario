@@ -43,7 +43,6 @@
 	// Form state
 	let baseSalary = $state<number | null>(null);
 	let extras = $state<number>(0);
-	let extrasDescription = $state('');
 	let notes = $state('');
 
 	let submitting = $state(false);
@@ -66,7 +65,6 @@
 	function resetForm() {
 		baseSalary = null;
 		extras = 0;
-		extrasDescription = '';
 		notes = '';
 		error = null;
 		success = false;
@@ -76,7 +74,6 @@
 		if (user) {
 			baseSalary = user.baseSalary;
 			extras = user.extras || 0;
-			extrasDescription = user.extrasDescription || '';
 			notes = user.notes || '';
 		} else {
 			resetForm();
@@ -104,7 +101,6 @@
 				month,
 				baseSalary: baseSalary ?? undefined,
 				extras: extras || 0,
-				extrasDescription: extrasDescription.trim() || undefined,
 				notes: notes.trim() || undefined
 			});
 
@@ -188,23 +184,8 @@
 					placeholder="0,00"
 					disabled={submitting}
 				/>
-				<p class="text-xs text-muted-foreground">
-					Bonificaciones, comisiones, horas extra, etc.
-				</p>
+				<p class="text-xs text-muted-foreground">Bonificaciones, comisiones, horas extra, etc.</p>
 			</div>
-
-			{#if extras > 0}
-				<div class="grid gap-2">
-					<Label for="extrasDescription">Descripción de Extras</Label>
-					<Input
-						id="extrasDescription"
-						type="text"
-						bind:value={extrasDescription}
-						placeholder="Ej: Bonus por objetivos Q1"
-						disabled={submitting}
-					/>
-				</div>
-			{/if}
 
 			<div class="grid gap-2">
 				<Label for="notes">Notas</Label>
@@ -271,8 +252,8 @@
 		<AlertDialogHeader>
 			<AlertDialogTitle>Mes cerrado</AlertDialogTitle>
 			<AlertDialogDescription>
-				Este mes está cerrado. Los cambios recalcularán la distribución de costes y el mes pasará
-				a estado "Reabierto". ¿Deseas continuar?
+				Este mes está cerrado. Los cambios recalcularán la distribución de costes y el mes pasará a
+				estado "Reabierto". ¿Deseas continuar?
 			</AlertDialogDescription>
 		</AlertDialogHeader>
 		<AlertDialogFooter>

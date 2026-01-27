@@ -383,9 +383,9 @@
 								<div class="flex items-start justify-center gap-3 text-sm text-muted-foreground">
 									<span class="material-symbols-rounded text-lg!">info</span>
 									<p>
-										Los costes internos se calculan automáticamente a partir de las horas registradas
-										por el equipo en este proyecto durante el mes, multiplicadas por el coste por hora
-										de cada trabajador.
+										Los costes internos se calculan automáticamente a partir de las horas
+										registradas por el equipo en este proyecto durante el mes, multiplicadas por el
+										coste por hora de cada trabajador.
 									</p>
 								</div>
 							</CardContent>

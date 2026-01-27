@@ -36,7 +36,6 @@
 		deleteCostActual,
 		formatCurrency,
 		getMonthName,
-		EXPENSE_TYPE_LABELS,
 		type CostEstimate,
 		type CostActual,
 		type CreateCostEstimateDto,
@@ -268,7 +267,6 @@
 								<TableRow>
 									<TableHead>Importe</TableHead>
 									<TableHead>Proveedor</TableHead>
-									<TableHead>Tipo</TableHead>
 									<TableHead class="w-[80px]">Acciones</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -277,15 +275,6 @@
 									<TableRow>
 										<TableCell class="font-medium">{formatCurrency(estimate.amount)}</TableCell>
 										<TableCell>{estimate.provider?.name ?? '—'}</TableCell>
-										<TableCell>
-											{#if estimate.expenseType}
-												<Badge variant="outline" class="text-xs">
-													{EXPENSE_TYPE_LABELS[estimate.expenseType]}
-												</Badge>
-											{:else}
-												<span class="text-muted-foreground">—</span>
-											{/if}
-										</TableCell>
 										<TableCell>
 											<div class="flex items-center gap-1">
 												<Button
@@ -350,7 +339,6 @@
 								<TableRow>
 									<TableHead>Importe</TableHead>
 									<TableHead>Proveedor</TableHead>
-									<TableHead>Tipo</TableHead>
 									<TableHead>Facturado</TableHead>
 									<TableHead class="w-[80px]">Acciones</TableHead>
 								</TableRow>
@@ -360,11 +348,6 @@
 									<TableRow>
 										<TableCell class="font-medium">{formatCurrency(actual.amount)}</TableCell>
 										<TableCell>{actual.provider?.name ?? '—'}</TableCell>
-										<TableCell>
-											<Badge variant="outline" class="text-xs">
-												{EXPENSE_TYPE_LABELS[actual.expenseType]}
-											</Badge>
-										</TableCell>
 										<TableCell>
 											{#if actual.isBilled}
 												<Badge variant="success" class="text-xs">

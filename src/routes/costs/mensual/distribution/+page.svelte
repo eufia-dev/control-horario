@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import {
 		Table,
 		TableBody,
@@ -17,22 +18,23 @@
 		fetchClosingPreview,
 		type MonthlyClosingResponse,
 		type DistributionPreviewResponse,
-		type MonthClosingStatus,
 		type ProjectDistribution,
 		type ValidationError
 	} from '$lib/api/month-closing';
 	import { formatCurrency } from '$lib/api/costs';
-	import CloseMonthDialog from './CloseMonthDialog.svelte';
-	import ReopenMonthDialog from './ReopenMonthDialog.svelte';
+	import CloseMonthDialog from '../CloseMonthDialog.svelte';
+	import ReopenMonthDialog from '../ReopenMonthDialog.svelte';
+	import { MENSUAL_CONTEXT_KEY, type MensualContext } from '../context';
 
-	type Props = {
-		year: number;
-		month: number;
-		monthStatus: MonthClosingStatus;
-		onStatusChange?: (newStatus: MonthClosingStatus, closingData?: MonthlyClosingResponse) => void;
-	};
+	// Get context from layout
+	const ctx = getContext<{ value: MensualContext }>(MENSUAL_CONTEXT_KEY);
 
-	let { year, month, monthStatus, onStatusChange }: Props = $props();
+	// Derived values from context
+	const year = $derived(ctx.value.year);
+	const month = $derived(ctx.value.month);
+	const monthStatus = $derived(ctx.value.monthStatus);
+	const loadingClosing = $derived(ctx.value.loadingClosing);
+	const onStatusChange = $derived(ctx.value.onStatusChange);
 
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -45,17 +47,10 @@
 	let closeDialogOpen = $state(false);
 	let reopenDialogOpen = $state(false);
 
-	// Track year/month changes
-	let currentYear = $state(year);
-	let currentMonth = $state(month);
-
-	$effect(() => {
-		if (year !== currentYear || month !== currentMonth) {
-			currentYear = year;
-			currentMonth = month;
-			loadData();
-		}
-	});
+	// Track year/month changes and layout loading state
+	let previousYear = $state<number | null>(null);
+	let previousMonth = $state<number | null>(null);
+	let initialLoadDone = $state(false);
 
 	async function loadData() {
 		loading = true;
@@ -64,7 +59,16 @@
 			if (monthStatus === 'OPEN') {
 				previewData = await fetchClosingPreview(year, month);
 				closingData = null;
+			} else if (monthStatus === 'REOPENED') {
+				// For reopened months, we need both: closingData for audit info and previewData for closing
+				const [closing, preview] = await Promise.all([
+					fetchMonthlyClosing(year, month),
+					fetchClosingPreview(year, month)
+				]);
+				closingData = closing;
+				previewData = preview;
 			} else {
+				// CLOSED status - only need closing data
 				closingData = await fetchMonthlyClosing(year, month);
 				previewData = null;
 			}
@@ -84,14 +88,23 @@
 	}
 
 	async function handleCloseSuccess(newClosingData: MonthlyClosingResponse) {
+		// Update status first, then reload data to get fresh closing data
+		onStatusChange?.('CLOSED', newClosingData);
 		closingData = newClosingData;
 		previewData = null;
-		onStatusChange?.('CLOSED', newClosingData);
 	}
 
 	async function handleReopenSuccess(newClosingData: MonthlyClosingResponse) {
-		closingData = newClosingData;
+		// Update status first, then reload data to fetch preview for re-closing
 		onStatusChange?.('REOPENED', newClosingData);
+		closingData = newClosingData;
+		// Fetch preview data so user can close again without page reload
+		try {
+			previewData = await fetchClosingPreview(year, month);
+		} catch {
+			// If preview fetch fails, user can still see the page but may need to reload
+			previewData = null;
+		}
 	}
 
 	function formatDate(dateString: string | null): string {
@@ -120,9 +133,31 @@
 		}
 	}
 
-	// Load data on mount and when monthStatus changes
+	// Wait for layout to finish loading, then load data
+	// This effect handles both initial load and subsequent year/month changes
 	$effect(() => {
-		loadData();
+		const currentYear = year;
+		const currentMonth = month;
+		const layoutLoading = loadingClosing;
+
+		// Wait for layout to finish loading the closing status
+		if (layoutLoading) return;
+
+		// Initial load
+		if (!initialLoadDone) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			initialLoadDone = true;
+			loadData();
+			return;
+		}
+
+		// Subsequent year/month changes
+		if (currentYear !== previousYear || currentMonth !== previousMonth) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			loadData();
+		}
 	});
 
 	// Computed distributions
@@ -174,7 +209,9 @@
 
 		<Card>
 			<CardHeader class="pb-2">
-				<CardTitle class="text-sm font-medium text-muted-foreground">Total Gastos Generales</CardTitle>
+				<CardTitle class="text-sm font-medium text-muted-foreground"
+					>Total Gastos Generales</CardTitle
+				>
 			</CardHeader>
 			<CardContent>
 				{#if loading}
@@ -193,7 +230,7 @@
 				{#if loading}
 					<Skeleton class="h-7 w-24" />
 				{:else}
-					<div class="text-2xl font-bold text-green-600">{formatCurrency(totals.revenue)}</div>
+					<div class="text-2xl font-bold text-success">{formatCurrency(totals.revenue)}</div>
 				{/if}
 			</CardContent>
 		</Card>
@@ -230,13 +267,12 @@
 							Reabrir Mes
 						</Button>
 					{:else if monthStatus === 'REOPENED'}
-						<Button onclick={handleCloseMonth} disabled={loading}>
+						<Button
+							onclick={handleCloseMonth}
+							disabled={loading || (previewData && !previewData.canClose)}
+						>
 							<span class="material-symbols-rounded text-lg! mr-1">lock</span>
 							Volver a Cerrar
-						</Button>
-						<Button variant="outline" onclick={handleReopenMonth} disabled={loading}>
-							<span class="material-symbols-rounded text-lg! mr-1">edit</span>
-							Editar Motivo
 						</Button>
 					{/if}
 				</div>
@@ -245,7 +281,7 @@
 		<CardContent>
 			{#if loading}
 				<div class="space-y-3">
-					{#each Array.from({ length: 5 }) as _, i (i)}
+					{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
 						<div class="flex items-center gap-4">
 							<Skeleton class="h-10 w-40" />
 							<Skeleton class="h-10 w-24" />
@@ -282,7 +318,7 @@
 							</div>
 						</div>
 						<ul class="space-y-2">
-							{#each previewData.validationErrors as validationError}
+							{#each previewData.validationErrors as validationError (validationError.type + (validationError.details?.userName ?? '') + (validationError.details?.projectName ?? ''))}
 								<li class="flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
 									<span class="material-symbols-rounded text-sm!">
 										{getValidationIcon(validationError.type)}
@@ -317,9 +353,12 @@
 							{/if}
 							{#if closingData.reopenedAt && closingData.reopenedBy}
 								<div class="flex items-center gap-2">
-									<span class="material-symbols-rounded text-sm! text-muted-foreground">lock_open</span>
+									<span class="material-symbols-rounded text-sm! text-muted-foreground"
+										>lock_open</span
+									>
 									<span class="text-muted-foreground">Reabierto:</span>
-									<span>{formatDate(closingData.reopenedAt)} por {closingData.reopenedBy.name}</span>
+									<span>{formatDate(closingData.reopenedAt)} por {closingData.reopenedBy.name}</span
+									>
 								</div>
 							{/if}
 							{#if closingData.reopenReason}
@@ -418,10 +457,4 @@
 	onSuccess={handleCloseSuccess}
 />
 
-<ReopenMonthDialog
-	bind:open={reopenDialogOpen}
-	{year}
-	{month}
-	currentReason={closingData?.reopenReason}
-	onSuccess={handleReopenSuccess}
-/>
+<ReopenMonthDialog bind:open={reopenDialogOpen} {year} {month} onSuccess={handleReopenSuccess} />

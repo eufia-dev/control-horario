@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import {
 		Table,
 		TableBody,
@@ -27,20 +28,21 @@
 		deleteOverheadCost,
 		OVERHEAD_COST_TYPE_LABELS,
 		type OverheadCost,
-		type MonthlyOverheadResponse,
-		type MonthClosingStatus
+		type MonthlyOverheadResponse
 	} from '$lib/api/month-closing';
 	import { formatCurrency } from '$lib/api/costs';
-	import OverheadCostDialog from './OverheadCostDialog.svelte';
+	import OverheadCostDialog from '../OverheadCostDialog.svelte';
+	import { MENSUAL_CONTEXT_KEY, type MensualContext } from '../context';
 
-	type Props = {
-		year: number;
-		month: number;
-		monthStatus: MonthClosingStatus;
-		onStatusChange?: (newStatus: MonthClosingStatus) => void;
-	};
+	// Get context from layout
+	const ctx = getContext<{ value: MensualContext }>(MENSUAL_CONTEXT_KEY);
 
-	let { year, month, monthStatus, onStatusChange }: Props = $props();
+	// Derived values from context
+	const year = $derived(ctx.value.year);
+	const month = $derived(ctx.value.month);
+	const monthStatus = $derived(ctx.value.monthStatus);
+	const loadingClosing = $derived(ctx.value.loadingClosing);
+	const onStatusChange = $derived(ctx.value.onStatusChange);
 
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -54,17 +56,10 @@
 	let deleting = $state(false);
 	let deleteError = $state<string | null>(null);
 
-	// Track year/month changes
-	let currentYear = $state(year);
-	let currentMonth = $state(month);
-
-	$effect(() => {
-		if (year !== currentYear || month !== currentMonth) {
-			currentYear = year;
-			currentMonth = month;
-			loadData();
-		}
-	});
+	// Track year/month changes and layout loading state
+	let previousYear = $state<number | null>(null);
+	let previousMonth = $state<number | null>(null);
+	let initialLoadDone = $state(false);
 
 	async function loadData() {
 		loading = true;
@@ -131,9 +126,31 @@
 		});
 	}
 
-	// Load data on mount
+	// Wait for layout to finish loading, then load data
+	// This effect handles both initial load and subsequent year/month changes
 	$effect(() => {
-		loadData();
+		const currentYear = year;
+		const currentMonth = month;
+		const layoutLoading = loadingClosing;
+
+		// Wait for layout to finish loading the closing status
+		if (layoutLoading) return;
+
+		// Initial load
+		if (!initialLoadDone) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			initialLoadDone = true;
+			loadData();
+			return;
+		}
+
+		// Subsequent year/month changes
+		if (currentYear !== previousYear || currentMonth !== previousMonth) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			loadData();
+		}
 	});
 </script>
 
@@ -146,7 +163,7 @@
 					Gastos de estructura distribuidos entre proyectos activos
 				</p>
 			</div>
-			<div class="flex items-center gap-3">
+			<div class="flex items-center gap-6">
 				{#if data && !loading}
 					<div class="text-right">
 						<div class="text-sm text-muted-foreground">Total Gastos</div>
@@ -165,7 +182,7 @@
 	<CardContent>
 		{#if loading}
 			<div class="space-y-3">
-				{#each Array.from({ length: 4 }) as _, i (i)}
+				{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
 					<div class="flex items-center gap-4">
 						<Skeleton class="h-10 w-32" />
 						<Skeleton class="h-10 w-24" />

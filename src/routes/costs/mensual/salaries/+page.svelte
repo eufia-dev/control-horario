@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import {
 		Table,
 		TableBody,
@@ -15,20 +16,21 @@
 	import {
 		fetchMonthlySalaries,
 		type UserMonthlySalary,
-		type MonthlySalariesResponse,
-		type MonthClosingStatus
+		type MonthlySalariesResponse
 	} from '$lib/api/month-closing';
 	import { formatCurrency } from '$lib/api/costs';
-	import SalaryEditDialog from './SalaryEditDialog.svelte';
+	import SalaryEditDialog from '../SalaryEditDialog.svelte';
+	import { MENSUAL_CONTEXT_KEY, type MensualContext } from '../context';
 
-	type Props = {
-		year: number;
-		month: number;
-		monthStatus: MonthClosingStatus;
-		onStatusChange?: (newStatus: MonthClosingStatus) => void;
-	};
+	// Get context from layout
+	const ctx = getContext<{ value: MensualContext }>(MENSUAL_CONTEXT_KEY);
 
-	let { year, month, monthStatus, onStatusChange }: Props = $props();
+	// Derived values from context
+	const year = $derived(ctx.value.year);
+	const month = $derived(ctx.value.month);
+	const monthStatus = $derived(ctx.value.monthStatus);
+	const loadingClosing = $derived(ctx.value.loadingClosing);
+	const onStatusChange = $derived(ctx.value.onStatusChange);
 
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -37,17 +39,10 @@
 	let dialogOpen = $state(false);
 	let selectedUser = $state<UserMonthlySalary | null>(null);
 
-	// Track year/month changes
-	let currentYear = $state(year);
-	let currentMonth = $state(month);
-
-	$effect(() => {
-		if (year !== currentYear || month !== currentMonth) {
-			currentYear = year;
-			currentMonth = month;
-			loadData();
-		}
-	});
+	// Track year/month changes and layout loading state
+	let previousYear = $state<number | null>(null);
+	let previousMonth = $state<number | null>(null);
+	let initialLoadDone = $state(false);
 
 	async function loadData() {
 		loading = true;
@@ -78,14 +73,34 @@
 		await loadData();
 	}
 
-	// Load data on mount
+	// Wait for layout to finish loading, then load data
+	// This effect handles both initial load and subsequent year/month changes
 	$effect(() => {
-		loadData();
+		const currentYear = year;
+		const currentMonth = month;
+		const layoutLoading = loadingClosing;
+
+		// Wait for layout to finish loading the closing status
+		if (layoutLoading) return;
+
+		// Initial load
+		if (!initialLoadDone) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			initialLoadDone = true;
+			loadData();
+			return;
+		}
+
+		// Subsequent year/month changes
+		if (currentYear !== previousYear || currentMonth !== previousMonth) {
+			previousYear = currentYear;
+			previousMonth = currentMonth;
+			loadData();
+		}
 	});
 
-	const usersWithMissingSalary = $derived(
-		data?.users.filter((u) => u.baseSalary === null) ?? []
-	);
+	const usersWithMissingSalary = $derived(data?.users.filter((u) => u.baseSalary === null) ?? []);
 </script>
 
 <Card>
@@ -110,7 +125,7 @@
 	<CardContent>
 		{#if loading}
 			<div class="space-y-3">
-				{#each Array.from({ length: 5 }) as _, i (i)}
+				{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
 					<div class="flex items-center gap-4">
 						<Skeleton class="h-10 w-40" />
 						<Skeleton class="h-10 w-32" />
@@ -188,16 +203,9 @@
 								</TableCell>
 								<TableCell class="text-right">
 									{#if user.extras > 0}
-										<div class="flex flex-col items-end">
-											<span class="font-medium text-green-600">
-												+{formatCurrency(user.extras)}
-											</span>
-											{#if user.extrasDescription}
-												<span class="text-xs text-muted-foreground truncate max-w-[120px]">
-													{user.extrasDescription}
-												</span>
-											{/if}
-										</div>
+										<span class="font-medium text-green-600">
+											+{formatCurrency(user.extras)}
+										</span>
 									{:else}
 										<span class="text-muted-foreground">—</span>
 									{/if}

@@ -199,7 +199,9 @@
 									<div class="flex flex-col gap-0.5 text-sm">
 										{#if provider.email}
 											<Tooltip>
-												<TooltipTrigger class="flex items-center gap-1 text-left max-w-[180px] truncate">
+												<TooltipTrigger
+													class="flex items-center gap-1 text-left max-w-[180px] truncate"
+												>
 													<span class="material-symbols-rounded text-base!">mail</span>
 													<span class="truncate">{provider.email}</span>
 												</TooltipTrigger>

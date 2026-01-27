@@ -193,7 +193,9 @@
 				<span class="material-symbols-rounded text-2xl!">group</span>
 				Resumen de Usuarios
 			</CardTitle>
-			<p class="text-sm text-muted-foreground mt-1">Horas trabajadas {#if showCosts}y costes{/if} por empleado</p>
+			<p class="text-sm text-muted-foreground mt-1">
+				Horas trabajadas {#if showCosts}y costes{/if} por empleado
+			</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<div class="relative">

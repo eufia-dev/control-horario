@@ -24,7 +24,6 @@
 		updateCostActual,
 		deleteCostActual,
 		formatCurrency,
-		EXPENSE_TYPE_LABELS,
 		type CostActual,
 		type CreateCostActualDto,
 		type UpdateCostActualDto,
@@ -142,7 +141,6 @@
 			<TableHeader>
 				<TableRow>
 					<TableHead>Proveedor</TableHead>
-					<TableHead>Tipo</TableHead>
 					<TableHead>Importe</TableHead>
 					<TableHead>Facturado</TableHead>
 					<TableHead>Plazo Pago</TableHead>
@@ -153,11 +151,6 @@
 				{#each actuals as actual (actual.id)}
 					<TableRow>
 						<TableCell class="font-medium">{actual.provider.name}</TableCell>
-						<TableCell>
-							<Badge variant="outline" class="text-xs">
-								{EXPENSE_TYPE_LABELS[actual.expenseType]}
-							</Badge>
-						</TableCell>
 						<TableCell>{formatCurrency(actual.amount)}</TableCell>
 						<TableCell>
 							{#if actual.isBilled}

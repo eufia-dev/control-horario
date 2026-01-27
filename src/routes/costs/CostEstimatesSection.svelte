@@ -8,7 +8,6 @@
 		TableRow
 	} from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import {
 		AlertDialog,
 		AlertDialogAction,
@@ -24,7 +23,6 @@
 		updateCostEstimate,
 		deleteCostEstimate,
 		formatCurrency,
-		EXPENSE_TYPE_LABELS,
 		type CostEstimate,
 		type CreateCostEstimateDto,
 		type UpdateCostEstimateDto,
@@ -139,7 +137,6 @@
 				<TableRow>
 					<TableHead>Importe</TableHead>
 					<TableHead>Proveedor</TableHead>
-					<TableHead>Tipo</TableHead>
 					<TableHead>Descripción</TableHead>
 					<TableHead class="w-[80px]">Acciones</TableHead>
 				</TableRow>
@@ -149,15 +146,6 @@
 					<TableRow>
 						<TableCell class="font-medium">{formatCurrency(estimate.amount)}</TableCell>
 						<TableCell>{estimate.provider?.name ?? '—'}</TableCell>
-						<TableCell>
-							{#if estimate.expenseType}
-								<Badge variant="outline" class="text-xs">
-									{EXPENSE_TYPE_LABELS[estimate.expenseType]}
-								</Badge>
-							{:else}
-								<span class="text-muted-foreground">—</span>
-							{/if}
-						</TableCell>
 						<TableCell class="max-w-[150px] truncate text-muted-foreground">
 							{estimate.description ?? '—'}
 						</TableCell>
