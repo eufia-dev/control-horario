@@ -255,7 +255,7 @@
 						<div class="text-2xl font-bold">{formatCurrency(totals.salaries)}</div>
 						
 						<!-- Breakdown on the right -->
-						<div class="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 -mt-6">
+						<div class="hidden md:flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 -mt-6">
 							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
 								<span class="text-xs text-muted-foreground mb-0.5">Directos</span>
 								<span class="text-sm font-semibold">{formatCurrency(totals.directSalaryCosts)}</span>
@@ -263,10 +263,6 @@
 							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
 								<span class="text-xs text-muted-foreground mb-0.5">No productivos</span>
 								<span class="text-sm font-semibold">{formatCurrency(totals.nonProductive)}</span>
-							</div>
-							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
-								<span class="text-xs text-muted-foreground mb-0.5">Ausencias</span>
-								<span class="text-sm font-semibold">{formatCurrency(totals.absenceCosts)}</span>
 							</div>
 						</div>
 					</div>
