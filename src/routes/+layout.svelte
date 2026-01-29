@@ -250,6 +250,37 @@
 	const showHeader = $derived(onboardingStatus === 'ACTIVE' || (!isInitializing && !isAuthed));
 </script>
 
+<svelte:head>
+	<title>Control Horario - Gestión de Fichajes y Control de Horas | Eufia</title>
+	<meta
+		name="description"
+		content="Aplicación de control horario y gestión de fichajes para empresas. Registra horas trabajadas, gestiona ausencias y genera informes de cumplimiento."
+	/>
+	<meta
+		name="keywords"
+		content="control horario, fichajes, gestión de horas, control de asistencia, eufia, registro jornada laboral"
+	/>
+
+	<!-- Open Graph -->
+	<meta property="og:title" content="Control Horario - Eufia" />
+	<meta property="og:description" content="Gestión de fichajes y control de horas para empresas" />
+	<meta property="og:url" content="https://control-horario.eufia.eu" />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Control Horario Eufia" />
+	<meta property="og:image" content="https://control-horario.eufia.eu/eufia_1200.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Control Horario - Eufia" />
+	<meta name="twitter:description" content="Gestión de fichajes y control de horas para empresas" />
+	<meta name="twitter:image" content="https://control-horario.eufia.eu/eufia_1200.png" />
+
+	<!-- Canonical -->
+	<link rel="canonical" href="https://control-horario.eufia.eu" />
+</svelte:head>
+
 <TooltipProvider>
 	<div class="min-h-screen flex flex-col">
 		{#if showHeader}
@@ -315,11 +346,11 @@
 							</Badge>
 						{/if}
 						{#if isAuthed}
-							<nav class="hidden md:flex items-center gap-1 border-r border-border pr-4 mr-2">
-								<Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
+							<nav class="hidden md:flex items-center gap-1 border-r border-border pr-2 mr-2">
+								<!-- <Button href={resolve('/bug-report')} variant="ghost" size="sm" class="gap-1.5">
 									<span class="material-symbols-rounded text-lg!">bug_report</span>
 									<span>Reportar error</span>
-								</Button>
+								</Button> -->
 								<Button href={resolve('/contact')} variant="ghost" size="sm" class="gap-1.5">
 									<span class="material-symbols-rounded text-lg!">mail</span>
 									<span>Contacto</span>
@@ -329,7 +360,7 @@
 						{#if user}
 							<a
 								href={resolve('/profile')}
-								class="flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
+								class="ml-2 flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
 								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
 								style="background-color: {avatarColor}"
 								title={user.name}
@@ -452,7 +483,7 @@
 									<span>Costes</span>
 								</Button>
 							{/if}
-							<Button
+							<!-- <Button
 								href={resolve('/bug-report')}
 								variant="ghost"
 								size="lg"
@@ -461,7 +492,7 @@
 							>
 								<span class="material-symbols-rounded text-2xl!">bug_report</span>
 								<span>Reportar error</span>
-							</Button>
+							</Button> -->
 							<Button
 								href={resolve('/contact')}
 								variant="ghost"

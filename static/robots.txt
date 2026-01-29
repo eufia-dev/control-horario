@@ -1,3 +1,5 @@
-# allow crawling everything by default
+# Control Horario - Eufia
 User-agent: *
 Disallow:
+
+Sitemap: https://control-horario.eufia.eu/sitemap.xml
