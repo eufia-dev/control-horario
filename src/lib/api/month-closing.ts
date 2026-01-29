@@ -112,9 +112,11 @@ export type ProjectDistribution = {
 	projectCode: string;
 	projectRevenue: number;
 	revenueSharePercent: number;
-	distributedSalaries: number;
+	directSalaryCosts: number; // hours worked × cost/hour
+	distributedSalaries: number; // non-productive pool share
 	distributedOverhead: number;
-	totalDistributed: number;
+	distributedNonProductive: number;
+	totalDistributed: number; // directSalaryCosts + distributedSalaries + distributedOverhead + distributedNonProductive
 };
 
 export type MonthlyClosingResponse = {
@@ -125,6 +127,9 @@ export type MonthlyClosingResponse = {
 	// Totals (null if never closed)
 	totalSalaries: number | null;
 	totalOverhead: number | null;
+	totalNonProductive: number | null;
+	totalAbsenceCosts: number | null;
+	totalDirectSalaryCosts: number | null;
 	totalRevenue: number | null;
 	// Audit info
 	closedBy: { id: string; name: string } | null;
@@ -155,6 +160,9 @@ export type DistributionPreviewResponse = {
 	// Preview data
 	totalSalaries: number;
 	totalOverhead: number;
+	totalNonProductive: number; // includes absence costs
+	totalAbsenceCosts: number; // breakdown of absence hours cost
+	totalDirectSalaryCosts: number; // sum of direct costs across projects
 	totalRevenue: number;
 	distributions: ProjectDistribution[];
 };

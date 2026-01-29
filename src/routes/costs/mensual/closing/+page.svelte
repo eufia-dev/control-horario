@@ -47,19 +47,19 @@
 	let closeDialogOpen = $state(false);
 	let reopenDialogOpen = $state(false);
 
-	// Track year/month changes and layout loading state
+	// Track year/month/status changes and layout loading state
 	let previousYear = $state<number | null>(null);
 	let previousMonth = $state<number | null>(null);
-	let initialLoadDone = $state(false);
+	let previousStatus = $state<string | null>(null);
 
-	async function loadData() {
+	async function loadData(currentStatus: string) {
 		loading = true;
 		error = null;
 		try {
-			if (monthStatus === 'OPEN') {
+			if (currentStatus === 'OPEN') {
 				previewData = await fetchClosingPreview(year, month);
 				closingData = null;
-			} else if (monthStatus === 'REOPENED') {
+			} else if (currentStatus === 'REOPENED') {
 				// For reopened months, we need both: closingData for audit info and previewData for closing
 				const [closing, preview] = await Promise.all([
 					fetchMonthlyClosing(year, month),
@@ -134,29 +134,28 @@
 	}
 
 	// Wait for layout to finish loading, then load data
-	// This effect handles both initial load and subsequent year/month changes
+	// This effect handles both initial load and subsequent year/month/status changes
 	$effect(() => {
 		const currentYear = year;
 		const currentMonth = month;
+		const currentStatus = monthStatus;
 		const layoutLoading = loadingClosing;
 
 		// Wait for layout to finish loading the closing status
 		if (layoutLoading) return;
 
-		// Initial load
-		if (!initialLoadDone) {
-			previousYear = currentYear;
-			previousMonth = currentMonth;
-			initialLoadDone = true;
-			loadData();
-			return;
-		}
+		// Check if anything relevant changed (year, month, or status)
+		const yearChanged = currentYear !== previousYear;
+		const monthChanged = currentMonth !== previousMonth;
+		const statusChanged = currentStatus !== previousStatus;
 
-		// Subsequent year/month changes
-		if (currentYear !== previousYear || currentMonth !== previousMonth) {
+		if (yearChanged || monthChanged || statusChanged) {
 			previousYear = currentYear;
 			previousMonth = currentMonth;
-			loadData();
+			previousStatus = currentStatus;
+			// Pass the current status to loadData to ensure we use the correct status
+			// This avoids race conditions where monthStatus might be stale
+			loadData(currentStatus);
 		}
 	});
 
@@ -177,6 +176,9 @@
 			return {
 				salaries: previewData.totalSalaries,
 				overhead: previewData.totalOverhead,
+				nonProductive: previewData.totalNonProductive,
+				absenceCosts: previewData.totalAbsenceCosts,
+				directSalaryCosts: previewData.totalDirectSalaryCosts,
 				revenue: previewData.totalRevenue
 			};
 		}
@@ -184,53 +186,90 @@
 			return {
 				salaries: closingData.totalSalaries ?? 0,
 				overhead: closingData.totalOverhead ?? 0,
+				nonProductive: closingData.totalNonProductive ?? 0,
+				absenceCosts: closingData.totalAbsenceCosts ?? 0,
+				directSalaryCosts: closingData.totalDirectSalaryCosts ?? 0,
 				revenue: closingData.totalRevenue ?? 0
 			};
 		}
-		return { salaries: 0, overhead: 0, revenue: 0 };
+		return {
+			salaries: 0,
+			overhead: 0,
+			nonProductive: 0,
+			absenceCosts: 0,
+			directSalaryCosts: 0,
+			revenue: 0
+		};
 	});
 </script>
 
 <div class="space-y-4">
 	<!-- Summary Cards -->
-	<div class="grid gap-4 md:grid-cols-3">
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+		<!-- Ingresos Card -->
 		<Card>
-			<CardHeader class="pb-2">
-				<CardTitle class="text-sm font-medium text-muted-foreground">Total Salarios</CardTitle>
+			<CardHeader>
+				<CardTitle class="text-sm font-medium text-muted-foreground">Ingresos Totales</CardTitle>
 			</CardHeader>
 			<CardContent>
 				{#if loading}
-					<Skeleton class="h-7 w-24" />
+					<Skeleton class="h-8 w-28" />
 				{:else}
-					<div class="text-2xl font-bold">{formatCurrency(totals.salaries)}</div>
+					<div class="text-2xl font-bold text-success">{formatCurrency(totals.revenue)}</div>
 				{/if}
 			</CardContent>
 		</Card>
 
+		<!-- Gastos Generales Card -->
 		<Card>
-			<CardHeader class="pb-2">
-				<CardTitle class="text-sm font-medium text-muted-foreground"
-					>Total Gastos Generales</CardTitle
-				>
+			<CardHeader>
+				<CardTitle class="text-sm font-medium text-muted-foreground">Gastos Generales</CardTitle>
 			</CardHeader>
 			<CardContent>
 				{#if loading}
-					<Skeleton class="h-7 w-24" />
+					<Skeleton class="h-8 w-28" />
 				{:else}
 					<div class="text-2xl font-bold">{formatCurrency(totals.overhead)}</div>
 				{/if}
 			</CardContent>
 		</Card>
 
-		<Card>
-			<CardHeader class="pb-2">
-				<CardTitle class="text-sm font-medium text-muted-foreground">Ingresos Totales</CardTitle>
+		<!-- Salarios Card with breakdown - spans 2 columns on lg -->
+		<Card class="md:col-span-2">
+			<CardHeader>
+				<CardTitle class="text-sm font-medium text-muted-foreground">Total Salarios</CardTitle>
 			</CardHeader>
 			<CardContent>
 				{#if loading}
-					<Skeleton class="h-7 w-24" />
+					<div class="flex items-center justify-between">
+						<Skeleton class="h-8 w-32" />
+						<div class="flex gap-6">
+							<Skeleton class="h-12 w-24" />
+							<Skeleton class="h-12 w-24" />
+							<Skeleton class="h-12 w-24" />
+						</div>
+					</div>
 				{:else}
-					<div class="text-2xl font-bold text-success">{formatCurrency(totals.revenue)}</div>
+					<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+						<!-- Main total on the left -->
+						<div class="text-2xl font-bold">{formatCurrency(totals.salaries)}</div>
+						
+						<!-- Breakdown on the right -->
+						<div class="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 -mt-6">
+							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
+								<span class="text-xs text-muted-foreground mb-0.5">Directos</span>
+								<span class="text-sm font-semibold">{formatCurrency(totals.directSalaryCosts)}</span>
+							</div>
+							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
+								<span class="text-xs text-muted-foreground mb-0.5">No productivos</span>
+								<span class="text-sm font-semibold">{formatCurrency(totals.nonProductive)}</span>
+							</div>
+							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
+								<span class="text-xs text-muted-foreground mb-0.5">Ausencias</span>
+								<span class="text-sm font-semibold">{formatCurrency(totals.absenceCosts)}</span>
+							</div>
+						</div>
+					</div>
 				{/if}
 			</CardContent>
 		</Card>
@@ -295,7 +334,7 @@
 				<div class="flex flex-col items-center justify-center py-8 text-destructive">
 					<span class="material-symbols-rounded text-3xl! mb-2">error</span>
 					<p>{error}</p>
-					<Button variant="outline" size="sm" class="mt-4" onclick={loadData}>
+					<Button variant="outline" size="sm" class="mt-4" onclick={() => loadData(monthStatus)}>
 						<span class="material-symbols-rounded mr-1 text-lg!">refresh</span>
 						Reintentar
 					</Button>
@@ -387,10 +426,11 @@
 								<TableRow>
 									<TableHead>Proyecto</TableHead>
 									<TableHead class="text-right">Ingresos</TableHead>
-									<TableHead class="text-right">% Participación</TableHead>
+									<TableHead class="text-right">%</TableHead>
+									<TableHead class="text-right">Salarios Directos</TableHead>
 									<TableHead class="text-right">Salarios Dist.</TableHead>
-									<TableHead class="text-right">Gastos Gen. Dist.</TableHead>
-									<TableHead class="text-right">Total Distribuido</TableHead>
+									<TableHead class="text-right">Gastos Gen.</TableHead>
+									<TableHead class="text-right">Total</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -409,6 +449,9 @@
 											<Badge variant="outline" class="font-mono">
 												{dist.revenueSharePercent.toFixed(1)}%
 											</Badge>
+										</TableCell>
+										<TableCell class="text-right text-muted-foreground">
+											{formatCurrency(dist.directSalaryCosts)}
 										</TableCell>
 										<TableCell class="text-right text-muted-foreground">
 											{formatCurrency(dist.distributedSalaries)}
@@ -431,13 +474,16 @@
 										<Badge variant="outline" class="font-mono">100%</Badge>
 									</TableCell>
 									<TableCell class="text-right">
-										{formatCurrency(totals.salaries)}
+										{formatCurrency(totals.directSalaryCosts)}
+									</TableCell>
+									<TableCell class="text-right">
+										{formatCurrency(totals.nonProductive)}
 									</TableCell>
 									<TableCell class="text-right">
 										{formatCurrency(totals.overhead)}
 									</TableCell>
 									<TableCell class="text-right">
-										{formatCurrency(totals.salaries + totals.overhead)}
+										{formatCurrency(totals.directSalaryCosts + totals.nonProductive + totals.overhead)}
 									</TableCell>
 								</TableRow>
 							</TableBody>

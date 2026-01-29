@@ -45,13 +45,13 @@
 	const selectedYearLabel = $derived(selectedYear);
 
 	// Tab definitions
-	type TabValue = 'projects' | 'salaries' | 'overhead' | 'distribution';
+	type TabValue = 'projects' | 'salaries' | 'overhead' | 'closing';
 
 	const tabs: { value: TabValue; label: string; icon: string }[] = [
 		{ value: 'projects', label: 'Proyectos', icon: 'work' },
 		{ value: 'salaries', label: 'Salarios', icon: 'payments' },
 		{ value: 'overhead', label: 'Gastos Generales', icon: 'receipt_long' },
-		{ value: 'distribution', label: 'Distribución', icon: 'pie_chart' }
+		{ value: 'closing', label: 'Cierre', icon: 'pie_chart' }
 	];
 
 	function isActiveTab(tabValue: TabValue): boolean {
@@ -129,23 +129,23 @@
 <!-- Header with Month/Year Selector and Status Badge -->
 <div class="flex flex-wrap items-center gap-4">
 	<div class="flex items-center gap-2">
-		<Select type="single" bind:value={selectedMonth}>
-			<SelectTrigger class="w-[140px] bg-card">
-				{selectedMonthLabel}
-			</SelectTrigger>
-			<SelectContent>
-				{#each monthOptions as option (option.value)}
-					<SelectItem value={option.value} label={option.label} />
-				{/each}
-			</SelectContent>
-		</Select>
-
 		<Select type="single" bind:value={selectedYear}>
 			<SelectTrigger class="w-[100px] bg-card">
 				{selectedYearLabel}
 			</SelectTrigger>
 			<SelectContent>
 				{#each yearOptions as option (option.value)}
+					<SelectItem value={option.value} label={option.label} />
+				{/each}
+			</SelectContent>
+		</Select>
+		
+		<Select type="single" bind:value={selectedMonth}>
+			<SelectTrigger class="w-[140px] bg-card">
+				{selectedMonthLabel}
+			</SelectTrigger>
+			<SelectContent>
+				{#each monthOptions as option (option.value)}
 					<SelectItem value={option.value} label={option.label} />
 				{/each}
 			</SelectContent>

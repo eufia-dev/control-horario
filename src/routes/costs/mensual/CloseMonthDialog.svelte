@@ -68,7 +68,7 @@
 </script>
 
 <Dialog bind:open>
-	<DialogContent class="sm:max-w-2xl">
+	<DialogContent class="sm:max-w-5xl">
 		<DialogHeader>
 			<DialogTitle>Cerrar {monthName} {year}</DialogTitle>
 			<DialogDescription>
@@ -79,59 +79,96 @@
 
 		{#if preview}
 			<div class="space-y-4 py-4">
-				<!-- Summary -->
-				<div class="grid grid-cols-3 gap-4">
-					<div class="p-3 bg-muted rounded-lg text-center">
-						<div class="text-xs text-muted-foreground mb-1">Salarios</div>
-						<div class="font-semibold">{formatCurrency(preview.totalSalaries)}</div>
+				<!-- Summary Cards - matching page layout -->
+				<div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+					<!-- Ingresos -->
+					<div class="p-3 bg-muted rounded-lg">
+						<div class="text-xs text-muted-foreground mb-1">Ingresos Totales</div>
+						<div class="text-lg font-bold text-success">{formatCurrency(preview.totalRevenue)}</div>
 					</div>
-					<div class="p-3 bg-muted rounded-lg text-center">
+
+					<!-- Gastos Generales -->
+					<div class="p-3 bg-muted rounded-lg">
 						<div class="text-xs text-muted-foreground mb-1">Gastos Generales</div>
-						<div class="font-semibold">{formatCurrency(preview.totalOverhead)}</div>
+						<div class="text-lg font-bold">{formatCurrency(preview.totalOverhead)}</div>
 					</div>
-					<div class="p-3 bg-muted rounded-lg text-center">
-						<div class="text-xs text-muted-foreground mb-1">Ingresos</div>
-						<div class="font-semibold text-success">{formatCurrency(preview.totalRevenue)}</div>
+
+					<!-- Salarios - spans 2 columns -->
+					<div class="p-3 bg-muted rounded-lg">
+						<div class="text-xs text-muted-foreground mb-1">Total Salarios</div>
+						<div class="text-lg font-bold">{formatCurrency(preview.totalSalaries)}</div>
 					</div>
 				</div>
 
 				<!-- Distribution Preview Table -->
 				<div>
 					<h4 class="text-sm font-medium mb-2">Distribución por Proyecto</h4>
-					<ScrollArea class="max-h-80 border rounded-lg overflow-y-auto">
+					<ScrollArea class="max-h-72 border rounded-lg overflow-y-auto">
 						<Table>
 							<TableHeader>
 								<TableRow>
 									<TableHead>Proyecto</TableHead>
+									<TableHead class="text-right">Ingresos</TableHead>
 									<TableHead class="text-right">%</TableHead>
-									<TableHead class="text-right">Salarios</TableHead>
-									<TableHead class="text-right">Gastos</TableHead>
+									<TableHead class="text-right">Sal. Directos</TableHead>
+									<TableHead class="text-right">Sal. Dist.</TableHead>
+									<TableHead class="text-right">Gastos Gen.</TableHead>
 									<TableHead class="text-right">Total</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{#each preview.distributions as dist (dist.projectId)}
 									<TableRow>
-										<TableCell class="font-medium">
-											<span class="text-xs text-muted-foreground mr-1">{dist.projectCode}</span>
-											{dist.projectName}
+										<TableCell>
+											<div class="flex flex-col">
+												<span class="font-medium">{dist.projectName}</span>
+												<span class="text-xs text-muted-foreground">{dist.projectCode}</span>
+											</div>
+										</TableCell>
+										<TableCell class="text-right font-medium text-green-600">
+											{formatCurrency(dist.projectRevenue)}
 										</TableCell>
 										<TableCell class="text-right">
 											<Badge variant="outline" class="font-mono text-xs">
 												{dist.revenueSharePercent.toFixed(1)}%
 											</Badge>
 										</TableCell>
-										<TableCell class="text-right text-sm">
+										<TableCell class="text-right text-sm text-muted-foreground">
+											{formatCurrency(dist.directSalaryCosts)}
+										</TableCell>
+										<TableCell class="text-right text-sm text-muted-foreground">
 											{formatCurrency(dist.distributedSalaries)}
 										</TableCell>
-										<TableCell class="text-right text-sm">
+										<TableCell class="text-right text-sm text-muted-foreground">
 											{formatCurrency(dist.distributedOverhead)}
 										</TableCell>
-										<TableCell class="text-right font-medium">
+										<TableCell class="text-right font-semibold">
 											{formatCurrency(dist.totalDistributed)}
 										</TableCell>
 									</TableRow>
 								{/each}
+								<!-- Totals Row -->
+								<TableRow class="bg-muted/50 font-semibold">
+									<TableCell>Total</TableCell>
+									<TableCell class="text-right text-green-600">
+										{formatCurrency(preview.totalRevenue)}
+									</TableCell>
+									<TableCell class="text-right">
+										<Badge variant="outline" class="font-mono text-xs">100%</Badge>
+									</TableCell>
+									<TableCell class="text-right">
+										{formatCurrency(preview.totalDirectSalaryCosts)}
+									</TableCell>
+									<TableCell class="text-right">
+										{formatCurrency(preview.totalNonProductive)}
+									</TableCell>
+									<TableCell class="text-right">
+										{formatCurrency(preview.totalOverhead)}
+									</TableCell>
+									<TableCell class="text-right">
+										{formatCurrency(preview.totalDirectSalaryCosts + preview.totalNonProductive + preview.totalOverhead)}
+									</TableCell>
+								</TableRow>
 							</TableBody>
 						</Table>
 					</ScrollArea>
