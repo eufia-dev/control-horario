@@ -416,7 +416,7 @@
 						<p>No hay proyectos activos con ingresos para distribuir</p>
 					</div>
 				{:else}
-					<ScrollArea class="max-h-[400px]">
+					<ScrollArea>
 						<Table>
 							<TableHeader>
 								<TableRow>

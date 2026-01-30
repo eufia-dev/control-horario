@@ -212,7 +212,7 @@
 				</Button>
 			</div>
 		{:else}
-			<ScrollArea class="max-h-[500px]">
+			<ScrollArea>
 				<Table>
 					<TableHeader>
 						<TableRow>
