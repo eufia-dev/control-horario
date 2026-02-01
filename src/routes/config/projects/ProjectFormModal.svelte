@@ -21,7 +21,11 @@
 	} from '$lib/api/projects';
 	import { fetchTeams, type Team } from '$lib/api/teams';
 	import { fetchProjectCategories, type ProjectCategory } from '$lib/api/project-categories';
-	import { isAdmin as isAdminStore, userTeamId as userTeamIdStore } from '$lib/stores/auth';
+	import {
+		isAdmin as isAdminStore,
+		userTeamId as userTeamIdStore,
+		hasCostsFeature as hasCostsFeatureStore
+	} from '$lib/stores/auth';
 
 	type Props = {
 		open: boolean;
@@ -48,6 +52,7 @@
 	let error = $state<string | null>(null);
 	let isAdmin = $state(false);
 	let currentUserTeamId = $state<string | null>(null);
+	let hasCostsFeature = $state(false);
 
 	$effect(() => {
 		const unsub = isAdminStore.subscribe((value) => {
@@ -59,6 +64,13 @@
 	$effect(() => {
 		const unsub = userTeamIdStore.subscribe((value) => {
 			currentUserTeamId = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = hasCostsFeatureStore.subscribe((value) => {
+			hasCostsFeature = value;
 		});
 		return unsub;
 	});
@@ -237,27 +249,29 @@
 				/>
 			</div>
 
-			<div class="grid gap-2">
-				<Label for="delegation">Delegación</Label>
-				<Input
-					id="delegation"
-					bind:value={delegation}
-					placeholder="Delegación (opcional)"
-					disabled={submitting}
-					maxlength={100}
-				/>
-			</div>
+			{#if hasCostsFeature}
+				<div class="grid gap-2">
+					<Label for="delegation">Delegación</Label>
+					<Input
+						id="delegation"
+						bind:value={delegation}
+						placeholder="Delegación (opcional)"
+						disabled={submitting}
+						maxlength={100}
+					/>
+				</div>
 
-			<div class="grid gap-2">
-				<Label for="clientName">Cliente</Label>
-				<Input
-					id="clientName"
-					bind:value={clientName}
-					placeholder="Nombre del cliente (opcional)"
-					disabled={submitting}
-					maxlength={255}
-				/>
-			</div>
+				<div class="grid gap-2">
+					<Label for="clientName">Cliente</Label>
+					<Input
+						id="clientName"
+						bind:value={clientName}
+						placeholder="Nombre del cliente (opcional)"
+						disabled={submitting}
+						maxlength={255}
+					/>
+				</div>
+			{/if}
 
 			<div class="grid gap-2">
 				<Label>Categoría</Label>

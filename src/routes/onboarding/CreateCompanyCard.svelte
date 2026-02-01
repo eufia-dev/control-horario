@@ -17,6 +17,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Switch } from '$lib/components/ui/switch';
 
 	interface Props {
 		userName: string;
@@ -29,6 +30,7 @@
 
 	let companyName = $state('');
 	let cif = $state('');
+	let hasProjectsFeature = $state(false);
 
 	// Location fields - codes only for region/province
 	let selectedRegionCode = $state<string | undefined>(undefined);
@@ -195,7 +197,8 @@
 				provinceCode: selectedProvinceCode,
 				municipalityName: selectedMunicipalityName,
 				address: address.trim(),
-				postalCode: postalCode.trim()
+				postalCode: postalCode.trim(),
+				hasProjectsFeature
 			});
 
 			if (result.status === 'ACTIVE' && result.user) {
@@ -260,6 +263,27 @@
 					Identificador fiscal de la empresa
 				</FieldDescription>
 			</Field>
+
+			<!-- Features Section -->
+			<div class="border-t pt-6 mt-6">
+				<div class="flex items-center gap-2 mb-4">
+					<span class="material-symbols-rounded text-primary">tune</span>
+					<h3 class="font-medium">Funcionalidades</h3>
+				</div>
+
+				<div class="flex items-center justify-between gap-4 p-4 rounded-lg border bg-muted/30">
+					<div class="flex-1">
+						<Label for="projects-feature" class="text-sm font-medium cursor-pointer">
+							Gestión de proyectos
+						</Label>
+						<p class="text-xs text-muted-foreground mt-1">
+							Permite asignar horas trabajadas a proyectos específicos y hacer seguimiento de costes
+							por proyecto.
+						</p>
+					</div>
+					<Switch id="projects-feature" bind:checked={hasProjectsFeature} disabled={isSubmitting} />
+				</div>
+			</div>
 
 			<!-- Location Section -->
 			<div class="border-t pt-6 mt-6">

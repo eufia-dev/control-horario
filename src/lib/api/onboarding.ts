@@ -61,6 +61,8 @@ export type CreateCompanyDto = {
 	municipalityName: string;
 	address: string;
 	postalCode: string;
+	// Feature flags
+	hasProjectsFeature?: boolean;
 };
 
 export type RequestJoinDto = {

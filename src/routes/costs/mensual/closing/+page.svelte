@@ -253,12 +253,13 @@
 					<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<!-- Main total on the left -->
 						<div class="text-2xl font-bold">{formatCurrency(totals.salaries)}</div>
-						
+
 						<!-- Breakdown on the right -->
 						<div class="hidden md:flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 -mt-6">
 							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
 								<span class="text-xs text-muted-foreground mb-0.5">Directos</span>
-								<span class="text-sm font-semibold">{formatCurrency(totals.directSalaryCosts)}</span>
+								<span class="text-sm font-semibold">{formatCurrency(totals.directSalaryCosts)}</span
+								>
 							</div>
 							<div class="flex flex-col items-center px-4 py-2 rounded-lg bg-muted/50">
 								<span class="text-xs text-muted-foreground mb-0.5">No productivos</span>
@@ -479,7 +480,9 @@
 										{formatCurrency(totals.overhead)}
 									</TableCell>
 									<TableCell class="text-right">
-										{formatCurrency(totals.directSalaryCosts + totals.nonProductive + totals.overhead)}
+										{formatCurrency(
+											totals.directSalaryCosts + totals.nonProductive + totals.overhead
+										)}
 									</TableCell>
 								</TableRow>
 							</TableBody>

@@ -35,6 +35,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Switch } from '$lib/components/ui/switch';
 	import RelationTypeBadge from './RelationTypeBadge.svelte';
 
 	type Props = {
@@ -71,6 +72,7 @@
 	let companyName = $state('');
 	let cif = $state('');
 	let userName = $state('');
+	let hasProjectsFeature = $state(false);
 	let selectedRegionCode = $state<string | undefined>(undefined);
 	let selectedProvinceCode = $state<string | undefined>(undefined);
 	let selectedMunicipalityName = $state<string | undefined>(undefined);
@@ -332,7 +334,8 @@
 				provinceCode: selectedProvinceCode,
 				municipalityName: selectedMunicipalityName,
 				address: address.trim(),
-				postalCode: postalCode.trim()
+				postalCode: postalCode.trim(),
+				hasProjectsFeature
 			});
 
 			if (result.status === 'ACTIVE' && result.user) {
@@ -379,6 +382,7 @@
 		companyName = '';
 		cif = '';
 		userName = '';
+		hasProjectsFeature = false;
 		selectedRegionCode = undefined;
 		selectedProvinceCode = undefined;
 		selectedMunicipalityName = undefined;
@@ -668,6 +672,30 @@
 							disabled={isSubmittingCreate}
 						/>
 					</Field>
+
+					<!-- Features Section -->
+					<div class="border-t pt-4 mt-4">
+						<div class="flex items-center gap-2 mb-4">
+							<span class="material-symbols-rounded text-primary">tune</span>
+							<h3 class="font-medium text-sm">Funcionalidades</h3>
+						</div>
+
+						<div class="flex items-center justify-between gap-4 p-3 rounded-lg border bg-muted/30">
+							<div class="flex-1">
+								<Label for="new-projects-feature" class="text-sm font-medium cursor-pointer">
+									Gestión de proyectos
+								</Label>
+								<p class="text-xs text-muted-foreground mt-0.5">
+									Permite asignar horas a proyectos y hacer seguimiento de costes.
+								</p>
+							</div>
+							<Switch
+								id="new-projects-feature"
+								bind:checked={hasProjectsFeature}
+								disabled={isSubmittingCreate}
+							/>
+						</div>
+					</div>
 
 					<div class="border-t pt-4 mt-4">
 						<div class="flex items-center gap-2 mb-4">

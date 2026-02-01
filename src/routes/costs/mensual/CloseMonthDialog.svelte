@@ -166,7 +166,11 @@
 										{formatCurrency(preview.totalOverhead)}
 									</TableCell>
 									<TableCell class="text-right">
-										{formatCurrency(preview.totalDirectSalaryCosts + preview.totalNonProductive + preview.totalOverhead)}
+										{formatCurrency(
+											preview.totalDirectSalaryCosts +
+												preview.totalNonProductive +
+												preview.totalOverhead
+										)}
 									</TableCell>
 								</TableRow>
 							</TableBody>

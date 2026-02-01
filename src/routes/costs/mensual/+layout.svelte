@@ -139,7 +139,7 @@
 				{/each}
 			</SelectContent>
 		</Select>
-		
+
 		<Select type="single" bind:value={selectedMonth}>
 			<SelectTrigger class="w-[140px] bg-card">
 				{selectedMonthLabel}

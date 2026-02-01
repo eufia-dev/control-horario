@@ -361,7 +361,7 @@
 							<a
 								href={resolve('/profile')}
 								class="ml-2 flex items-center justify-center rounded-full text-sm font-medium text-white size-8 shrink-0
-								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow"
+								hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-shadow mr-1"
 								style="background-color: {avatarColor}"
 								title={user.name}
 							>
