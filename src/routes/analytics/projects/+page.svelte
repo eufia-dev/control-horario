@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { auth, isAdmin as isAdminStore } from '$lib/stores/auth';
+	import { auth, hasProjectsFeature, isAdmin as isAdminStore } from '$lib/stores/auth';
 	import ProjectsChart from '$lib/components/charts/projects-chart.svelte';
 	import WorkersChart from '$lib/components/charts/workers-chart.svelte';
 	import {
@@ -57,6 +59,11 @@
 	}
 
 	onMount(() => {
+		if (!$hasProjectsFeature) {
+			goto(resolve('/analytics/users'), { replaceState: true });
+			return;
+		}
+
 		loadProjects();
 		loadWorkers();
 	});

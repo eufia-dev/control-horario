@@ -251,7 +251,7 @@
 </script>
 
 <svelte:head>
-	<title>EUFIA - Control Horario - Fichaje Digital para Empresas</title>
+	<title>Control Horario - Eufia</title>
 	<meta
 		name="description"
 		content="Aplicación de control horario y gestión de fichajes para empresas. Registra horas trabajadas, gestiona ausencias y genera informes de cumplimiento."

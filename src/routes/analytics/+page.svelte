@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { hasProjectsFeature } from '$lib/stores/auth';
 
 	onMount(() => {
-		goto(resolve('/analytics/projects'), { replaceState: true });
+		const nextPath = $hasProjectsFeature ? '/analytics/projects' : '/analytics/users';
+		goto(resolve(nextPath), { replaceState: true });
 	});
 </script>
 
