@@ -538,6 +538,9 @@
 		}
 
 		// Validate all segments
+		const isTodaySelected = isSelectedDateToday();
+		const currentTime = getCurrentTimeFormatted();
+
 		for (let i = 0; i < segments.length; i++) {
 			const seg = segments[i];
 			if (!seg.entryType) {
@@ -554,6 +557,18 @@
 			if (!seg.startTime || !seg.endTime) {
 				error = `Segmento ${i + 1}: Las horas de inicio y fin son obligatorias`;
 				return;
+			}
+
+			// Validate times are not in the future when date is today
+			if (isTodaySelected) {
+				if (seg.startTime > currentTime) {
+					error = `Segmento ${i + 1}: La hora de inicio no puede ser posterior a la hora actual`;
+					return;
+				}
+				if (seg.endTime > currentTime) {
+					error = `Segmento ${i + 1}: La hora de fin no puede ser posterior a la hora actual`;
+					return;
+				}
 			}
 
 			// Check if this is an existing entry with unchanged times
@@ -671,6 +686,30 @@
 			return `${hours}h ${m}m`;
 		}
 		return `${m}m`;
+	}
+
+	// Check if selected date is today
+	function isSelectedDateToday(): boolean {
+		if (!baseDate) return false;
+		const now = new Date();
+		return (
+			baseDate.year === now.getFullYear() &&
+			baseDate.month === now.getMonth() + 1 &&
+			baseDate.day === now.getDate()
+		);
+	}
+
+	// Get current time formatted as HH:MM
+	function getCurrentTimeFormatted(): string {
+		const now = new Date();
+		const hours = String(now.getHours()).padStart(2, '0');
+		const minutes = String(now.getMinutes()).padStart(2, '0');
+		return `${hours}:${minutes}`;
+	}
+
+	// Get max time for time inputs (only when date is today)
+	function getMaxTime(): string | undefined {
+		return isSelectedDateToday() ? getCurrentTimeFormatted() : undefined;
 	}
 </script>
 
@@ -846,6 +885,7 @@
 									<Input
 										type="time"
 										value={segment.startTime}
+										max={getMaxTime()}
 										oninput={(e) => updateSegment(segment.id, { startTime: e.currentTarget.value })}
 										disabled={submitting}
 										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
@@ -856,6 +896,7 @@
 									<Input
 										type="time"
 										value={segment.endTime}
+										max={getMaxTime()}
 										oninput={(e) => updateSegment(segment.id, { endTime: e.currentTarget.value })}
 										disabled={submitting}
 										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
