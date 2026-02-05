@@ -706,11 +706,6 @@
 		const minutes = String(now.getMinutes()).padStart(2, '0');
 		return `${hours}:${minutes}`;
 	}
-
-	// Get max time for time inputs (only when date is today)
-	function getMaxTime(): string | undefined {
-		return isSelectedDateToday() ? getCurrentTimeFormatted() : undefined;
-	}
 </script>
 
 <Dialog bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -885,7 +880,6 @@
 									<Input
 										type="time"
 										value={segment.startTime}
-										max={getMaxTime()}
 										oninput={(e) => updateSegment(segment.id, { startTime: e.currentTarget.value })}
 										disabled={submitting}
 										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
@@ -896,7 +890,6 @@
 									<Input
 										type="time"
 										value={segment.endTime}
-										max={getMaxTime()}
 										oninput={(e) => updateSegment(segment.id, { endTime: e.currentTarget.value })}
 										disabled={submitting}
 										class="h-9 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
