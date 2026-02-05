@@ -28,6 +28,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { TooltipProvider } from '$lib/components/ui/tooltip';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import type { OnboardingStatusType } from '$lib/api/onboarding';
@@ -281,6 +282,7 @@
 	<link rel="canonical" href="https://control-horario.eufia.eu" />
 </svelte:head>
 
+<Toaster richColors />
 <TooltipProvider>
 	<div class="min-h-screen flex flex-col">
 		{#if showHeader}

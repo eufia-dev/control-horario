@@ -19,6 +19,7 @@
 	} from '$lib/api/time-entries';
 	import type { Project } from '$lib/api/projects';
 	import { onMount, onDestroy } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		projects: Project[];
@@ -173,6 +174,10 @@
 			onActiveTimerChange?.(true);
 		} catch (e) {
 			console.error('Error starting timer:', e);
+			const message = e instanceof Error ? e.message : 'Error al iniciar el temporizador';
+			toast.error(message);
+			// Refresh timer state to sync with server
+			await loadActiveTimer();
 		} finally {
 			startingTimer = false;
 		}
@@ -188,6 +193,10 @@
 			onTimerStop?.();
 		} catch (e) {
 			console.error('Error stopping timer:', e);
+			const message = e instanceof Error ? e.message : 'Error al detener el temporizador';
+			toast.error(message);
+			// Refresh timer state to sync with server
+			await loadActiveTimer();
 		} finally {
 			stoppingTimer = false;
 		}
@@ -208,6 +217,10 @@
 			onTimerSwitch?.();
 		} catch (e) {
 			console.error('Error switching timer:', e);
+			const message = e instanceof Error ? e.message : 'Error al cambiar de tarea';
+			toast.error(message);
+			// Refresh timer state to sync with server
+			await loadActiveTimer();
 		} finally {
 			switchingTimer = false;
 		}
