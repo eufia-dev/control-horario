@@ -647,18 +647,19 @@
 						isInOffice: seg.isInOffice
 					};
 					await updateTimeEntry(seg.originalEntryId, data);
-				} else {
-					// Create new entry
-					const data: CreateTimeEntryDto = {
-						projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
-						entryType: seg.entryType!,
-						startTime: startTimeIso,
-						endTime: endTimeIso,
-						durationMinutes: segDuration,
-						isInOffice: seg.isInOffice
-					};
-					await createTimeEntry(data);
-				}
+			} else {
+				// Create new entry
+				const data: CreateTimeEntryDto = {
+					projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
+					entryType: seg.entryType!,
+					startTime: startTimeIso,
+					endTime: endTimeIso,
+					durationMinutes: segDuration,
+					isInOffice: seg.isInOffice,
+					source: 'WEB'
+				};
+				await createTimeEntry(data);
+			}
 			}
 
 			submitting = false;

@@ -73,6 +73,8 @@ export type ActiveTimer = {
 	entryTypeName?: string;
 };
 
+export type EntrySource = 'WEB' | 'APP' | 'WHATSAPP';
+
 export type CreateTimeEntryDto = {
 	projectId?: string;
 	entryType: string;
@@ -80,6 +82,7 @@ export type CreateTimeEntryDto = {
 	endTime: string;
 	durationMinutes: number;
 	isInOffice?: boolean;
+	source?: EntrySource;
 };
 
 export type UpdateTimeEntryDto = {
@@ -95,12 +98,18 @@ export type StartTimerDto = {
 	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
+	source?: EntrySource;
+};
+
+export type StopTimerDto = {
+	source?: EntrySource;
 };
 
 export type SwitchTimerDto = {
 	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
+	source?: EntrySource;
 };
 
 export type SwitchTimerResponse = {
@@ -207,9 +216,13 @@ export async function startTimer(data: StartTimerDto): Promise<ActiveTimer> {
 	return handleJsonResponse<ActiveTimer>(response);
 }
 
-export async function stopTimer(): Promise<TimeEntry> {
+export async function stopTimer(data?: StopTimerDto): Promise<TimeEntry> {
 	const response = await fetchWithAuth(`${API_BASE}/time-entries/me/timer/stop`, {
-		method: 'POST'
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(data ?? {})
 	});
 	return handleJsonResponse<TimeEntry>(response);
 }
