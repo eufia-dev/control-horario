@@ -81,9 +81,9 @@
 
 <Card class="w-full flex-1">
 	<CardHeader class="flex flex-row items-center justify-between gap-2">
-		<CardTitle class="text-lg font-medium flex items-center gap-2 text-muted-foreground">
-			<span class="material-symbols-rounded text-lg!">schedule</span>
-			Cumplimiento este mes
+		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
+			<span class="material-symbols-rounded text-2xl!">schedule</span>
+			Este mes
 		</CardTitle>
 		<CardAction>
 			<Button variant="ghost" href={resolve('/calendar')} title="Ver calendario">
