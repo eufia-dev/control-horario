@@ -168,8 +168,7 @@
 		activeTimer = await startTimer({
 			projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
 			entryType: selectedEntryType,
-			isInOffice,
-			source: 'WEB'
+			isInOffice
 		});
 			startElapsedTimer();
 			onActiveTimerChange?.(true);

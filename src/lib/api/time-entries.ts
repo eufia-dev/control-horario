@@ -98,7 +98,6 @@ export type StartTimerDto = {
 	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
-	source?: EntrySource;
 };
 
 export type StopTimerDto = {
