@@ -25,6 +25,7 @@
 		onEdit?: (entry: TimeEntry) => void;
 		onDelete?: (entry: TimeEntry) => void;
 		onCreate?: () => void;
+		onViewAuditLog?: (entry: TimeEntry) => void;
 	};
 
 	let {
@@ -46,7 +47,8 @@
 		onNextMonth,
 		onEdit,
 		onDelete,
-		onCreate
+		onCreate,
+		onViewAuditLog
 	}: Props = $props();
 
 	const isCurrentMonth = $derived(() => {
@@ -115,6 +117,7 @@
 			{onEdit}
 			{onDelete}
 			{onCreate}
+			{onViewAuditLog}
 		/>
 	</CardContent>
 </Card>

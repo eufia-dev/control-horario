@@ -20,6 +20,7 @@
 		onEdit?: (entry: TimeEntry) => void;
 		onDelete?: (entry: TimeEntry) => void;
 		onCreate?: () => void;
+		onViewAuditLog?: (entry: TimeEntry) => void;
 	};
 
 	let {
@@ -35,7 +36,8 @@
 		emptyButtonLabel = 'Crear primer registro',
 		onEdit,
 		onDelete,
-		onCreate
+		onCreate,
+		onViewAuditLog
 	}: Props = $props();
 
 	const timeEntryTypeLookup = $derived(
@@ -278,27 +280,58 @@
 								{#if showStatusColumn}
 									<div class="hidden sm:flex items-center gap-2">
 										{#if entry.isManual}
-											<Tooltip>
-												<TooltipTrigger class="flex items-center">
-													<span class="material-symbols-rounded text-lg! text-muted-foreground"
-														>edit_note</span
+											{#if onViewAuditLog}
+												<Tooltip>
+													<TooltipTrigger
+														class="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+														onclick={() => onViewAuditLog(entry)}
 													>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Registro creado manualmente</p>
-												</TooltipContent>
-											</Tooltip>
+														<span class="material-symbols-rounded text-lg!">edit_note</span>
+														<span class="sr-only">Ver historial de cambios</span>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>Registro manual — ver historial</p>
+													</TooltipContent>
+												</Tooltip>
+											{:else}
+												<Tooltip>
+													<TooltipTrigger class="flex items-center">
+														<span class="material-symbols-rounded text-lg! text-muted-foreground"
+															>edit_note</span
+														>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>Registro creado manualmente</p>
+													</TooltipContent>
+												</Tooltip>
+											{/if}
 										{/if}
 										{#if entry.isModified}
-											<Tooltip>
-												<TooltipTrigger class="flex items-center">
-													<span class="material-symbols-rounded text-lg! text-warning">history</span
+											{#if onViewAuditLog}
+												<Tooltip>
+													<TooltipTrigger
+														class="flex items-center justify-center h-7 w-7 rounded-md text-warning hover:text-warning/80 hover:bg-muted transition-colors cursor-pointer"
+														onclick={() => onViewAuditLog(entry)}
 													>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Registro modificado después de su creación</p>
-												</TooltipContent>
-											</Tooltip>
+														<span class="material-symbols-rounded text-lg!">history</span>
+														<span class="sr-only">Ver historial de cambios</span>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>Registro modificado — ver historial</p>
+													</TooltipContent>
+												</Tooltip>
+											{:else}
+												<Tooltip>
+													<TooltipTrigger class="flex items-center">
+														<span class="material-symbols-rounded text-lg! text-warning"
+															>history</span
+														>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>Registro modificado después de su creación</p>
+													</TooltipContent>
+												</Tooltip>
+											{/if}
 										{/if}
 									</div>
 								{/if}
