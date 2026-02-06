@@ -244,14 +244,6 @@
 		return Math.random().toString(36).substring(2, 9);
 	}
 
-	function addHoursToTime(time: string, hours: number): string {
-		const [h, m] = time.split(':').map(Number);
-		const totalMinutes = h * 60 + m + hours * 60;
-		const newH = Math.floor(totalMinutes / 60) % 24;
-		const newM = totalMinutes % 60;
-		return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
-	}
-
 	function addMinutesToTime(time: string, minutes: number): string {
 		const [h, m] = time.split(':').map(Number);
 		const totalMinutes = h * 60 + m + minutes;
@@ -647,19 +639,19 @@
 						isInOffice: seg.isInOffice
 					};
 					await updateTimeEntry(seg.originalEntryId, data);
-			} else {
-				// Create new entry
-				const data: CreateTimeEntryDto = {
-					projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
-					entryType: seg.entryType!,
-					startTime: startTimeIso,
-					endTime: endTimeIso,
-					durationMinutes: segDuration,
-					isInOffice: seg.isInOffice,
-					source: 'WEB'
-				};
-				await createTimeEntry(data);
-			}
+				} else {
+					// Create new entry
+					const data: CreateTimeEntryDto = {
+						projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
+						entryType: seg.entryType!,
+						startTime: startTimeIso,
+						endTime: endTimeIso,
+						durationMinutes: segDuration,
+						isInOffice: seg.isInOffice,
+						source: 'WEB'
+					};
+					await createTimeEntry(data);
+				}
 			}
 
 			submitting = false;

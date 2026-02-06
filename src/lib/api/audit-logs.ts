@@ -25,7 +25,6 @@ export type AuditLogTimeEntrySummary = {
 	startTime: string;
 	endTime: string;
 	entryType: string;
-	durationMinutes: number;
 };
 
 /** Audit log for a single time entry */

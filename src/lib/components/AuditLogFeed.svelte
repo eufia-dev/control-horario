@@ -189,13 +189,8 @@
 									<span class="text-sm text-foreground font-medium tabular-nums">
 										{getEntryDescription(log)}
 									</span>
-									<span class="text-xs text-muted-foreground">
-										({formatDuration(log.timeEntry.durationMinutes)})
-									</span>
 								{:else}
-									<span class="text-sm text-muted-foreground italic">
-										Registro eliminado
-									</span>
+									<span class="text-sm text-muted-foreground italic"> Registro eliminado </span>
 								{/if}
 
 								<div class="flex-1"></div>

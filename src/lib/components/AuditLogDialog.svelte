@@ -137,14 +137,14 @@
 <Dialog bind:open onOpenChange={(isOpen) => !isOpen && handleClose()}>
 	<DialogContent class="sm:max-w-xl max-h-[85vh] overflow-y-auto">
 		<DialogHeader>
-			<DialogTitle class="flex items-center gap-2 text-lg">
-				Historial de cambios
-			</DialogTitle>
+			<DialogTitle class="flex items-center gap-2 text-lg">Historial de cambios</DialogTitle>
 			{#if entry}
 				<DialogDescription class="flex items-center gap-2 text-sm">
 					<span class="capitalize">{formatDate(entry.startTime)}</span>
 					<span class="text-muted-foreground/50">&middot;</span>
-					<span class="tabular-nums">{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</span>
+					<span class="tabular-nums"
+						>{formatTime(entry.startTime)} - {formatTime(entry.endTime)}</span
+					>
 				</DialogDescription>
 			{/if}
 		</DialogHeader>
@@ -181,11 +181,7 @@
 
 						<div class="relative flex gap-4 {isLast ? '' : 'pb-8'}">
 							<!-- Timeline line -->
-							{#if !isLast}
-								<div
-									class="absolute left-[15px] top-[34px] bottom-0 w-px bg-border"
-								></div>
-							{/if}
+							<div class="absolute left-[15px] top-0 bottom-0 w-px bg-border"></div>
 
 							<!-- Timeline dot -->
 							<div class="relative z-10 mt-0.5 flex shrink-0 items-center justify-center">
@@ -226,9 +222,7 @@
 
 								<!-- Changes diff table -->
 								{#if changedFields.length > 0}
-									<div
-										class="mt-3 rounded-lg border border-border overflow-hidden"
-									>
+									<div class="mt-3 rounded-lg border border-border overflow-hidden">
 										{#each changedFields as field, fieldIdx (field)}
 											{@const change = log.changes[field]}
 											<div
@@ -255,7 +249,9 @@
 															<span class="text-muted-foreground line-through">
 																{formatFieldValue(field, change.old)}
 															</span>
-															<span class="material-symbols-rounded text-sm! text-muted-foreground/50">
+															<span
+																class="material-symbols-rounded text-sm! text-muted-foreground/50"
+															>
 																arrow_forward
 															</span>
 															<span class="text-foreground font-medium">

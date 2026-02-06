@@ -165,11 +165,11 @@
 
 		startingTimer = true;
 		try {
-		activeTimer = await startTimer({
-			projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
-			entryType: selectedEntryType,
-			isInOffice
-		});
+			activeTimer = await startTimer({
+				projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
+				entryType: selectedEntryType,
+				isInOffice
+			});
 			startElapsedTimer();
 			onActiveTimerChange?.(true);
 		} catch (e) {
@@ -207,12 +207,12 @@
 
 		switchingTimer = true;
 		try {
-		const result = await switchTimer({
-			projectId: switchProjectId,
-			entryType: activeTimer.entryType,
-			isInOffice: activeTimer.isInOffice,
-			source: 'WEB'
-		});
+			const result = await switchTimer({
+				projectId: switchProjectId,
+				entryType: activeTimer.entryType,
+				isInOffice: activeTimer.isInOffice,
+				source: 'WEB'
+			});
 			activeTimer = result.activeTimer;
 			startElapsedTimer();
 			onTimerSwitch?.();
