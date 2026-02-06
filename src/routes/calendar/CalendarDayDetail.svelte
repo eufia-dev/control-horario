@@ -162,8 +162,7 @@
 						<div class="space-y-2">
 							{#each day.entries as entry (entry.id)}
 								{@const isPause = isPauseEntry(entry.entryType)}
-								{@const isCoffeePause = entry.entryType === 'PAUSE_COFFEE'}
-								{@const isRegularPause = isPause && !isCoffeePause}
+								{@const isRegularPause = isPause && entry.entryType !== 'PAUSE_COFFEE'}
 								<div
 									class="flex items-center justify-between p-3 border rounded-lg transition-opacity {isRegularPause
 										? 'opacity-60 hover:opacity-80 bg-muted/30'

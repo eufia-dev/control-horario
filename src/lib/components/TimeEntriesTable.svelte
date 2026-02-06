@@ -214,8 +214,7 @@
 				<div class="border border-border rounded-lg overflow-hidden bg-card">
 					{#each day.entries as entry, idx (entry.id)}
 						{@const isPause = isPauseEntry(entry)}
-						{@const isCoffeePause = entry.entryType === 'PAUSE_COFFEE'}
-						{@const isRegularPause = isPause && !isCoffeePause}
+						{@const isRegularPause = isPause && entry.entryType !== 'PAUSE_COFFEE'}
 						<div
 							class="group/entry flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-2.5 transition-colors hover:bg-muted/50 {idx >
 							0
@@ -233,8 +232,7 @@
 
 								<!-- Duration -->
 								<span
-									class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isRegularPause ||
-									isCoffeePause
+									class="text-sm font-semibold tabular-nums px-2 py-0.5 rounded shrink-0 {isRegularPause
 										? 'text-muted-foreground bg-muted'
 										: 'text-primary bg-primary/8'}"
 								>
@@ -245,9 +243,7 @@
 								<span
 									class="hidden sm:flex text-sm shrink-0 items-center gap-1 text-muted-foreground"
 								>
-									{#if isCoffeePause}
-										<span class="material-symbols-rounded text-sm!">coffee</span>
-									{:else if isPause}
+									{#if isRegularPause}
 										<span class="material-symbols-rounded text-sm!">pause</span>
 									{/if}
 									{getEntryTypeName(
@@ -345,9 +341,7 @@
 								class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap"
 							>
 								<span class="flex items-center gap-1">
-									{#if isCoffeePause}
-										<span class="material-symbols-rounded text-xs!">coffee</span>
-									{:else if isPause}
+									{#if isRegularPause}
 										<span class="material-symbols-rounded text-xs!">pause</span>
 									{/if}
 									{getEntryTypeName(
