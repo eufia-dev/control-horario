@@ -187,7 +187,7 @@
 </script>
 
 <Card>
-	<CardHeader class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
+	<CardHeader class="flex flex-wrap items-center gap-4 space-y-0">
 		<div>
 			<CardTitle class="text-xl font-semibold flex items-center gap-2">
 				<span class="material-symbols-rounded text-2xl!">group</span>
@@ -197,24 +197,25 @@
 				Horas trabajadas {#if showCosts}y costes{/if} por empleado
 			</p>
 		</div>
-		<div class="flex items-center gap-2">
-			<div class="relative">
-				<span
-					class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
-					>search</span
-				>
-				<Input
-					type="text"
-					placeholder="Buscar empleado..."
-					bind:value={searchQuery}
-					class="pl-9 w-[180px]"
-				/>
-			</div>
+		<div class="hidden md:block flex-1"></div>
+		<div class="relative order-3 md:order-0 w-full md:w-auto">
+			<span
+				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+				>search</span
+			>
+			<Input
+				type="text"
+				placeholder="Buscar empleado..."
+				bind:value={searchQuery}
+				class="pl-9 md:w-[180px]"
+			/>
+		</div>
+		<div class="order-2 md:order-0 w-full md:w-auto ml-auto md:ml-0">
 			<Popover bind:open={dateRangePopoverOpen}>
-				<PopoverTrigger>
+				<PopoverTrigger class="w-full md:w-auto">
 					<Button
 						variant="outline"
-						class="justify-start text-left font-normal min-w-[260px]"
+						class="justify-start text-left font-normal w-full md:min-w-[260px]"
 						disabled={loading}
 					>
 						<span class="material-symbols-rounded text-lg! mr-2">calendar_today</span>

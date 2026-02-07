@@ -9,6 +9,9 @@
 		type TimeEntry,
 		type TimeEntryType
 	} from '$lib/api/time-entries';
+	import { fetchUsers } from '$lib/api/users';
+	import { auth } from '$lib/stores/auth';
+	import { exportTimeEntriesToXlsx } from '$lib/export-xlsx';
 
 	// Get userId from route params
 	let userId = $derived($page.params.userId);
@@ -19,6 +22,9 @@
 	let loadingEntries = $state(true);
 	let loadingTypes = $state(true);
 	let entriesError = $state<string | null>(null);
+
+	// User name for export filename
+	let userName = $state('');
 
 	// Month navigation state
 	let selectedMonth = $state(new Date());
@@ -72,9 +78,24 @@
 		auditSheetEntry = null;
 	}
 
-	onMount(() => {
+	function handleExport() {
+		let companyName = '';
+		const unsub = auth.subscribe((s) => {
+			companyName = s.user?.companyName ?? '';
+		});
+		unsub();
+		exportTimeEntriesToXlsx(timeEntries, timeEntryTypes, selectedMonth, userName, companyName);
+	}
+
+	onMount(async () => {
 		loadEntries();
 		loadTypes();
+		try {
+			const users = await fetchUsers();
+			userName = users.find((u) => u.id === userId)?.name ?? '';
+		} catch {
+			/* fallback: filename will omit user name */
+		}
 	});
 </script>
 
@@ -93,6 +114,7 @@
 	onPreviousMonth={goToPreviousMonth}
 	onNextMonth={goToNextMonth}
 	onViewAuditLog={handleViewAuditLog}
+	onExport={handleExport}
 />
 
 <AuditLogDialog

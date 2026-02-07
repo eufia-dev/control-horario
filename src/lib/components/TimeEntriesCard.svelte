@@ -26,6 +26,7 @@
 		onDelete?: (entry: TimeEntry) => void;
 		onCreate?: () => void;
 		onViewAuditLog?: (entry: TimeEntry) => void;
+		onExport?: () => void;
 	};
 
 	let {
@@ -48,7 +49,8 @@
 		onEdit,
 		onDelete,
 		onCreate,
-		onViewAuditLog
+		onViewAuditLog,
+		onExport
 	}: Props = $props();
 
 	const isCurrentMonth = $derived(() => {
@@ -93,6 +95,13 @@
 					<span class="sr-only">Mes siguiente</span>
 				</Button>
 			</div>
+			<!-- Export Button -->
+			{#if onExport}
+				<Button variant="outline" onclick={onExport} disabled={loading}>
+					<span class="material-symbols-rounded text-lg!">download</span>
+					Exportar
+				</Button>
+			{/if}
 			<!-- Add Button -->
 			{#if showAddButton && onCreate}
 				<Button onclick={onCreate}>

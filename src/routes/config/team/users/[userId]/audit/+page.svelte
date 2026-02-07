@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
@@ -6,7 +7,10 @@
 	import AuditLogDialog from '$lib/components/AuditLogDialog.svelte';
 	import { fetchUserAuditLogs, type AuditLogWithEntry } from '$lib/api/audit-logs';
 	import { type TimeEntry } from '$lib/api/time-entries';
+	import { fetchUsers } from '$lib/api/users';
+	import { auth } from '$lib/stores/auth';
 	import { formatMonthYear } from '$lib/utils';
+	import { exportAuditLogsToXlsx } from '$lib/export-xlsx';
 
 	// Get userId from route params
 	let userId = $derived($page.params.userId);
@@ -16,6 +20,9 @@
 	let loadingAuditLogs = $state(false);
 	let auditLogsError = $state<string | null>(null);
 	let auditMonth = $state(new Date());
+
+	// User name for export filename
+	let userName = $state('');
 
 	// Audit log sheet
 	let auditSheetOpen = $state(false);
@@ -74,10 +81,28 @@
 		auditSheetEntry = null;
 	}
 
+	function handleExportAudit() {
+		let companyName = '';
+		const unsub = auth.subscribe((s) => {
+			companyName = s.user?.companyName ?? '';
+		});
+		unsub();
+		exportAuditLogsToXlsx(auditLogs, auditMonth, userName, companyName);
+	}
+
 	// Load audit logs when month changes
 	$effect(() => {
 		if (userId) {
 			loadAuditLogs();
+		}
+	});
+
+	onMount(async () => {
+		try {
+			const users = await fetchUsers();
+			userName = users.find((u) => u.id === userId)?.name ?? '';
+		} catch {
+			/* fallback: filename will omit user name */
 		}
 	});
 </script>
@@ -88,29 +113,39 @@
 			<span class="material-symbols-rounded text-2xl!">policy</span>
 			Auditoría de cambios
 		</CardTitle>
-		<div class="flex items-center gap-1 bg-muted rounded-lg p-1">
+		<div class="flex items-center gap-2">
+			<div class="flex items-center gap-1 bg-muted rounded-lg p-1">
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-8 w-8 p-0"
+					onclick={goToAuditPreviousMonth}
+					disabled={loadingAuditLogs}
+				>
+					<span class="material-symbols-rounded text-lg!">chevron_left</span>
+					<span class="sr-only">Mes anterior</span>
+				</Button>
+				<span class="px-2 text-sm font-medium min-w-22 text-center">
+					{formatMonthYear(auditMonth)}
+				</span>
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-8 w-8 p-0"
+					onclick={goToAuditNextMonth}
+					disabled={loadingAuditLogs || isAuditCurrentMonth()}
+				>
+					<span class="material-symbols-rounded text-lg!">chevron_right</span>
+					<span class="sr-only">Mes siguiente</span>
+				</Button>
+			</div>
 			<Button
-				variant="ghost"
-				size="sm"
-				class="h-8 w-8 p-0"
-				onclick={goToAuditPreviousMonth}
+				variant="outline"
+				onclick={handleExportAudit}
 				disabled={loadingAuditLogs}
 			>
-				<span class="material-symbols-rounded text-lg!">chevron_left</span>
-				<span class="sr-only">Mes anterior</span>
-			</Button>
-			<span class="px-2 text-sm font-medium min-w-22 text-center">
-				{formatMonthYear(auditMonth)}
-			</span>
-			<Button
-				variant="ghost"
-				size="sm"
-				class="h-8 w-8 p-0"
-				onclick={goToAuditNextMonth}
-				disabled={loadingAuditLogs || isAuditCurrentMonth()}
-			>
-				<span class="material-symbols-rounded text-lg!">chevron_right</span>
-				<span class="sr-only">Mes siguiente</span>
+				<span class="material-symbols-rounded text-lg!">download</span>
+				Exportar
 			</Button>
 		</div>
 	</CardHeader>

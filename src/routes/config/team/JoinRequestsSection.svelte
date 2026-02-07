@@ -86,7 +86,7 @@
 </script>
 
 <Card class="w-full max-w-6xl mx-auto">
-	<CardHeader class="flex flex-row items-center justify-between space-y-0">
+	<CardHeader class="flex flex-wrap items-center gap-4 space-y-0">
 		<div class="flex items-center gap-4">
 			<CardTitle class="text-2xl font-semibold tracking-tight">Solicitudes de Acceso</CardTitle>
 			{#if pendingJoinRequestsCount > 0}
@@ -96,7 +96,8 @@
 				</Badge>
 			{/if}
 		</div>
-		<div class="relative">
+		<div class="hidden md:block flex-1"></div>
+		<div class="relative w-full md:w-auto">
 			<span
 				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
 				>search</span
@@ -105,7 +106,7 @@
 				type="text"
 				placeholder="Buscar por nombre o email..."
 				bind:value={searchQuery}
-				class="pl-9 mr-9"
+				class="pl-9"
 			/>
 		</div>
 	</CardHeader>

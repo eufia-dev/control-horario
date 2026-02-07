@@ -234,8 +234,8 @@
 </script>
 
 <!-- Filters (search and team) -->
-<div class="flex items-center gap-2 ml-auto -mt-12 mb-4 justify-end">
-	<div class="relative">
+<div class="flex flex-wrap items-center gap-2 -mt-12 mb-4 justify-end">
+	<div class="relative w-full md:w-auto">
 		<span
 			class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
 			>search</span
@@ -244,22 +244,24 @@
 			type="text"
 			placeholder="Buscar proyecto..."
 			bind:value={searchQuery}
-			class="pl-9 w-50 sm:w-80 bg-card"
+			class="pl-9 md:w-80 bg-card"
 		/>
 	</div>
 
 	{#if isAdmin && teams.length > 0}
-		<Select type="single" bind:value={teamFilter}>
-			<SelectTrigger class="w-[180px] bg-card">
-				{teamFilterLabel}
-			</SelectTrigger>
-			<SelectContent>
-				<SelectItem value="" label="Todos los equipos" />
-				{#each teams as team (team.id)}
-					<SelectItem value={team.id} label={team.name} />
-				{/each}
-			</SelectContent>
-		</Select>
+		<div class="w-full md:w-auto">
+			<Select type="single" bind:value={teamFilter}>
+				<SelectTrigger class="w-full md:w-[180px] bg-card">
+					{teamFilterLabel}
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="" label="Todos los equipos" />
+					{#each teams as team (team.id)}
+						<SelectItem value={team.id} label={team.name} />
+					{/each}
+				</SelectContent>
+			</Select>
+		</div>
 	{/if}
 </div>
 

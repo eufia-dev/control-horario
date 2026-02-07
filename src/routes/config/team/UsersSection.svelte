@@ -243,7 +243,7 @@
 </script>
 
 <Card class="w-full max-w-6xl mx-auto">
-	<CardHeader class="flex flex-row items-center justify-between space-y-0">
+	<CardHeader class="flex flex-wrap items-center gap-4 space-y-0">
 		{#if isTeamLeader && !isAdmin}
 			<div class="flex items-center gap-4">
 				<div class="flex items-center gap-2">
@@ -257,22 +257,23 @@
 		{:else}
 			<CardTitle class="text-2xl font-semibold tracking-tight">Usuarios</CardTitle>
 		{/if}
-		<div class="flex items-center gap-4">
-			<div class="relative">
-				<span
-					class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
-					>search</span
-				>
-				<Input
-					type="text"
-					placeholder="Buscar por nombre o email..."
-					bind:value={searchQuery}
-					class="pl-9 mr-9"
-				/>
-			</div>
-			{#if isAdmin && teams.length > 0}
+		<div class="hidden md:block flex-1"></div>
+		<div class="relative order-3 md:order-0 w-full md:w-auto">
+			<span
+				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+				>search</span
+			>
+			<Input
+				type="text"
+				placeholder="Buscar por nombre o email..."
+				bind:value={searchQuery}
+				class="pl-9"
+			/>
+		</div>
+		{#if isAdmin && teams.length > 0}
+			<div class="order-4 md:order-0 w-full md:w-auto">
 				<Select type="single" bind:value={teamFilter}>
-					<SelectTrigger class="w-[180px]">
+					<SelectTrigger class="w-full md:w-[180px]">
 						{teamFilterLabel}
 					</SelectTrigger>
 					<SelectContent>
@@ -283,19 +284,23 @@
 						{/each}
 					</SelectContent>
 				</Select>
-			{/if}
-			{#if isAdmin}
+			</div>
+		{/if}
+		{#if isAdmin}
+			<div class="order-2 md:order-0 ml-auto md:ml-0">
 				<Button onclick={handleInviteUser}>
 					<span class="material-symbols-rounded text-lg!">person_add</span>
 					Invitar usuario
 				</Button>
-			{:else if isTeamLeader && !loadingUsers && !usersError}
+			</div>
+		{:else if isTeamLeader && !loadingUsers && !usersError}
+			<div class="order-2 md:order-0 ml-auto md:ml-0">
 				<Button variant="outline" onclick={handleEditTeam}>
 					<span class="material-symbols-rounded text-lg!">edit</span>
 					Editar equipo
 				</Button>
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</CardHeader>
 	<CardContent>
 		<!-- Team leader: Add member section -->

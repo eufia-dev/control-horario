@@ -381,23 +381,25 @@
 		</Select>
 	</div>
 
-	<div class="flex items-center gap-2 ml-auto">
-		<div class="relative">
-			<span
-				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
-				>search</span
-			>
-			<Input
-				type="text"
-				placeholder="Buscar proyecto..."
-				bind:value={searchQuery}
-				class="pl-9 w-50 sm:w-80 bg-card"
-			/>
-		</div>
+	<div class="hidden md:block flex-1"></div>
 
-		{#if isAdmin && teams.length > 0}
+	<div class="relative w-full md:w-auto">
+		<span
+			class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
+			>search</span
+		>
+		<Input
+			type="text"
+			placeholder="Buscar proyecto..."
+			bind:value={searchQuery}
+			class="pl-9 md:w-80 bg-card"
+		/>
+	</div>
+
+	{#if isAdmin && teams.length > 0}
+		<div class="w-full md:w-auto">
 			<Select type="single" bind:value={teamFilter}>
-				<SelectTrigger class="w-[180px] bg-card">
+				<SelectTrigger class="w-full md:w-[180px] bg-card">
 					{teamFilterLabel}
 				</SelectTrigger>
 				<SelectContent>
@@ -407,8 +409,8 @@
 					{/each}
 				</SelectContent>
 			</Select>
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>
 
 <!-- Floating Save Bar -->
