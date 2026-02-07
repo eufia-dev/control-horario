@@ -237,7 +237,7 @@
 </script>
 
 <div class="grow bg-background px-4 py-8">
-	<div class="max-w-6xl mx-auto">
+	<div class="max-w-6xl 2xl:max-w-7xl mx-auto">
 		<Button
 			variant="ghost"
 			size="sm"

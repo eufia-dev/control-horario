@@ -242,7 +242,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-6xl mx-auto">
+<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 	<CardHeader class="flex flex-wrap items-center gap-4 space-y-0">
 		{#if isTeamLeader && !isAdmin}
 			<div class="flex items-center gap-4">

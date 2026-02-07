@@ -109,7 +109,7 @@
 	});
 </script>
 
-<Card class="w-full max-w-6xl mx-auto">
+<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 	<CardHeader class="flex flex-row items-center justify-between space-y-0 flex-wrap gap-4">
 		<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 			<span class="material-symbols-rounded text-2xl!">calendar_month</span>

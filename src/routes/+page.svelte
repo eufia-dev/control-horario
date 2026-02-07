@@ -264,7 +264,7 @@
 
 <div class="grow p-6 space-y-6">
 	{#if (isAdmin || isTeamLeader) && (absenceStats?.pending ?? 0) > 0}
-		<div class="w-full max-w-6xl mx-auto">
+		<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 			<PendingAbsencesWidget
 				pendingCount={absenceStats?.pending ?? 0}
 				loading={loadingAbsenceStats}
@@ -273,7 +273,7 @@
 	{/if}
 
 	{#if isAdmin && pendingJoinRequestsCount > 0}
-		<div class="w-full max-w-6xl mx-auto">
+		<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 			<PendingJoinRequestsWidget
 				pendingCount={pendingJoinRequestsCount}
 				loading={loadingJoinRequests}
@@ -283,7 +283,7 @@
 
 	{#if isGuest}
 		<!-- GUEST user welcome message -->
-		<Card class="w-full max-w-6xl mx-auto">
+		<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 			<CardHeader>
 				<CardTitle class="text-2xl font-semibold tracking-tight flex items-center gap-2">
 					<span class="material-symbols-rounded text-3xl!">waving_hand</span>
@@ -307,12 +307,12 @@
 		</Card>
 	{:else}
 		{#if missingDays.length > 0}
-			<div class="w-full max-w-6xl mx-auto">
+			<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 				<MissingLogsAlert {missingDays} loading={loadingCalendar} />
 			</div>
 		{/if}
 
-		<div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+		<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
 			<TimerCard
 				{projects}
 				{timeEntryTypes}
@@ -332,7 +332,7 @@
 		</div>
 
 		<!-- Time Entries Card -->
-		<Card class="w-full max-w-6xl mx-auto">
+		<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 			<CardHeader
 				class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0"
 			>

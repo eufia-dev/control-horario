@@ -167,7 +167,7 @@
 		</div>
 
 		{#if (isAdmin || isTeamLeader) && (absenceStats?.pending ?? 0) > 0}
-			<div class="w-full max-w-6xl mx-auto">
+			<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 				<PendingAbsencesWidget
 					pendingCount={absenceStats?.pending ?? 0}
 					loading={loadingAbsenceStats}
@@ -176,7 +176,7 @@
 		{/if}
 
 		{#if isAdmin && pendingJoinRequestsCount > 0}
-			<div class="w-full max-w-6xl mx-auto">
+			<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 				<PendingJoinRequestsWidget
 					pendingCount={pendingJoinRequestsCount}
 					loading={loadingJoinRequests}
@@ -185,7 +185,7 @@
 			</div>
 		{/if}
 
-		<div class="w-full max-w-6xl mx-auto">
+		<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 			<div class="flex flex-col gap-6">
 				{@render children()}
 			</div>

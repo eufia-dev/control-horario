@@ -93,13 +93,13 @@
 <div class="flex flex-col gap-6">
 	<!-- Stats Cards -->
 	{#if loading}
-		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto w-full">
+		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl 2xl:max-w-7xl mx-auto w-full">
 			{#each Array.from({ length: 5 }, (_, i) => i) as i (i)}
 				<Skeleton class="h-20 w-full rounded-lg" />
 			{/each}
 		</div>
 	{:else if stats}
-		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto w-full">
+		<div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl 2xl:max-w-7xl mx-auto w-full">
 			<button
 				type="button"
 				class="p-4 bg-yellow-500/10 rounded-lg text-center hover:bg-yellow-500/20 transition-colors relative {activeTab ===
@@ -163,7 +163,7 @@
 		</div>
 	{/if}
 
-	<Card class="w-full max-w-6xl mx-auto">
+	<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl font-semibold tracking-tight">Gestión de Ausencias</CardTitle>
 			{#if isTeamLeader}

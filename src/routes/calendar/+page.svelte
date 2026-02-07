@@ -223,7 +223,7 @@
 		</Button>
 	</div>
 
-	<Card class="w-full max-w-6xl mx-auto">
+	<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 		<CardHeader>
 			<CardTitle class="sr-only">Calendario del mes</CardTitle>
 		</CardHeader>

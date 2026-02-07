@@ -74,7 +74,7 @@
 	}
 </script>
 
-<Card class="w-full max-w-6xl mx-auto">
+<Card class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 	<CardHeader class="flex flex-wrap items-center gap-4 space-y-0">
 		<CardTitle class="text-2xl font-semibold tracking-tight">Categorías de Proyectos</CardTitle>
 		<div class="hidden md:block flex-1"></div>

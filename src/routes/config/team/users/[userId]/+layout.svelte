@@ -103,7 +103,7 @@
 		</div>
 
 		{#if userError}
-			<div class="w-full max-w-6xl mx-auto">
+			<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 				<div class="flex flex-col items-center justify-center py-12 text-destructive">
 					<span class="material-symbols-rounded text-4xl! mb-2">error</span>
 					<p>{userError}</p>
@@ -113,7 +113,7 @@
 				</div>
 			</div>
 		{:else}
-			<div class="w-full max-w-6xl mx-auto">
+			<div class="w-full max-w-6xl 2xl:max-w-7xl mx-auto">
 				<div class="flex flex-col gap-6">
 					{@render children()}
 				</div>
