@@ -123,8 +123,8 @@ export const ACTION_ICONS: Record<AuditAction, string> = {
 };
 
 /** Badge variant for each action */
-export const ACTION_VARIANTS: Record<AuditAction, 'default' | 'secondary' | 'destructive'> = {
-	CREATE: 'default',
-	UPDATE: 'secondary',
+export const ACTION_VARIANTS: Record<AuditAction, 'success' | 'warning' | 'destructive'> = {
+	CREATE: 'success',
+	UPDATE: 'warning',
 	DELETE: 'destructive'
 };
