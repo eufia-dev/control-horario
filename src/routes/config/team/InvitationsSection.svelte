@@ -111,9 +111,9 @@
 			>
 			<Input
 				type="text"
-				placeholder="Buscar por email..."
+				placeholder="Buscar por email"
 				bind:value={searchQuery}
-				class="pl-9"
+				class="pl-9 min-w-60"
 			/>
 		</div>
 		<div class="order-2 md:order-0 ml-auto md:ml-0">

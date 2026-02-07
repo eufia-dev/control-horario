@@ -137,12 +137,33 @@
 
 {#if canAccessAdmin}
 	<div class="grow flex flex-col gap-6 p-6">
-		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
-				<span class="material-symbols-rounded text-lg!">arrow_back</span>
-			</Button>
-			<span class="material-symbols-rounded text-3xl!">settings</span>
-			<h1 class="text-2xl font-semibold tracking-tight">Configuración</h1>
+		<!-- Header with title and inline tabs on lg -->
+		<div
+			class="flex flex-col gap-4 lg:relative lg:flex-row lg:items-center lg:justify-center lg:gap-0"
+		>
+			<div class="flex items-center gap-2 lg:absolute lg:left-0">
+				<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+					<span class="material-symbols-rounded text-lg!">arrow_back</span>
+				</Button>
+				<span class="material-symbols-rounded text-3xl!">settings</span>
+				<h1 class="text-2xl font-semibold tracking-tight">Configuración</h1>
+			</div>
+			<div class="overflow-x-auto">
+				<nav
+					class="bg-muted text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-[3px]"
+				>
+					{#each visibleTabs as tab (tab.value)}
+						<a
+							href={resolve(`/config/${tab.value}`)}
+							data-state={isActiveTab(tab.value) ? 'active' : 'inactive'}
+							class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2 py-1 text-sm font-medium transition-[color,box-shadow] focus-visible:outline-1 focus-visible:ring-[3px] data-[state=active]:shadow-sm"
+						>
+							<span class="material-symbols-rounded text-lg!">{tab.icon}</span>
+							<span>{tab.label}</span>
+						</a>
+					{/each}
+				</nav>
+			</div>
 		</div>
 
 		{#if (isAdmin || isTeamLeader) && (absenceStats?.pending ?? 0) > 0}
@@ -165,24 +186,6 @@
 		{/if}
 
 		<div class="w-full max-w-6xl mx-auto">
-			<div class="mb-4 overflow-x-auto">
-				<!-- Using the same styles as shadcn TabsList and TabsTrigger -->
-				<nav
-					class="bg-muted text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-[3px]"
-				>
-					{#each visibleTabs as tab (tab.value)}
-						<a
-							href={resolve(`/config/${tab.value}`)}
-							data-state={isActiveTab(tab.value) ? 'active' : 'inactive'}
-							class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2 py-1 text-sm font-medium transition-[color,box-shadow] focus-visible:outline-1 focus-visible:ring-[3px] data-[state=active]:shadow-sm"
-						>
-							<span class="material-symbols-rounded text-lg!">{tab.icon}</span>
-							<span>{tab.label}</span>
-						</a>
-					{/each}
-				</nav>
-			</div>
-
 			<div class="flex flex-col gap-6">
 				{@render children()}
 			</div>

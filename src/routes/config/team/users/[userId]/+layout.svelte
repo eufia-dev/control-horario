@@ -4,7 +4,6 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { canAccessAdmin as canAccessAdminStore } from '$lib/stores/auth';
 	import { fetchUsers, type User } from '$lib/api/users';
@@ -63,38 +62,28 @@
 </script>
 
 {#if canAccessAdmin}
-	<div class="grow flex flex-col gap-6 py-4">
-		<!-- Header -->
-		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/config/team'))}>
-				<span class="material-symbols-rounded text-lg!">arrow_back</span>
-			</Button>
-			<span class="material-symbols-rounded text-3xl!">person</span>
-			{#if loadingUser}
-				<Skeleton class="h-8 w-48" />
-			{:else if user}
-				<h1 class="text-2xl font-semibold tracking-tight">{user.name}</h1>
-				<Badge variant="secondary" class="ml-2">{user.email}</Badge>
-			{:else}
-				<h1 class="text-2xl font-semibold tracking-tight text-destructive">
-					Usuario no encontrado
-				</h1>
-			{/if}
-		</div>
-
-		{#if userError}
-			<div class="w-full max-w-6xl mx-auto">
-				<div class="flex flex-col items-center justify-center py-12 text-destructive">
-					<span class="material-symbols-rounded text-4xl! mb-2">error</span>
-					<p>{userError}</p>
-					<Button variant="outline" class="mt-4" onclick={() => goto(resolve('/config/team'))}>
-						Volver al equipo
-					</Button>
-				</div>
+	<div class="grow flex flex-col gap-6">
+		<!-- Header with title and inline tabs on lg -->
+		<div
+			class="flex flex-col gap-4 lg:relative lg:flex-row lg:items-center lg:justify-center lg:gap-0 lg:min-h-10"
+		>
+			<div class="flex items-center gap-2 lg:absolute lg:left-0">
+				<Button variant="ghost" size="sm" onclick={() => goto(resolve('/config/team'))}>
+					<span class="material-symbols-rounded text-lg!">arrow_back</span>
+				</Button>
+				<span class="material-symbols-rounded text-3xl!">person</span>
+				{#if loadingUser}
+					<Skeleton class="h-8 w-48" />
+				{:else if user}
+					<h1 class="text-2xl font-semibold tracking-tight">{user.name}</h1>
+				{:else}
+					<h1 class="text-2xl font-semibold tracking-tight text-destructive">
+						Usuario no encontrado
+					</h1>
+				{/if}
 			</div>
-		{:else}
-			<div class="w-full max-w-6xl mx-auto">
-				<div class="mb-4 overflow-x-auto">
+			{#if !userError}
+				<div class="overflow-x-auto">
 					<nav
 						class="bg-muted text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-[3px]"
 					>
@@ -110,7 +99,21 @@
 						{/each}
 					</nav>
 				</div>
+			{/if}
+		</div>
 
+		{#if userError}
+			<div class="w-full max-w-6xl mx-auto">
+				<div class="flex flex-col items-center justify-center py-12 text-destructive">
+					<span class="material-symbols-rounded text-4xl! mb-2">error</span>
+					<p>{userError}</p>
+					<Button variant="outline" class="mt-4" onclick={() => goto(resolve('/config/team'))}>
+						Volver al equipo
+					</Button>
+				</div>
+			</div>
+		{:else}
+			<div class="w-full max-w-6xl mx-auto">
 				<div class="flex flex-col gap-6">
 					{@render children()}
 				</div>

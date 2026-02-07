@@ -47,6 +47,27 @@
 	let onboardingStatus = $state<OnboardingStatusType | null>(null);
 	let mobileMenuOpen = $state(false);
 
+	// Scroll-direction navbar hide/show
+	let lastScrollY = $state(0);
+	let navbarHidden = $state(false);
+	const SCROLL_THRESHOLD = 10;
+
+	function handleScroll() {
+		const currentScrollY = window.scrollY;
+		if (currentScrollY < SCROLL_THRESHOLD) {
+			// Always show navbar when near the top
+			navbarHidden = false;
+		} else if (currentScrollY > lastScrollY + SCROLL_THRESHOLD) {
+			// Scrolling down – hide
+			navbarHidden = true;
+			if (mobileMenuOpen) mobileMenuOpen = false;
+		} else if (currentScrollY < lastScrollY - SCROLL_THRESHOLD) {
+			// Scrolling up – show
+			navbarHidden = false;
+		}
+		lastScrollY = currentScrollY;
+	}
+
 	let unsubAuth: (() => void) | undefined;
 	let unsubIsAuthed: (() => void) | undefined;
 	let unsubIsSignedIn: (() => void) | undefined;
@@ -282,11 +303,16 @@
 	<link rel="canonical" href="https://control-horario.eufia.eu" />
 </svelte:head>
 
+<svelte:window onscroll={handleScroll} />
+
 <Toaster richColors />
 <TooltipProvider>
 	<div class="min-h-screen flex flex-col">
 		{#if showHeader}
-			<header class="relative flex items-center justify-between px-4 py-3 border-b border-border">
+			<header
+				class="sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-background transition-transform duration-300"
+				class:navbar-hidden={navbarHidden}
+			>
 				<div class="flex items-center gap-4">
 					<a href={resolve('/')} class="flex items-center gap-2">
 						<span>Control horario</span>
@@ -537,3 +563,9 @@
 		</main>
 	</div>
 </TooltipProvider>
+
+<style>
+	:global(header.navbar-hidden) {
+		transform: translateY(-100%);
+	}
+</style>

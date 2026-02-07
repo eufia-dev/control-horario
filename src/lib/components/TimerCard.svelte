@@ -295,7 +295,7 @@
 							getItemValue={(p) => p.id}
 							getItemLabel={(p) => formatProjectLabel(p)}
 							placeholder="Seleccionar proyecto"
-							searchPlaceholder="Buscar proyecto..."
+							searchPlaceholder="Buscar proyecto"
 							emptyMessage="No se encontró ningún proyecto."
 							disabled={switchingTimer || stoppingTimer}
 						>
@@ -377,7 +377,7 @@
 							getItemValue={(p) => p.id}
 							getItemLabel={(p) => formatProjectLabel(p)}
 							placeholder="Seleccionar proyecto"
-							searchPlaceholder="Buscar proyecto..."
+							searchPlaceholder="Buscar proyecto"
 							emptyMessage="No se encontró ningún proyecto."
 							disabled={startingTimer}
 						>

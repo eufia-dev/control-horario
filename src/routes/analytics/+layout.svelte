@@ -21,19 +21,19 @@
 </script>
 
 <div class="grow flex flex-col gap-6 p-6">
-	<!-- Header -->
-	<div class="flex items-center gap-2">
-		<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
-			<span class="material-symbols-rounded text-lg!">arrow_back</span>
-		</Button>
-		<span class="material-symbols-rounded text-3xl!">analytics</span>
-		<h1 class="text-2xl font-semibold tracking-tight">Analíticas</h1>
-	</div>
-
-	<div class="w-full mx-auto px-10">
+	<!-- Header with title and inline tabs on md -->
+	<div
+		class="flex flex-col gap-4 xl:relative md:flex-row md:items-center md:justify-center md:gap-0"
+	>
+		<div class="flex items-center gap-2 md:absolute md:left-0">
+			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+				<span class="material-symbols-rounded text-lg!">arrow_back</span>
+			</Button>
+			<span class="material-symbols-rounded text-3xl!">analytics</span>
+			<h1 class="text-2xl font-semibold tracking-tight">Analíticas</h1>
+		</div>
 		{#if $hasProjectsFeature}
-			<div class="mb-6 overflow-x-auto">
-				<!-- Using the same styles as shadcn TabsList and TabsTrigger -->
+			<div class="overflow-x-auto">
 				<nav
 					class="bg-muted text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-[3px]"
 				>
@@ -50,7 +50,9 @@
 				</nav>
 			</div>
 		{/if}
+	</div>
 
+	<div class="w-full mx-auto lg:px-6">
 		<div class="flex flex-col gap-6">
 			{@render children()}
 		</div>

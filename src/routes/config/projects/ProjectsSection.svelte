@@ -156,7 +156,7 @@
 			>
 			<Input
 				type="text"
-				placeholder="Buscar por código o nombre..."
+				placeholder="Buscar por código o nombre"
 				bind:value={searchQuery}
 				class="pl-9"
 			/>

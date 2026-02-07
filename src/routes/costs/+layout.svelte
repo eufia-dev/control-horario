@@ -31,17 +31,18 @@
 
 {#if canAccessCosts}
 	<div class="grow flex flex-col gap-6 p-6">
-		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
-				<span class="material-symbols-rounded text-lg!">arrow_back</span>
-			</Button>
-			<span class="material-symbols-rounded text-3xl!">account_balance</span>
-			<h1 class="text-2xl font-semibold tracking-tight">Costes</h1>
-		</div>
-
-		<div class="w-full mx-auto px-10">
-			<div class="mb-4 overflow-x-auto">
-				<!-- Using the same styles as shadcn TabsList and TabsTrigger -->
+		<!-- Header with title and inline tabs on md -->
+		<div
+			class="flex flex-col gap-4 md:relative md:flex-row md:items-center md:justify-center md:gap-0"
+		>
+			<div class="flex items-center gap-2 md:absolute md:left-0">
+				<Button variant="ghost" size="sm" onclick={() => goto(resolve('/'))}>
+					<span class="material-symbols-rounded text-lg!">arrow_back</span>
+				</Button>
+				<span class="material-symbols-rounded text-3xl!">account_balance</span>
+				<h1 class="text-2xl font-semibold tracking-tight">Costes</h1>
+			</div>
+			<div class="overflow-x-auto">
 				<nav
 					class="bg-muted text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-[3px]"
 				>
@@ -57,7 +58,9 @@
 					{/each}
 				</nav>
 			</div>
+		</div>
 
+		<div class="w-full mx-auto px-10">
 			<div class="flex flex-col gap-4">
 				{@render children()}
 			</div>

@@ -311,7 +311,7 @@
 							>
 							<Input
 								type="text"
-								placeholder="Buscar usuario..."
+								placeholder="Buscar usuario"
 								bind:value={leaderSearch}
 								class="pl-9 h-9"
 								disabled={submitting}
@@ -366,7 +366,7 @@
 							>
 							<Input
 								type="text"
-								placeholder="Buscar usuario..."
+								placeholder="Buscar usuario"
 								bind:value={memberSearch}
 								class="pl-9 h-9"
 								disabled={submitting}

@@ -390,7 +390,7 @@
 		>
 		<Input
 			type="text"
-			placeholder="Buscar proyecto..."
+			placeholder="Buscar proyecto"
 			bind:value={searchQuery}
 			class="pl-9 md:w-80 bg-card"
 		/>

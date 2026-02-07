@@ -278,7 +278,7 @@
 							getItemValue={(user) => user.id}
 							getItemLabel={(user) => user.name}
 							placeholder="Seleccionar usuario"
-							searchPlaceholder="Buscar usuario..."
+							searchPlaceholder="Buscar usuario"
 							emptyMessage="No se encontraron usuarios."
 							disabled={loadingUsers || loadingUserSchedule}
 							class="w-full max-w-xs"

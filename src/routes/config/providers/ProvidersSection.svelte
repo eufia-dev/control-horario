@@ -90,9 +90,9 @@
 			>
 			<Input
 				type="text"
-				placeholder="Buscar por nombre, CIF, tipo..."
+				placeholder="Buscar por nombre, CIF o tipo"
 				bind:value={searchQuery}
-				class="pl-9"
+				class="pl-9 min-w-64"
 			/>
 		</div>
 		<div class="order-2 md:order-0 ml-auto md:ml-0">

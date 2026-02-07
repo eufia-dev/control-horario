@@ -270,7 +270,7 @@
 						getItemValue={(w) => w.id}
 						getItemLabel={(w) => w.name}
 						placeholder="Seleccionar..."
-						searchPlaceholder="Buscar trabajador..."
+						searchPlaceholder="Buscar trabajador"
 						emptyMessage="No se encontraron trabajadores."
 						class="w-[180px] h-8 text-sm"
 					>

@@ -197,7 +197,7 @@
 							getItemValue={(user) => user.id}
 							getItemLabel={(user) => user.name}
 							placeholder="Seleccionar miembro del equipo"
-							searchPlaceholder="Buscar miembro..."
+							searchPlaceholder="Buscar miembro"
 							emptyMessage="No se encontraron miembros en tu equipo."
 							disabled={loadingUsers || loadingUserSchedule}
 							class="w-full max-w-xs"

@@ -104,9 +104,9 @@
 			>
 			<Input
 				type="text"
-				placeholder="Buscar por nombre o email..."
+				placeholder="Buscar por nombre o email"
 				bind:value={searchQuery}
-				class="pl-9"
+				class="pl-9 min-w-60"
 			/>
 		</div>
 	</CardHeader>

@@ -97,7 +97,11 @@ export function exportTimeEntriesToXlsx(
 		'Hora inicio': fmtTime(e.startTime),
 		'Hora fin': fmtTime(e.endTime),
 		Duración: fmtDuration(e.durationMinutes),
-		Tipo: e.timeEntryType?.name ?? typeMap.get(e.entryType) ?? ENTRY_TYPE_LABELS[e.entryType] ?? e.entryType,
+		Tipo:
+			e.timeEntryType?.name ??
+			typeMap.get(e.entryType) ??
+			ENTRY_TYPE_LABELS[e.entryType] ??
+			e.entryType,
 		Proyecto: e.project?.name ?? '',
 		Ubicación: e.isInOffice ? 'Oficina' : 'Remoto',
 		Origen: e.source ? (SOURCE_LABELS[e.source] ?? e.source) : '',

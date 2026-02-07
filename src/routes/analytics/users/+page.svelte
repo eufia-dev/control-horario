@@ -205,7 +205,7 @@
 			>
 			<Input
 				type="text"
-				placeholder="Buscar empleado..."
+				placeholder="Buscar empleado"
 				bind:value={searchQuery}
 				class="pl-9 md:w-[180px]"
 			/>

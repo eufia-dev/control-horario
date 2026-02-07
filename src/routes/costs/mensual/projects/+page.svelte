@@ -234,7 +234,7 @@
 </script>
 
 <!-- Filters (search and team) -->
-<div class="flex flex-wrap items-center gap-2 -mt-12 mb-4 justify-end">
+<div class="flex flex-wrap items-center gap-2 lg:ml-120 mt-2 lg:-mt-12 lg:justify-end">
 	<div class="relative w-full md:w-auto">
 		<span
 			class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
@@ -242,7 +242,7 @@
 		>
 		<Input
 			type="text"
-			placeholder="Buscar proyecto..."
+			placeholder="Buscar proyecto"
 			bind:value={searchQuery}
 			class="pl-9 md:w-80 bg-card"
 		/>

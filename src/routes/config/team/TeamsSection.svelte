@@ -92,12 +92,7 @@
 				class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg!"
 				>search</span
 			>
-			<Input
-				type="text"
-				placeholder="Buscar por nombre..."
-				bind:value={searchQuery}
-				class="pl-9"
-			/>
+			<Input type="text" placeholder="Buscar por nombre" bind:value={searchQuery} class="pl-9" />
 		</div>
 		<div class="order-2 md:order-0 ml-auto md:ml-0">
 			<Button onclick={handleCreateTeam}>

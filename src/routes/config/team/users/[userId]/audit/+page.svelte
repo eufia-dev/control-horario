@@ -139,11 +139,7 @@
 					<span class="sr-only">Mes siguiente</span>
 				</Button>
 			</div>
-			<Button
-				variant="outline"
-				onclick={handleExportAudit}
-				disabled={loadingAuditLogs}
-			>
+			<Button variant="outline" onclick={handleExportAudit} disabled={loadingAuditLogs}>
 				<span class="material-symbols-rounded text-lg!">download</span>
 				Exportar
 			</Button>

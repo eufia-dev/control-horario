@@ -249,7 +249,7 @@
 						getItemValue={(p) => p.id}
 						getItemLabel={(p) => `${p.code} - ${p.name}`}
 						placeholder="Seleccionar..."
-						searchPlaceholder="Buscar proyecto..."
+						searchPlaceholder="Buscar proyecto"
 						emptyMessage="No se encontraron proyectos."
 						class="w-[180px] h-8 text-sm"
 					>
