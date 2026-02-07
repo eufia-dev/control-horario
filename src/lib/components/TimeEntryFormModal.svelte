@@ -21,14 +21,10 @@
 	// Max date is today (no future entries allowed)
 	const maxDate = today(getLocalTimeZone());
 	import {
-		createTimeEntry,
-		updateTimeEntry,
-		deleteTimeEntry,
+		saveDayEntries,
 		fetchTimeEntriesByDate,
 		type TimeEntry,
-		type TimeEntryType,
-		type CreateTimeEntryDto,
-		type UpdateTimeEntryDto
+		type TimeEntryType
 	} from '$lib/api/time-entries';
 	import type { Project } from '$lib/api/projects';
 	import {
@@ -595,32 +591,21 @@
 		try {
 			const baseDateStr = dateValueToString(baseDate);
 
-			// Find entries to delete (original entries that are no longer in segments)
-			const currentEntryIds = new Set(
-				segments.filter((s) => s.originalEntryId).map((s) => s.originalEntryId!)
-			);
-			const entriesToDelete = [...originalEntryIds].filter((id) => !currentEntryIds.has(id));
-
-			// Delete removed entries
-			for (const entryId of entriesToDelete) {
-				await deleteTimeEntry(entryId);
-			}
-
-			// Process all segments (update existing, create new)
-			for (const seg of segments) {
+			// Build segments payload for the batch save endpoint
+			const payloadSegments = segments.map((seg) => {
 				// Preserve original timestamps when times haven't been modified
 				// This maintains second-level precision for timer entries
 				let startTimeIso: string;
 				let endTimeIso: string;
 
 				if (seg.originalStartTime && formatTimeForInput(seg.originalStartTime) === seg.startTime) {
-					startTimeIso = seg.originalStartTime; // Preserve original precision
+					startTimeIso = seg.originalStartTime;
 				} else {
 					startTimeIso = new Date(`${baseDateStr}T${seg.startTime}`).toISOString();
 				}
 
 				if (seg.originalEndTime && formatTimeForInput(seg.originalEndTime) === seg.endTime) {
-					endTimeIso = seg.originalEndTime; // Preserve original precision
+					endTimeIso = seg.originalEndTime;
 				} else {
 					endTimeIso = new Date(`${baseDateStr}T${seg.endTime}`).toISOString();
 				}
@@ -628,31 +613,23 @@
 				const segDuration = getSegmentDuration(seg);
 				const segIsWorkType = isSegmentWorkType(seg);
 
-				if (seg.originalEntryId) {
-					// Update existing entry
-					const data: UpdateTimeEntryDto = {
-						projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
-						entryType: seg.entryType!,
-						startTime: startTimeIso,
-						endTime: endTimeIso,
-						durationMinutes: segDuration,
-						isInOffice: seg.isInOffice
-					};
-					await updateTimeEntry(seg.originalEntryId, data);
-				} else {
-					// Create new entry
-					const data: CreateTimeEntryDto = {
-						projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
-						entryType: seg.entryType!,
-						startTime: startTimeIso,
-						endTime: endTimeIso,
-						durationMinutes: segDuration,
-						isInOffice: seg.isInOffice,
-						source: 'WEB'
-					};
-					await createTimeEntry(data);
-				}
-			}
+				return {
+					id: seg.originalEntryId, // present = update, absent = create
+					entryType: seg.entryType!,
+					projectId: segIsWorkType && hasProjects ? seg.projectId : undefined,
+					startTime: startTimeIso,
+					endTime: endTimeIso,
+					durationMinutes: segDuration,
+					isInOffice: seg.isInOffice
+				};
+			});
+
+			// Single atomic request: the backend handles creates, updates, and deletes
+			// in a transaction based on the full desired state for this day
+			await saveDayEntries({
+				date: baseDateStr,
+				segments: payloadSegments
+			});
 
 			submitting = false;
 			success = true;

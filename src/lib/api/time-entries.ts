@@ -116,6 +116,22 @@ export type SwitchTimerResponse = {
 	activeTimer: ActiveTimer;
 };
 
+export type SaveDaySegment = {
+	id?: string;
+	entryType: string;
+	projectId?: string;
+	startTime: string;
+	endTime: string;
+	durationMinutes: number;
+	isInOffice?: boolean;
+};
+
+export type SaveDayDto = {
+	date: string;
+	segments: SaveDaySegment[];
+	reason?: string;
+};
+
 async function handleJsonResponse<T>(response: Response): Promise<T> {
 	const text = await response.text();
 
@@ -197,6 +213,17 @@ export async function deleteTimeEntry(id: string): Promise<void> {
 		method: 'DELETE'
 	});
 	await handleJsonResponse<unknown>(response);
+}
+
+export async function saveDayEntries(data: SaveDayDto): Promise<TimeEntry[]> {
+	const response = await fetchWithAuth(`${API_BASE}/time-entries/me/save-day`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(data)
+	});
+	return handleJsonResponse<TimeEntry[]>(response);
 }
 
 export async function getActiveTimer(): Promise<ActiveTimer | null> {
