@@ -406,6 +406,7 @@ export function cleanupAuthUrl(currentUrl?: URL) {
 
 	// Remove known auth-related query params but keep anything else
 	clean.searchParams.delete('code');
+	clean.searchParams.delete('token_hash');
 	clean.searchParams.delete('type');
 
 	window.history.replaceState({}, document.title, clean.pathname + clean.search + clean.hash);
@@ -439,8 +440,24 @@ export async function processAuthCallback(
 	const accessToken = hashParams.get('access_token');
 	const refreshToken = hashParams.get('refresh_token');
 	const code = searchParams.get('code');
+	const tokenHash = searchParams.get('token_hash');
 
 	try {
+		// Priority: token_hash flow first (works without code_verifier, used by mobile-initiated resets)
+		if (tokenHash && type === 'recovery') {
+			const { error } = await supabase.auth.verifyOtp({
+				token_hash: tokenHash,
+				type: 'recovery'
+			});
+
+			if (error) {
+				throw new Error('El enlace de recuperación no es válido o ha expirado.');
+			}
+
+			auth.setInitializing(false);
+			return { mode: 'passwordReset' };
+		}
+
 		if (code) {
 			let {
 				data: { session }
