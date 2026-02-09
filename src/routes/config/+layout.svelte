@@ -7,6 +7,7 @@
 		isAdmin as isAdminStore,
 		canAccessAdmin as canAccessAdminStore,
 		isTeamLeader as isTeamLeaderStore,
+		hasProjectsFeature as hasProjectsFeatureStore,
 		hasCostsFeature as hasCostsFeatureStore
 	} from '$lib/stores/auth';
 	import { Button } from '$lib/components/ui/button';
@@ -20,6 +21,7 @@
 	let isAdmin = $state(false);
 	let canAccessAdmin = $state(false);
 	let isTeamLeader = $state(false);
+	let hasProjectsFeature = $state(false);
 	let hasCostsFeature = $state(false);
 
 	let absenceStats = $state<AbsenceStats | null>(null);
@@ -77,6 +79,13 @@
 	});
 
 	$effect(() => {
+		const unsub = hasProjectsFeatureStore.subscribe((value) => {
+			hasProjectsFeature = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
 		const unsub = hasCostsFeatureStore.subscribe((value) => {
 			hasCostsFeature = value;
 		});
@@ -95,31 +104,35 @@
 		label: string;
 		icon: string;
 		adminOnly: boolean;
-		costsOnly: boolean;
+		requiresProjects: boolean;
+		requiresCosts: boolean;
 	}[] = [
-		{ value: 'company', label: 'Empresa', icon: 'business', adminOnly: true, costsOnly: false },
-		{ value: 'team', label: 'Equipo', icon: 'group', adminOnly: false, costsOnly: false },
+		{ value: 'company', label: 'Empresa', icon: 'business', adminOnly: true, requiresProjects: false, requiresCosts: false },
+		{ value: 'team', label: 'Equipo', icon: 'group', adminOnly: false, requiresProjects: false, requiresCosts: false },
 		{
 			value: 'absences',
 			label: 'Ausencias',
 			icon: 'event_available',
 			adminOnly: false,
-			costsOnly: false
+			requiresProjects: false,
+			requiresCosts: false
 		},
-		{ value: 'projects', label: 'Proyectos', icon: 'work', adminOnly: false, costsOnly: false },
+		{ value: 'projects', label: 'Proyectos', icon: 'work', adminOnly: false, requiresProjects: true, requiresCosts: false },
 		{
 			value: 'providers',
 			label: 'Proveedores',
 			icon: 'business_center',
 			adminOnly: false,
-			costsOnly: true
+			requiresProjects: true,
+			requiresCosts: true
 		}
 	];
 
 	const visibleTabs = $derived(
 		tabs.filter((tab) => {
 			if (tab.adminOnly && !isAdmin) return false;
-			if (tab.costsOnly && !hasCostsFeature) return false;
+			if (tab.requiresProjects && !hasProjectsFeature) return false;
+			if (tab.requiresCosts && !(hasProjectsFeature && hasCostsFeature)) return false;
 			return true;
 		})
 	);
