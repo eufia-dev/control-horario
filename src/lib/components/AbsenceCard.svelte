@@ -40,7 +40,7 @@
 	}
 
 	const canCancel = $derived(
-		onCancel !== undefined && absence.status !== 'CANCELLED' && absence.status !== 'REJECTED'
+		onCancel !== undefined && absence.status !== 'CANCELLED' && absence.status !== 'REJECTED' && absence.status !== 'PENDING'
 	);
 </script>
 
