@@ -34,7 +34,7 @@
 
 		for (const log of auditLogs) {
 			const date = new Date(log.timestamp);
-			const dateKey = date.toISOString().split('T')[0];
+			const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 			if (!groups[dateKey]) {
 				groups[dateKey] = {
