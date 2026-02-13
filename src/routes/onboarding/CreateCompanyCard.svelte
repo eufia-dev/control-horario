@@ -11,6 +11,7 @@
 		isPostalCodeConsistentWithProvince
 	} from '$lib/data/spain-locations';
 	import { auth } from '$lib/stores/auth';
+	import { loadAndSetProfiles } from '$lib/auth';
 	import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError, FieldDescription } from '$lib/components/ui/field';
@@ -205,6 +206,11 @@
 
 			if (result.status === 'ACTIVE' && result.user) {
 				auth.setUser(result.user);
+				try {
+					await loadAndSetProfiles();
+				} catch {
+					// Continue even if profiles fail - user can still proceed with default context
+				}
 				onSuccess?.();
 			} else {
 				errorMessage = 'Error inesperado al crear la empresa';
