@@ -297,9 +297,7 @@
 								Comentarios en registros
 							</Label>
 							<p class="text-xs text-muted-foreground mt-1">
-								Permite a los empleados adjuntar comentarios de texto libre a sus registros
-								horarios.
-								
+								Permite a los empleados adjuntar comentarios a sus registros.\n\n								
 								Solo se recomienda activar si es necesario para el seguimiento de tareas o proyectos.
 								En caso contrario, se recomienda desactivar para mantener el registro de horas lo más claro y sencillo posible.
 							</p>
