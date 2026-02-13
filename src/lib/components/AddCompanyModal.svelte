@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
 	import { auth, type Profile } from '$lib/stores/auth';
 	import { setActiveProfileId, loadAndSetProfiles } from '$lib/auth';
 	import {
@@ -190,7 +191,10 @@
 		searchTimeout = setTimeout(async () => {
 			isSearching = true;
 			try {
-				searchResults = await searchCompanies(value.trim());
+				const results = await searchCompanies(value.trim());
+				// Filter out companies the user is already a member of
+				const currentCompanyIds = new Set(get(auth).profiles.map((p) => p.company.id));
+				searchResults = results.filter((c) => !currentCompanyIds.has(c.id));
 			} catch (error) {
 				searchError = error instanceof Error ? error.message : 'Error al buscar empresas';
 				searchResults = [];

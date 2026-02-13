@@ -13,6 +13,7 @@
 		error?: string | null;
 		selectedMonth: Date;
 		hasProjects?: boolean;
+		hasComments?: boolean;
 		showSourceColumn?: boolean;
 		showStatusColumn?: boolean;
 		showActions?: boolean;
@@ -37,6 +38,7 @@
 		error = null,
 		selectedMonth,
 		hasProjects = false,
+		hasComments = false,
 		showSourceColumn = false,
 		showStatusColumn = false,
 		showActions = true,
@@ -118,6 +120,7 @@
 			{loading}
 			{error}
 			{hasProjects}
+			{hasComments}
 			{showSourceColumn}
 			{showStatusColumn}
 			{showActions}

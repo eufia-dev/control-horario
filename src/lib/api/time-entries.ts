@@ -22,6 +22,7 @@ export type TimeEntry = {
 	source?: string;
 	isManual?: boolean;
 	isModified?: boolean;
+	comment?: string | null;
 	user?: {
 		id: string;
 		name: string;
@@ -51,6 +52,7 @@ export type ActiveTimer = {
 	entryType: string;
 	startTime: string;
 	isInOffice: boolean;
+	comment?: string | null;
 	createdAt: string;
 	user?: {
 		id: string;
@@ -82,6 +84,7 @@ export type CreateTimeEntryDto = {
 	endTime: string;
 	durationMinutes: number;
 	isInOffice?: boolean;
+	comment?: string | null;
 	source?: EntrySource;
 };
 
@@ -92,12 +95,14 @@ export type UpdateTimeEntryDto = {
 	endTime?: string;
 	durationMinutes?: number;
 	isInOffice?: boolean;
+	comment?: string | null;
 };
 
 export type StartTimerDto = {
 	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
+	comment?: string | null;
 };
 
 export type StopTimerDto = {
@@ -108,6 +113,7 @@ export type SwitchTimerDto = {
 	projectId?: string;
 	entryType: string;
 	isInOffice?: boolean;
+	comment?: string | null;
 	source?: EntrySource;
 };
 
@@ -124,6 +130,7 @@ export type SaveDaySegment = {
 	endTime: string;
 	durationMinutes: number;
 	isInOffice?: boolean;
+	comment?: string | null;
 };
 
 export type SaveDayDto = {

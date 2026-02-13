@@ -10,11 +10,20 @@
 		type TimeEntryType
 	} from '$lib/api/time-entries';
 	import { fetchUsers } from '$lib/api/users';
-	import { auth } from '$lib/stores/auth';
+	import { auth, hasCommentsFeature as hasCommentsFeatureStore } from '$lib/stores/auth';
 	import { exportTimeEntriesToXlsx } from '$lib/export-xlsx';
 
 	// Get userId from route params
 	let userId = $derived($page.params.userId);
+
+	let hasComments = $state(false);
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
+		});
+		return unsub;
+	});
 
 	// Time entries data
 	let timeEntries = $state<TimeEntry[]>([]);
@@ -107,6 +116,7 @@
 	error={entriesError}
 	{selectedMonth}
 	hasProjects={true}
+	{hasComments}
 	showSourceColumn={true}
 	showStatusColumn={true}
 	showActions={false}

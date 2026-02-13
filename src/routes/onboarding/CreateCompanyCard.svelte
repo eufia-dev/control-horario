@@ -31,6 +31,7 @@
 	let companyName = $state('');
 	let cif = $state('');
 	let hasProjectsFeature = $state(false);
+	let hasCommentsFeature = $state(false);
 
 	// Location fields - codes only for region/province
 	let selectedRegionCode = $state<string | undefined>(undefined);
@@ -198,7 +199,8 @@
 				municipalityName: selectedMunicipalityName,
 				address: address.trim(),
 				postalCode: postalCode.trim(),
-				hasProjectsFeature
+				hasProjectsFeature,
+				hasCommentsFeature
 			});
 
 			if (result.status === 'ACTIVE' && result.user) {
@@ -271,17 +273,43 @@
 					<h3 class="font-medium">Funcionalidades</h3>
 				</div>
 
-				<div class="flex items-center justify-between gap-4 p-4 rounded-lg border bg-muted/30">
-					<div class="flex-1">
-						<Label for="projects-feature" class="text-sm font-medium cursor-pointer">
-							Gestión de proyectos
-						</Label>
-						<p class="text-xs text-muted-foreground mt-1">
-							Permite asignar horas trabajadas a proyectos específicos y hacer seguimiento de costes
-							por proyecto.
-						</p>
+				<div class="space-y-3">
+					<div class="flex items-center justify-between gap-4 p-4 rounded-lg border bg-muted/30">
+						<div class="flex-1">
+							<Label for="projects-feature" class="text-sm font-medium cursor-pointer">
+								Gestión de proyectos
+							</Label>
+							<p class="text-xs text-muted-foreground mt-1">
+								Permite asignar horas trabajadas a proyectos específicos y hacer seguimiento de
+								costes por proyecto.
+							</p>
+						</div>
+						<Switch
+							id="projects-feature"
+							bind:checked={hasProjectsFeature}
+							disabled={isSubmitting}
+						/>
 					</div>
-					<Switch id="projects-feature" bind:checked={hasProjectsFeature} disabled={isSubmitting} />
+
+					<div class="flex items-center justify-between gap-4 p-4 rounded-lg border bg-muted/30">
+						<div class="flex-1">
+							<Label for="comments-feature" class="text-sm font-medium cursor-pointer">
+								Comentarios en registros
+							</Label>
+							<p class="text-xs text-muted-foreground mt-1">
+								Permite a los empleados adjuntar comentarios de texto libre a sus registros
+								horarios.
+								
+								Solo se recomienda activar si es necesario para el seguimiento de tareas o proyectos.
+								En caso contrario, se recomienda desactivar para mantener el registro de horas lo más claro y sencillo posible.
+							</p>
+						</div>
+						<Switch
+							id="comments-feature"
+							bind:checked={hasCommentsFeature}
+							disabled={isSubmitting}
+						/>
+					</div>
 				</div>
 			</div>
 

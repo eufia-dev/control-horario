@@ -63,6 +63,7 @@ export type CreateCompanyDto = {
 	postalCode: string;
 	// Feature flags
 	hasProjectsFeature?: boolean;
+	hasCommentsFeature?: boolean;
 };
 
 export type RequestJoinDto = {

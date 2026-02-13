@@ -17,7 +17,9 @@
 		type ActiveTimer,
 		type TimeEntryType
 	} from '$lib/api/time-entries';
+	import { Input } from '$lib/components/ui/input';
 	import type { Project } from '$lib/api/projects';
+	import { hasCommentsFeature as hasCommentsFeatureStore } from '$lib/stores/auth';
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -49,11 +51,22 @@
 	let selectedProjectId = $state<string | undefined>(undefined);
 	let selectedEntryType = $state<string | undefined>(undefined);
 	let isInOffice = $state(true);
+	let comment = $state('');
 	let startingTimer = $state(false);
 	let stoppingTimer = $state(false);
 
 	let switchProjectId = $state<string | undefined>(undefined);
+	let switchComment = $state('');
 	let switchingTimer = $state(false);
+
+	let hasComments = $state(false);
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
+		});
+		return unsub;
+	});
 
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -168,7 +181,8 @@
 			activeTimer = await startTimer({
 				projectId: isWorkType && hasProjects ? selectedProjectId : undefined,
 				entryType: selectedEntryType,
-				isInOffice
+				isInOffice,
+				comment: hasComments && comment.trim() ? comment.trim() : undefined
 			});
 			startElapsedTimer();
 			onActiveTimerChange?.(true);
@@ -211,6 +225,7 @@
 				projectId: switchProjectId,
 				entryType: activeTimer.entryType,
 				isInOffice: activeTimer.isInOffice,
+				comment: hasComments && switchComment.trim() ? switchComment.trim() : undefined,
 				source: 'WEB'
 			});
 			activeTimer = result.activeTimer;
@@ -229,6 +244,7 @@
 
 	function handleCancelSwitch() {
 		switchProjectId = activeTimer?.project?.id;
+		switchComment = '';
 	}
 
 	onMount(() => {
@@ -286,6 +302,13 @@
 					</div>
 				</div>
 
+				{#if hasComments && activeTimer.comment}
+					<p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+						<span class="material-symbols-rounded text-sm! align-middle mr-1">chat</span>
+						{activeTimer.comment}
+					</p>
+				{/if}
+
 				{#if activeTimer.project}
 					<div class="space-y-2 mb-4">
 						<Label>Proyecto</Label>
@@ -306,6 +329,27 @@
 								<ProjectLabel project={item} className="flex-1 min-w-0" />
 							{/snippet}
 						</Combobox>
+					</div>
+				{/if}
+
+				{#if hasComments && hasProjectChanged}
+					<div class="grid gap-2 mb-4">
+						<Label>Comentario</Label>
+						<div class="relative">
+							<Input
+								type="text"
+								placeholder="Describe la tarea..."
+								bind:value={switchComment}
+								maxlength={500}
+								disabled={switchingTimer || stoppingTimer}
+							/>
+							{#if switchComment.length > 400}
+								<span
+									class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+									>{switchComment.length}/500</span
+								>
+							{/if}
+						</div>
 					</div>
 				{/if}
 
@@ -388,6 +432,26 @@
 								<ProjectLabel project={item} className="flex-1 min-w-0" />
 							{/snippet}
 						</Combobox>
+					</div>
+				{/if}
+				{#if hasComments}
+					<div class="grid gap-2">
+						<Label>Comentario</Label>
+						<div class="relative">
+							<Input
+								type="text"
+								placeholder="Describe la tarea..."
+								bind:value={comment}
+								maxlength={500}
+								disabled={startingTimer}
+							/>
+							{#if comment.length > 400}
+								<span
+									class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+									>{comment.length}/500</span
+								>
+							{/if}
+						</div>
 					</div>
 				{/if}
 				<div class="flex items-center justify-between flex-wrap gap-4">

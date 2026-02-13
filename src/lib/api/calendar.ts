@@ -24,6 +24,7 @@ export type TimeEntryBrief = {
 	endTime: string;
 	durationMinutes: number;
 	entryType: EntryType;
+	comment?: string | null;
 	project?: {
 		id: string;
 		name: string;

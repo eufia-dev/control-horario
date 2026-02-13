@@ -16,6 +16,7 @@
 	type Props = {
 		open: boolean;
 		day: CalendarDay | null;
+		hasComments?: boolean;
 		onClose: () => void;
 		onAddEntry?: () => void;
 		onAddAbsence?: () => void;
@@ -26,6 +27,7 @@
 	let {
 		open = $bindable(),
 		day,
+		hasComments = false,
 		onClose,
 		onAddEntry,
 		onAddAbsence,
@@ -168,20 +170,33 @@
 										? 'opacity-60 hover:opacity-80 bg-muted/30'
 										: ''}"
 								>
-									<div class="flex items-center gap-3">
-										<div class="text-sm">
-											<span class="font-medium">{formatTime(entry.startTime)}</span>
-											<span class="text-muted-foreground"> - </span>
-											<span class="font-medium">{formatTime(entry.endTime)}</span>
+									<div class="flex flex-col gap-1">
+										<div class="flex items-center gap-3">
+											<div class="text-sm">
+												<span class="font-medium">{formatTime(entry.startTime)}</span>
+												<span class="text-muted-foreground"> - </span>
+												<span class="font-medium">{formatTime(entry.endTime)}</span>
+											</div>
+											{#if isPause}
+												<Badge variant="outline" class="text-sm text-muted-foreground">
+													{ENTRY_TYPE_LABELS[entry.entryType]}
+												</Badge>
+											{:else if entry.project}
+												<Badge variant="secondary" class="text-sm">
+													<ProjectLabel project={entry.project} />
+												</Badge>
+											{/if}
 										</div>
-										{#if isPause}
-											<Badge variant="outline" class="text-sm text-muted-foreground">
-												{ENTRY_TYPE_LABELS[entry.entryType]}
-											</Badge>
-										{:else if entry.project}
-											<Badge variant="secondary" class="text-sm">
-												<ProjectLabel project={entry.project} />
-											</Badge>
+										{#if hasComments && entry.comment}
+											<p
+												class="text-xs text-muted-foreground truncate max-w-[250px]"
+												title={entry.comment}
+											>
+												<span class="material-symbols-rounded text-xs! align-middle mr-0.5"
+													>chat</span
+												>
+												{entry.comment}
+											</p>
 										{/if}
 									</div>
 									<div class="flex items-center gap-1">

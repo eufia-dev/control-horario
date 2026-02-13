@@ -10,9 +10,19 @@
 		type CalendarDay,
 		type CalendarMonthResponse
 	} from '$lib/api/calendar';
+	import { hasCommentsFeature as hasCommentsFeatureStore } from '$lib/stores/auth';
 
 	// Get userId from route params
 	let userId = $derived($page.params.userId);
+
+	let hasComments = $state(false);
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
+		});
+		return unsub;
+	});
 
 	// Calendar data
 	let calendarData = $state<CalendarMonthResponse | null>(null);
@@ -103,4 +113,9 @@
 	</CardContent>
 </Card>
 
-<CalendarDayDetail bind:open={dayDetailOpen} day={selectedDay} onClose={handleDayDetailClose} />
+<CalendarDayDetail
+	bind:open={dayDetailOpen}
+	day={selectedDay}
+	{hasComments}
+	onClose={handleDayDetailClose}
+/>

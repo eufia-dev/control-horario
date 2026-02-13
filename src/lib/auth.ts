@@ -458,6 +458,25 @@ export async function processAuthCallback(
 			return { mode: 'passwordReset' };
 		}
 
+		// token_hash flow for signup confirmation (works without code_verifier)
+		if (tokenHash && type === 'signup') {
+			const { error } = await supabase.auth.verifyOtp({
+				token_hash: tokenHash,
+				type: 'signup'
+			});
+
+			if (error) {
+				throw new Error('El enlace de confirmación no es válido o ha expirado.');
+			}
+
+			const status = await checkAndSetOnboardingStatus();
+			return {
+				mode: 'signin',
+				status,
+				nextRoute: routeForOnboardingStatus(status)
+			};
+		}
+
 		if (code) {
 			let {
 				data: { session }

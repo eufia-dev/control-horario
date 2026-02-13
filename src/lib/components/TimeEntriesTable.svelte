@@ -12,6 +12,7 @@
 		loading?: boolean;
 		error?: string | null;
 		hasProjects?: boolean;
+		hasComments?: boolean;
 		showSourceColumn?: boolean;
 		showStatusColumn?: boolean;
 		showActions?: boolean;
@@ -29,6 +30,7 @@
 		loading = false,
 		error = null,
 		hasProjects = false,
+		hasComments = false,
 		showSourceColumn = false,
 		showStatusColumn = false,
 		showActions = true,
@@ -218,11 +220,13 @@
 						{@const isPause = isPauseEntry(entry)}
 						{@const isRegularPause = isPause && entry.entryType !== 'PAUSE_COFFEE'}
 						<div
-							class="group/entry flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-2.5 transition-colors hover:bg-muted/50 {idx >
+							class="group/entry flex flex-col px-3 sm:px-4 py-2.5 sm:py-2.5 transition-colors hover:bg-muted/50 {idx >
 							0
 								? 'border-t border-border'
 								: ''} {isRegularPause ? 'opacity-60 hover:opacity-80' : ''}"
 						>
+							<!-- Main entry row -->
+							<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
 							<!-- Mobile: Top row with time + duration + actions -->
 							<div class="flex items-center gap-2 sm:contents">
 								<!-- Time range -->
@@ -369,7 +373,7 @@
 								{/if}
 							</div>
 
-							<!-- Mobile: Second row with entry type + project (if any) -->
+							<!-- Mobile: Second row with entry type + project + comment (if any) -->
 							<div
 								class="flex sm:hidden items-center gap-2 text-xs text-muted-foreground flex-wrap"
 							>
@@ -387,6 +391,17 @@
 									<ProjectLabel project={entry.project} className="text-xs max-w-[160px]" />
 								{/if}
 							</div>
+							</div>
+
+							<!-- Comment row -->
+							{#if hasComments && entry.comment}
+								<div
+									class="flex items-center gap-1.5 mt-2 pt-2 border-t border-secondary text-sm text-muted-foreground"
+								>
+									<span class="material-symbols-rounded text-sm!">comment</span>
+									<span>{entry.comment}</span>
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>

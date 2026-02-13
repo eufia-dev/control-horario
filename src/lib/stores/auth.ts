@@ -19,6 +19,7 @@ export type Profile = {
 	};
 	hasProjectsFeature: boolean;
 	hasCostsFeature: boolean;
+	hasCommentsFeature: boolean;
 };
 
 export type AuthUser = {
@@ -211,6 +212,11 @@ export const hasProjectsFeature = derived(
 export const hasCostsFeature = derived(
 	auth,
 	($auth) => $auth.activeProfile?.hasCostsFeature ?? false
+);
+
+export const hasCommentsFeature = derived(
+	auth,
+	($auth) => $auth.activeProfile?.hasCommentsFeature ?? false
 );
 
 export const canAccessCosts = derived(auth, ($auth) => {

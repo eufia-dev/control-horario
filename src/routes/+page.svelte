@@ -24,6 +24,7 @@
 		isAdmin as isAdminStore,
 		isGuest as isGuestStore,
 		isTeamLeader as isTeamLeaderStore,
+		hasCommentsFeature as hasCommentsFeatureStore,
 		activeProfile
 	} from '$lib/stores/auth';
 	import GuestBanner from '$lib/components/GuestBanner.svelte';
@@ -32,6 +33,7 @@
 	let isAdmin = $state(false);
 	let isGuest = $state(false);
 	let isTeamLeader = $state(false);
+	let hasComments = $state(false);
 	let currentProfile = $state<typeof $activeProfile>(null);
 
 	$effect(() => {
@@ -51,6 +53,13 @@
 	$effect(() => {
 		const unsub = isTeamLeaderStore.subscribe((value) => {
 			isTeamLeader = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
 		});
 		return unsub;
 	});
@@ -378,6 +387,7 @@
 					loading={loadingEntries}
 					error={entriesError}
 					{hasProjects}
+					{hasComments}
 					onEdit={handleEditEntry}
 					onDelete={handleDeleteEntry}
 					onCreate={handleCreateEntry}

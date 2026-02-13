@@ -34,6 +34,7 @@
 	} from '$lib/api/work-schedules';
 	import ProjectLabel from '$lib/components/ProjectLabel.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { hasCommentsFeature as hasCommentsFeatureStore } from '$lib/stores/auth';
 
 	type Props = {
 		open: boolean;
@@ -122,6 +123,16 @@
 		return !!(workSchedule || internalWorkSchedule);
 	}
 
+	// Feature flag for comments
+	let hasComments = $state(false);
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
+		});
+		return unsub;
+	});
+
 	// Segment type for multiple entries
 	type TimeSegment = {
 		id: string;
@@ -133,6 +144,7 @@
 		startTime: string; // HH:MM format for UI
 		endTime: string; // HH:MM format for UI
 		isInOffice: boolean;
+		comment: string | undefined;
 	};
 
 	// Unified state for both create and edit modes
@@ -279,7 +291,8 @@
 				entryType: defaultWorkType,
 				startTime: schedule.startTime,
 				endTime: hasScheduleBreak ? schedule.breakStartTime! : schedule.endTime,
-				isInOffice: true
+				isInOffice: true,
+				comment: undefined
 			};
 		} else if (useScheduleTemplate && segmentCount === 1 && hasScheduleBreak) {
 			// Second segment with break: the break itself
@@ -289,7 +302,8 @@
 				entryType: pausaComidaType?.value ?? defaultWorkType,
 				startTime: schedule.breakStartTime!,
 				endTime: schedule.breakEndTime!,
-				isInOffice: true
+				isInOffice: true,
+				comment: undefined
 			};
 		} else if (useScheduleTemplate && segmentCount === 2 && hasScheduleBreak) {
 			// Third segment with break: afternoon work (breakEnd → end)
@@ -299,7 +313,8 @@
 				entryType: defaultWorkType,
 				startTime: schedule.breakEndTime!,
 				endTime: schedule.endTime,
-				isInOffice: true
+				isInOffice: true,
+				comment: undefined
 			};
 		} else {
 			// Existing entries, no schedule, or beyond schedule pattern: continue from last segment or use defaults
@@ -337,7 +352,8 @@
 				entryType: defaultWorkType,
 				startTime,
 				endTime,
-				isInOffice: true
+				isInOffice: true,
+				comment: undefined
 			};
 		}
 
@@ -382,7 +398,8 @@
 				entryType: e.entryType,
 				startTime: formatTimeForInput(e.startTime),
 				endTime: formatTimeForInput(e.endTime),
-				isInOffice: e.isInOffice
+				isInOffice: e.isInOffice,
+				comment: e.comment ?? undefined
 			}));
 	}
 
@@ -620,7 +637,8 @@
 					startTime: startTimeIso,
 					endTime: endTimeIso,
 					durationMinutes: segDuration,
-					isInOffice: seg.isInOffice
+					isInOffice: seg.isInOffice,
+					comment: hasComments && seg.comment?.trim() ? seg.comment.trim() : undefined
 				};
 			});
 
@@ -843,6 +861,32 @@
 									</div>
 								{/if}
 							</div>
+
+							{#if hasComments}
+								<div class="grid gap-1.5 mt-3">
+									<Label class="text-xs">Comentario</Label>
+									<div class="relative">
+										<Input
+											type="text"
+											placeholder="Describe la tarea..."
+											value={segment.comment ?? ''}
+											oninput={(e) =>
+												updateSegment(segment.id, {
+													comment: e.currentTarget.value || undefined
+												})}
+											maxlength={500}
+											disabled={submitting}
+											class="h-9"
+										/>
+										{#if (segment.comment?.length ?? 0) > 400}
+											<span
+												class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+												>{segment.comment?.length}/500</span
+											>
+										{/if}
+									</div>
+								</div>
+							{/if}
 
 							<div class="mt-3 grid grid-cols-2 gap-3">
 								<div class="grid gap-1.5">

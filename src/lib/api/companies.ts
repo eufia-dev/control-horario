@@ -9,6 +9,7 @@ export type Company = {
 	name: string;
 	code: string;
 	allowUserEditSchedule: boolean;
+	hasCommentsFeature?: boolean;
 	createdAt: string;
 	updatedAt: string | null;
 };

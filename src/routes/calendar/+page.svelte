@@ -20,13 +20,24 @@
 	import { fetchProjects, type Project } from '$lib/api/projects';
 	import { fetchTimeEntryTypes, type TimeEntryType, type TimeEntry } from '$lib/api/time-entries';
 	import { fetchMyEffectiveSchedule, type WorkScheduleResponse } from '$lib/api/work-schedules';
-	import { isGuest as isGuestStore } from '$lib/stores/auth';
+	import {
+		isGuest as isGuestStore,
+		hasCommentsFeature as hasCommentsFeatureStore
+	} from '$lib/stores/auth';
 
 	let isGuest = $state(false);
+	let hasComments = $state(false);
 
 	$effect(() => {
 		const unsub = isGuestStore.subscribe((value) => {
 			isGuest = value;
+		});
+		return unsub;
+	});
+
+	$effect(() => {
+		const unsub = hasCommentsFeatureStore.subscribe((value) => {
+			hasComments = value;
 		});
 		return unsub;
 	});
@@ -152,6 +163,7 @@
 			durationMinutes: briefEntry.durationMinutes,
 			isInOffice: true,
 			createdAt: '',
+			comment: briefEntry.comment,
 			project: briefEntry.project
 		};
 	}
@@ -268,6 +280,7 @@
 <CalendarDayDetail
 	bind:open={dayDetailOpen}
 	day={selectedDay}
+	{hasComments}
 	onClose={handleDayDetailClose}
 	onAddEntry={handleAddEntry}
 	onAddAbsence={handleAddAbsence}
