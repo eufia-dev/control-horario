@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { submitContactMessage } from '$lib/api/support';
+	import { LEGAL_COMPANY } from '$lib/legal';
 	import {
 		Card,
 		CardHeader,
@@ -19,6 +20,9 @@
 	let submitting = $state(false);
 	let error = $state<string | null>(null);
 	let success = $state(false);
+
+	const supportEmail = 'support@eufia.eu';
+	const emergencyPhoneHref = `tel:${LEGAL_COMPANY.phone.replace(/\s+/g, '')}`;
 
 	async function handleSubmit() {
 		error = null;
@@ -71,7 +75,7 @@
 			<CardHeader>
 				<CardTitle>Contactar con soporte</CardTitle>
 				<CardDescription>
-					Envía un mensaje a <strong>support@eufia.eu</strong> y te responderemos lo antes posible
+					Envía un mensaje y te responderemos lo antes posible.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -141,5 +145,12 @@
 				</form>
 			</CardContent>
 		</Card>
+
+		<p class="text-xs text-muted-foreground text-center w-full">
+			Para urgencias llama al
+			<a class="underline hover:text-foreground" href={emergencyPhoneHref}>{LEGAL_COMPANY.phone}</a>
+			· También puedes escribirnos a
+			<a class="underline hover:text-foreground" href={`mailto:${supportEmail}`}>{supportEmail}</a>
+		</p>
 	</div>
 </div>

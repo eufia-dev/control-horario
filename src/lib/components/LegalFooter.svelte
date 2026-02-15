@@ -10,6 +10,11 @@
 		{ href: '/legal/dpa', label: 'DPA' }
 	] as const;
 
+	const externalLinks = [
+		{ href: LEGAL_COMPANY.website, label: 'Web EUFIA' },
+		{ href: `${LEGAL_COMPANY.website}/#conocenos`, label: 'Sobre EUFIA' }
+	] as const;
+
 	const currentYear = new Date().getFullYear();
 </script>
 
@@ -29,6 +34,16 @@
 			{#each legalLinks as link (link.href)}
 				<a
 					href={resolve(link.href)}
+					class="hover:text-foreground transition-colors underline-offset-4 hover:underline"
+				>
+					{link.label}
+				</a>
+			{/each}
+			{#each externalLinks as link (link.href)}
+				<a
+					href={link.href}
+					target="_blank"
+					rel="noopener noreferrer"
 					class="hover:text-foreground transition-colors underline-offset-4 hover:underline"
 				>
 					{link.label}
