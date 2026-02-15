@@ -14,8 +14,17 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
+	import { flushPendingLegalConsents } from '$lib/api/legal-consents';
+	import {
+		createConsentBatch,
+		LEGAL_DOCUMENTS,
+		REGISTER_INFORMATION_ACKNOWLEDGEMENTS,
+		REGISTER_REQUIRED_CONSENTS,
+		savePendingLegalConsentBatch
+	} from '$lib/legal';
 	import type { RouteId } from './$types';
 
 	let email = $state('');
@@ -27,6 +36,10 @@
 	let errorMessage = $state<string | null>(null);
 	let passwordError = $state<string | null>(null);
 	let confirmPasswordError = $state<string | null>(null);
+	let consentError = $state<string | null>(null);
+	let acceptedTerms = $state(false);
+	let acceptedPrivacy = $state(false);
+	let acknowledgedCookies = $state(false);
 
 	let emailConfirmationRequired = $state(false);
 	let registeredEmail = $state('');
@@ -57,6 +70,7 @@
 		errorMessage = null;
 		passwordError = null;
 		confirmPasswordError = null;
+		consentError = null;
 
 		const passwordValidationError = validatePassword(password);
 		if (passwordValidationError) {
@@ -69,15 +83,33 @@
 			return;
 		}
 
+		if (!acceptedTerms || !acceptedPrivacy || !acknowledgedCookies) {
+			consentError = 'Debes aceptar los documentos legales para continuar.';
+			return;
+		}
+
 		isSubmitting = true;
 
 		try {
+			savePendingLegalConsentBatch(
+				createConsentBatch('REGISTER', [
+					...REGISTER_REQUIRED_CONSENTS,
+					...REGISTER_INFORMATION_ACKNOWLEDGEMENTS
+				])
+			);
+
 			const status = await register(email, password);
 
 			if (status === 'EMAIL_CONFIRMATION_REQUIRED') {
 				registeredEmail = email;
 				emailConfirmationRequired = true;
 				return;
+			}
+
+			try {
+				await flushPendingLegalConsents();
+			} catch (error) {
+				console.warn('[legal] No se pudieron sincronizar consentimientos tras el registro', error);
 			}
 
 			if (redirectUrl) {
@@ -285,6 +317,49 @@
 
 					{#if errorMessage}
 						<FieldError class="text-sm text-destructive">{errorMessage}</FieldError>
+					{/if}
+
+					<div class="space-y-3 rounded-lg border border-border p-4 bg-muted/20">
+						<label class="flex items-start gap-3 text-sm">
+							<Checkbox id="legal-terms" bind:checked={acceptedTerms} disabled={isSubmitting} />
+							<span>
+								Acepto los
+								<a class="underline" href={resolve(LEGAL_DOCUMENTS.TERMS.route)}>
+									{LEGAL_DOCUMENTS.TERMS.title}
+								</a>
+								({LEGAL_DOCUMENTS.TERMS.version}).
+							</span>
+						</label>
+
+						<label class="flex items-start gap-3 text-sm">
+							<Checkbox id="legal-privacy" bind:checked={acceptedPrivacy} disabled={isSubmitting} />
+							<span>
+								Acepto la
+								<a class="underline" href={resolve(LEGAL_DOCUMENTS.PRIVACY.route)}>
+									{LEGAL_DOCUMENTS.PRIVACY.title}
+								</a>
+								({LEGAL_DOCUMENTS.PRIVACY.version}).
+							</span>
+						</label>
+
+						<label class="flex items-start gap-3 text-sm">
+							<Checkbox
+								id="legal-cookies"
+								bind:checked={acknowledgedCookies}
+								disabled={isSubmitting}
+							/>
+							<span>
+								He leído la
+								<a class="underline" href={resolve(LEGAL_DOCUMENTS.COOKIES.route)}>
+									{LEGAL_DOCUMENTS.COOKIES.title}
+								</a>
+								({LEGAL_DOCUMENTS.COOKIES.version}).
+							</span>
+						</label>
+					</div>
+
+					{#if consentError}
+						<FieldError class="text-sm text-destructive">{consentError}</FieldError>
 					{/if}
 
 					<CardFooter class="flex flex-col gap-4 px-0">

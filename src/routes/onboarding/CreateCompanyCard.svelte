@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { createCompany } from '$lib/api/onboarding';
 	import { fetchMunicipalities } from '$lib/api/company-location';
 	import {
@@ -19,6 +20,9 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
+	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { queueAndTrySyncLegalConsents } from '$lib/api/legal-consents';
+	import { CREATE_COMPANY_REQUIRED_CONSENTS, LEGAL_DOCUMENTS } from '$lib/legal';
 
 	interface Props {
 		userName: string;
@@ -47,6 +51,9 @@
 
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
+	let consentError = $state<string | null>(null);
+	let acceptedTerms = $state(false);
+	let acceptedDpa = $state(false);
 
 	// Derived values
 	const availableProvinces = $derived(
@@ -85,7 +92,9 @@
 			selectedMunicipalityName &&
 			address.trim() &&
 			postalCode.trim() &&
-			!postalCodeError
+			!postalCodeError &&
+			acceptedTerms &&
+			acceptedDpa
 	);
 
 	// Load municipalities when province changes
@@ -146,6 +155,7 @@
 		if (isSubmitting) return;
 
 		errorMessage = null;
+		consentError = null;
 
 		// Validation
 		if (!companyName.trim()) {
@@ -188,6 +198,11 @@
 			return;
 		}
 
+		if (!acceptedTerms || !acceptedDpa) {
+			consentError = 'Debes aceptar Términos y DPA para crear la empresa.';
+			return;
+		}
+
 		isSubmitting = true;
 
 		try {
@@ -210,6 +225,17 @@
 					await loadAndSetProfiles();
 				} catch {
 					// Continue even if profiles fail - user can still proceed with default context
+				}
+				try {
+					await queueAndTrySyncLegalConsents(
+						'ONBOARDING_CREATE_COMPANY',
+						CREATE_COMPANY_REQUIRED_CONSENTS
+					);
+				} catch (error) {
+					console.warn(
+						'[legal] Empresa creada, pero no se pudieron sincronizar consentimientos B2B',
+						error
+					);
 				}
 				onSuccess?.();
 			} else {
@@ -305,8 +331,9 @@
 							<p class="text-xs text-muted-foreground mt-1">
 								Permite a los empleados adjuntar comentarios a sus registros.
 								<br /><br />
-								Solo se recomienda activar si es necesario para el seguimiento de tareas.
-								En caso contrario, es preferible mantenerla desactivada para que el control horario sea más claro y sencillo de usar.
+								Solo se recomienda activar si es necesario para el seguimiento de tareas. En caso contrario,
+								es preferible mantenerla desactivada para que el control horario sea más claro y sencillo
+								de usar.
 							</p>
 						</div>
 						<Switch
@@ -466,6 +493,53 @@
 						/>
 					</Field>
 				</div>
+			</div>
+
+			<div class="border-t pt-6 mt-6 space-y-3">
+				<h3 class="font-medium flex items-center gap-2">
+					<span class="material-symbols-rounded text-primary">gavel</span>
+					Documentación legal obligatoria
+				</h3>
+
+				<label class="flex items-start gap-3 text-sm p-3 rounded-lg border bg-muted/20">
+					<Checkbox
+						id="create-company-terms"
+						bind:checked={acceptedTerms}
+						disabled={isSubmitting}
+					/>
+					<span>
+						Acepto los
+						<a
+							class="underline"
+							href={resolve(LEGAL_DOCUMENTS.TERMS.route)}
+							target="_blank"
+							rel="noreferrer"
+						>
+							{LEGAL_DOCUMENTS.TERMS.title}
+						</a>
+						({LEGAL_DOCUMENTS.TERMS.version}).
+					</span>
+				</label>
+
+				<label class="flex items-start gap-3 text-sm p-3 rounded-lg border bg-muted/20">
+					<Checkbox id="create-company-dpa" bind:checked={acceptedDpa} disabled={isSubmitting} />
+					<span>
+						Acepto el
+						<a
+							class="underline"
+							href={resolve(LEGAL_DOCUMENTS.DPA.route)}
+							target="_blank"
+							rel="noreferrer"
+						>
+							{LEGAL_DOCUMENTS.DPA.title}
+						</a>
+						({LEGAL_DOCUMENTS.DPA.version}) en nombre de la empresa cliente.
+					</span>
+				</label>
+
+				{#if consentError}
+					<FieldError class="text-sm text-destructive">{consentError}</FieldError>
+				{/if}
 			</div>
 
 			{#if errorMessage}

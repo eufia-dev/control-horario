@@ -274,7 +274,7 @@
 			</div>
 		{:else if activeTimer}
 			<div class="flex flex-col">
-				<div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+				<div class="flex items-center justify-between flex-wrap gap-4 mb-2">
 					<div class="text-4xl font-mono font-bold tracking-tight">
 						{formatElapsedTime(elapsedSeconds)}
 					</div>
@@ -303,14 +303,14 @@
 				</div>
 
 				{#if hasComments && activeTimer.comment}
-					<p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+					<p class="text-sm text-muted-foreground mb-2 line-clamp-2">
 						<span class="material-symbols-rounded text-sm! align-middle mr-1">chat</span>
 						{activeTimer.comment}
 					</p>
 				{/if}
 
 				{#if activeTimer.project}
-					<div class="space-y-2 mb-4">
+					<div class="space-y-2 mt-4 mb-2">
 						<Label>Proyecto</Label>
 						<Combobox
 							items={activeProjects}
@@ -353,7 +353,7 @@
 					</div>
 				{/if}
 
-				<div class="flex gap-3 justify-between">
+				<div class="flex gap-3 justify-between mt-2">
 					<Button
 						variant="destructive"
 						onclick={handleStopTimer}

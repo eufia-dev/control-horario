@@ -30,6 +30,13 @@
 	import { TooltipProvider } from '$lib/components/ui/tooltip';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte';
+	import LegalFooter from '$lib/components/LegalFooter.svelte';
+	import {
+		checkLegalConsentStatus,
+		LEGAL_CONSENTS_UPDATED_EVENT,
+		type LegalConsentStatus
+	} from '$lib/api/legal-consents';
+	import { PUBLIC_LEGAL_ROUTES } from '$lib/legal';
 	import { stringToColor, getInitials } from '$lib/utils';
 	import type { OnboardingStatusType } from '$lib/api/onboarding';
 	import type { RouteId } from './$types';
@@ -77,8 +84,15 @@
 	let unsubCanAccessAdmin: (() => void) | undefined;
 	let unsubCanAccessCosts: (() => void) | undefined;
 	let unsubAuthChanges: { data: { subscription: { unsubscribe: () => void } } } | undefined;
+	let legalStatusCache: { userId: string; checkedAt: number; status: LegalConsentStatus } | null =
+		null;
+	let legalStatusPromise: Promise<LegalConsentStatus> | null = null;
 
-	const publicRoutes = ['/login', '/register', '/reset-password'];
+	const LEGAL_STATUS_CACHE_TTL_MS = 60_000;
+	const legalConsentRoute = '/legal/consent';
+
+	const authPublicRoutes = ['/login', '/register', '/reset-password'];
+	const publicRoutes = [...authPublicRoutes, ...PUBLIC_LEGAL_ROUTES];
 
 	const onboardingRoutes = ['/onboarding', '/onboarding/join', '/onboarding/status'];
 
@@ -110,6 +124,70 @@
 		return pathname.startsWith(authCallbackPrefix);
 	}
 
+	function isLegalConsentRoute(pathname: string): boolean {
+		return pathname === legalConsentRoute;
+	}
+
+	function resetLegalConsentCache() {
+		legalStatusCache = null;
+		legalStatusPromise = null;
+	}
+
+	async function getLegalConsentStatus(force = false): Promise<LegalConsentStatus | null> {
+		if (!user?.id) return null;
+		const now = Date.now();
+		if (
+			!force &&
+			legalStatusCache &&
+			legalStatusCache.userId === user.id &&
+			now - legalStatusCache.checkedAt < LEGAL_STATUS_CACHE_TTL_MS
+		) {
+			return legalStatusCache.status;
+		}
+
+		if (legalStatusPromise) {
+			return legalStatusPromise;
+		}
+
+		const userId = user.id;
+		legalStatusPromise = checkLegalConsentStatus()
+			.then((status) => {
+				legalStatusCache = { userId, checkedAt: Date.now(), status };
+				return status;
+			})
+			.finally(() => {
+				legalStatusPromise = null;
+			});
+
+		return legalStatusPromise;
+	}
+
+	async function enforceLegalConsent(pathname: string) {
+		if (typeof window === 'undefined') return;
+		if (!isAuthed || onboardingStatus !== 'ACTIVE' || !user) return;
+
+		if (
+			isPublicRoute(pathname) ||
+			isOnboardingRoute(pathname) ||
+			isInviteRoute(pathname) ||
+			isAuthCallbackRoute(pathname)
+		) {
+			return;
+		}
+
+		const status = await getLegalConsentStatus();
+		if (!status || !status.canEvaluate) return;
+
+		if (!status.isCompliant && !isLegalConsentRoute(pathname)) {
+			await goto(resolve(legalConsentRoute));
+			return;
+		}
+
+		if (status.isCompliant && isLegalConsentRoute(pathname)) {
+			await goto(resolve('/'));
+		}
+	}
+
 	function runGuards(pathname: string) {
 		if (typeof window === 'undefined') return;
 
@@ -136,7 +214,9 @@
 		}
 
 		if (isPublicRoute(pathname)) {
-			goto(resolve(onboardingRedirect));
+			if (authPublicRoutes.includes(pathname)) {
+				goto(resolve(onboardingRedirect));
+			}
 			return;
 		}
 
@@ -166,10 +246,20 @@
 			goto(resolve('/'));
 			return;
 		}
+
+		void enforceLegalConsent(pathname);
 	}
 
 	onMount(() => {
+		const handleLegalConsentsUpdated = () => {
+			resetLegalConsentCache();
+			void runGuards(window.location.pathname);
+		};
+
 		unsubAuth = auth.subscribe((state) => {
+			if ((user?.id ?? null) !== (state.user?.id ?? null)) {
+				resetLegalConsentCache();
+			}
 			isInitializing = state.isInitializing;
 			user = state.user;
 			onboardingStatus = state.onboardingStatus;
@@ -208,6 +298,7 @@
 		unsubAuthChanges = subscribeToAuthChanges();
 
 		initAuthSyncChannel();
+		window.addEventListener(LEGAL_CONSENTS_UPDATED_EVENT, handleLegalConsentsUpdated);
 
 		const handleVisibilityChange = async () => {
 			if (
@@ -246,6 +337,7 @@
 			unsubCanAccessCosts?.();
 			unsubAuthChanges?.data.subscription.unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener(LEGAL_CONSENTS_UPDATED_EVENT, handleLegalConsentsUpdated);
 		};
 	});
 
@@ -259,6 +351,7 @@
 		unsubCanAccessAdmin?.();
 		unsubCanAccessCosts?.();
 		unsubAuthChanges?.data.subscription.unsubscribe();
+		resetLegalConsentCache();
 	});
 
 	const handleLogout = async () => {
@@ -561,6 +654,7 @@
 				{@render children()}
 			{/if}
 		</main>
+		<LegalFooter />
 	</div>
 </TooltipProvider>
 

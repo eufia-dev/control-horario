@@ -4,7 +4,16 @@ export const GET: RequestHandler = async () => {
 	const site = 'https://control-horario.eufia.eu';
 
 	// Only include public pages (most pages require authentication)
-	const pages = ['', '/login', '/register'];
+	const pages = [
+		'',
+		'/login',
+		'/register',
+		'/legal/privacy',
+		'/legal/cookies',
+		'/legal/terms',
+		'/legal/aviso-legal',
+		'/legal/dpa'
+	];
 
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

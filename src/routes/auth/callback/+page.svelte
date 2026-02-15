@@ -22,6 +22,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Field, FieldLabel, FieldError } from '$lib/components/ui/field';
 	import { InputGroup, InputGroupInput, InputGroupButton } from '$lib/components/ui/input-group';
+	import { flushPendingLegalConsents } from '$lib/api/legal-consents';
 	import type { RouteId } from './$types';
 
 	let isLoading = $state(true);
@@ -53,6 +54,14 @@
 		}
 
 		if (result.mode === 'signin' && result.nextRoute) {
+			try {
+				await flushPendingLegalConsents();
+			} catch (error) {
+				console.warn(
+					'[legal] No se pudieron sincronizar consentimientos tras callback auth',
+					error
+				);
+			}
 			auth.setInitializing(false);
 			isLoading = false;
 			await goto(resolve(result.nextRoute as RouteId), { replaceState: true });
